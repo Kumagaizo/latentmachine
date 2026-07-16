@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--@partial:head-commons-->
+    <title>Latentmachine | Verify AI Data Transformations</title>
+    <meta name="description" content="Did the AI get every row right? Latentmachine checks AI data transformations for consistency, infers deterministic rules from examples, and flags the rows that broke the pattern. No LLM. Runs in your browser." />
+    <link rel="canonical" href="https://latentmachine.com/" />
+    <meta property="og:title" content="Latentmachine | Verify AI Data Transformations" />
+    <meta property="og:description" content="Check whether the AI got every row right. Deterministic verification for AI-generated data transformations." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://latentmachine.com/" />
+    <meta name="twitter:title" content="Latentmachine | Verify AI Data Transformations" />
+    <meta name="twitter:description" content="Paste original records and AI output. Latentmachine checks every row for consistency. No LLM. Browser-based." />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Latentmachine",
+        "url": "https://latentmachine.com/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web browser",
+        "description": "A browser-based toolkit that verifies AI data transformations, infers deterministic rules, and profiles structured datasets for actionable insights.",
+        "featureList": [
+          "Verify whether AI-transformed rows follow one deterministic rule",
+          "Infer data transformation rules from before-and-after examples",
+          "Profile structured datasets and surface evidence-linked findings",
+          "Support JSON, XML, CSV, TOML, YAML, .env, and SQL INSERT data",
+          "Export transformed results and reusable code",
+          "Run client-side in the browser"
+        ],
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "Latentmachine tools",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "item": {
+              "@type": "SoftwareApplication",
+              "name": "Verify",
+              "url": "https://latentmachine.com/verify",
+              "description": "Verify that AI-transformed records follow one consistent data transformation rule."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "item": {
+              "@type": "SoftwareApplication",
+              "name": "Infer",
+              "url": "https://latentmachine.com/infer",
+              "description": "Infer deterministic data transformation rules from structured data examples."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "item": {
+              "@type": "SoftwareApplication",
+              "name": "Regex Builder",
+              "url": "https://latentmachine.com/regex",
+              "description": "Build a regular expression from match and reject examples."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "item": {
+              "@type": "SoftwareApplication",
+              "name": "jq Builder",
+              "url": "https://latentmachine.com/jq",
+              "description": "Build jq expressions by clicking JSON values or showing the desired output shape."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "item": {
+              "@type": "SoftwareApplication",
+              "name": "Trace",
+              "url": "https://latentmachine.com/trace",
+              "description": "Profile structured data, find missing or unusual values, and compare datasets with evidence linked to the original records."
+            }
+          }
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Latentmachine",
+            "item": "https://latentmachine.com/"
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <main class="page">
+      <a href="#main-content" class="skip-link">Skip to content</a>
+      <!--@partial:nav-->
+      <div id="main-content">
+        <article class="landing">
+          <section class="landing-hero">
+            <div class="hero-copy">
+              <p class="section-label">Latentmachine</p>
+              <h1>Verify AI Data Transformations</h1>
+              <p class="hero-sub">AI transforms data fast. Latentmachine tells you if it got every row right. A deterministic engine that checks consistency, infers rules from examples, and refuses when the evidence is missing. No LLM. Runs in your browser.</p>
+              <div class="hero-actions">
+                <a class="button is-primary" href="/verify">Check a batch →</a>
+              </div>
+            </div>
+            <div class="hero-visual" id="landing-demo" aria-hidden="true">
+              <div class="demo-window">
+                <div class="demo-bar">
+                  <span>Verify demo</span>
+                  <span class="demo-status" id="demo-status" aria-live="polite">Rule verified</span>
+                  <span>examples &rarr; rule &rarr; proof</span>
+                </div>
+                <div class="demo-grid">
+                  <div class="demo-panel">
+                    <p id="demo-input-label">original record</p>
+                    <pre id="demo-input">{
+  "first_name": "Ada",
+  "last_name": "Lovelace",
+  "role": "admin",
+  "created": "2024-03-15T10:00:00Z"
+}</pre>
+                  </div>
+                  <div class="demo-panel">
+                    <p id="demo-output-label">AI output</p>
+                    <pre id="demo-output">{
+  "fullName": "Ada Lovelace",
+  "role": "admin",
+  "joinDate": "2024-03-15"
+}</pre>
+                  </div>
+                </div>
+                <div class="demo-rule" id="demo-rule">
+                  <span>inferred rule</span>
+                  <code id="demo-rule-text">Join first_name and last_name into fullName.
+Copy role unchanged.
+Format created as joinDate.
+Every shown output follows the same rule.</code>
+                </div>
+                <div class="demo-actions">
+                  <span class="demo-hint" id="demo-hint">3 example rows checked. No drift found.</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="feature-row band--alt" id="tools">
+            <div class="feature-copy">
+              <p class="section-label">Verify</p>
+              <h2>Did the AI get every row right?</h2>
+              <p>Paste the original records and what the AI gave you back. Verify infers the majority rule, applies it across the batch, and flags every row that doesn't match.</p>
+              <div class="feature-actions">
+                <a class="button is-primary" href="/verify">Open Verify →</a>
+                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="verify-eli5">ELI5 ↓</button>
+              </div>
+              <p class="feature-eli5-text" id="verify-eli5" aria-hidden="true">Say you gave an AI 200 customer records to clean up. On most rows it did the same things: lowercased the email, split the name into two fields, turned "yes" into true. Verify reads all 200 before-and-after pairs and works out that pattern, which is the rule the AI was apparently following. Then it re-checks every row against it. Row 137 says "TRUE" instead of true? Flagged. Instead of proofreading 200 rows, you look at the 3 that broke the pattern and you can read the rule to see what the AI actually did.</p>
+            </div>
+            <div class="feature-visual" aria-hidden="true">
+              <div class="demo-window">
+                <div class="demo-bar">
+                  <span>Verify</span>
+                  <span>batch verification</span>
+                </div>
+                <div class="demo-rows">
+                  <div class="demo-row">
+                    <span class="demo-row-index">row 1</span>
+                    <code>status → active</code>
+                    <span class="demo-status">follows</span>
+                  </div>
+                  <div class="demo-row">
+                    <span class="demo-row-index">row 2</span>
+                    <code>status → active</code>
+                    <span class="demo-status">follows</span>
+                  </div>
+                  <div class="demo-row">
+                    <span class="demo-row-index">row 3</span>
+                    <code>status → active</code>
+                    <span class="demo-status">follows</span>
+                  </div>
+                  <div class="demo-row is-danger">
+                    <span class="demo-row-index">row 4</span>
+                    <code>status → archived</code>
+                    <span class="demo-status is-danger">review</span>
+                  </div>
+                  <div class="demo-row">
+                    <span class="demo-row-index">row 5</span>
+                    <code>status → active</code>
+                    <span class="demo-status">follows</span>
+                  </div>
+                </div>
+                <div class="demo-rule">
+                  <span>verdict</span>
+                  <code>majority rule held for 4 of 5 rows</code>
+                  <span class="demo-status is-danger">1 needs attention</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="feature-row feature-row--reverse">
+            <div class="feature-copy">
+              <p class="section-label">Infer</p>
+              <h2>Fix what the AI got wrong. Keep the rule.</h2>
+              <p>Show the correct transformation with one or two examples. Latentmachine infers the deterministic rule, verifies it against your evidence, and exports it as code you own. Replace the inconsistent AI step with a rule that always holds.</p>
+              <div class="feature-actions">
+                <a class="button is-primary" href="/infer">Open Infer →</a>
+                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="infer-eli5">ELI5 ↓</button>
+              </div>
+              <p class="feature-eli5-text" id="infer-eli5" aria-hidden="true">Say a webhook sends data in one shape and your database needs another. Instead of writing the conversion code, you paste one example of each: this is what arrives, this is what it should become. Infer compares the two and works out the exact steps that turn one into the other. Rename this field, join those two, turn that string into a number. It lists the steps so you can check them, says so when one example isn't enough to be certain, and hands you finished code that runs anywhere. You showed it what you meant and it wrote the function.</p>
+            </div>
+            <div class="feature-visual" aria-hidden="true">
+              <div class="demo-window">
+                <div class="demo-bar">
+                  <span>Infer</span>
+                  <span>example pair accepted</span>
+                </div>
+                <div class="demo-grid">
+                  <div class="demo-panel">
+                    <p>before</p>
+                    <pre>{
+  "id": "cus_42",
+  "first": "Ada",
+  "last": "Lovelace"
+}</pre>
+                  </div>
+                  <div class="demo-panel">
+                    <p>after</p>
+                    <pre>{
+  "customerId": "cus_42",
+  "fullName": "Ada Lovelace"
+}</pre>
+                  </div>
+                </div>
+                <div class="demo-rule">
+                  <span>inferred rule</span>
+                  <code>rename id → customerId
+join first + last → fullName
+emit owned JavaScript transform</code>
+                  <span class="demo-status">safe · exportable</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="feature-row band--alt">
+            <div class="feature-copy">
+              <p class="section-label">Regex</p>
+              <h2>Build a regex from yes and no.</h2>
+              <p>Mark strings that should match and strings that should reject. Regex returns a readable pattern verified against every example, or asks for one more when the pattern is under-proven.</p>
+              <div class="feature-actions">
+                <a class="button is-primary" href="/regex">Open Regex →</a>
+                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="regex-eli5">ELI5 ↓</button>
+              </div>
+              <p class="feature-eli5-text" id="regex-eli5" aria-hidden="true">A regex is a search pattern that describes the shape of text "two letters, a dash, then numbers" in a notation almost nobody can write from memory. Here you skip the notation. Paste examples that should match (AB-2041, XY-100) and examples that shouldn't (AB2041, ab-99). The engine works out what separates the two piles and writes the pattern for you. Then tests it against every example you gave. If your examples leave two interpretations open, it doesn't guess; it tells you and asks for one more.</p>
+            </div>
+            <div class="feature-visual" aria-hidden="true">
+              <div class="demo-window">
+                <div class="demo-bar">
+                  <span>Regex</span>
+                  <span>verified pattern</span>
+                </div>
+                <div class="demo-strip">
+                  <div>
+                    <p>match</p>
+                    <div class="demo-chip-row">
+                      <span class="demo-chip is-safe">555-1234</span>
+                      <span class="demo-chip is-safe">555-9988</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p>reject</p>
+                    <div class="demo-chip-row">
+                      <span class="demo-chip is-danger">phone</span>
+                      <span class="demo-chip is-danger">555-12</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="demo-rule">
+                  <span>pattern</span>
+                  <code>^\d{3}-\d{4}$</code>
+                  <span class="demo-status">matches every yes · rejects every no</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="feature-row feature-row--reverse">
+            <div class="feature-copy">
+              <p class="section-label">jq</p>
+              <h2>Select the JSON you want. Keep the jq that finds it.</h2>
+              <p>Click the values you want, or show the shape you need. jq Builder writes the expression, guaranteed to return exactly that, and explains it in plain English.</p>
+              <div class="feature-actions">
+                <a class="button is-primary" href="/jq">Open jq →</a>
+                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="jq-eli5">ELI5 ↓</button>
+              </div>
+              <p class="feature-eli5-text" id="jq-eli5" aria-hidden="true">jq is a small language for pulling values out of JSON, the format most APIs speak. Powerful, but the syntax is its own little learning project. The builder skips it. Paste your JSON and click the values you want: the email buried three levels deep, the price inside a list. The engine writes the jq expression that returns exactly what you clicked from this file or any file shaped the same. You get the expression, a plain-English line saying what it does, and proof it returns what you picked.</p>
+            </div>
+            <div class="feature-visual" aria-hidden="true">
+              <div class="demo-window">
+                <div class="demo-bar">
+                  <span>jq Builder</span>
+                  <span>selection → expression</span>
+                </div>
+                <div class="demo-grid">
+                  <div class="demo-panel">
+                    <p>input.json</p>
+                    <div class="demo-tree">
+                      <code>{ users: [</code>
+                      <code>&nbsp;&nbsp;{ name: "Ada",</code>
+                      <code>&nbsp;&nbsp;&nbsp;&nbsp;<span class="is-selected">email: "a@lm"</span></code>
+                      <code>&nbsp;&nbsp;}</code>
+                      <code>] }</code>
+                    </div>
+                  </div>
+                  <div class="demo-panel">
+                    <p>jq</p>
+                    <pre>.users[]
+| .email</pre>
+                    <span class="demo-status">returns selected values</span>
+                  </div>
+                </div>
+                <div class="demo-rule">
+                  <span>explanation</span>
+                  <code>walk every user, then return the email field</code>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="feature-row band--alt">
+            <div class="feature-copy">
+              <p class="section-label">Trace</p>
+              <h2>Understand your data in seconds.</h2>
+              <p>Paste or import structured data. Trace profiles every field, surfaces missing, unusual, or repeated values, and compares datasets by safe keys. It runs locally and without an LLM.</p>
+              <div class="feature-actions">
+                <a class="button is-primary" href="/trace">Open Trace →</a>
+                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="trace-eli5">ELI5 ↓</button>
+              </div>
+              <p class="feature-eli5-text" id="trace-eli5" aria-hidden="true">Imagine opening a spreadsheet from someone else with thousands of rows and no explanation. Trace gives it a careful first look: what each column contains, which values are missing, what looks unusual, and whether two versions changed. It does not decide whether the data is good or bad. It shows the evidence and points you to the exact fields and records worth checking. Everything stays in your browser.</p>
+            </div>
+            <div class="feature-visual" aria-hidden="true">
+              <div class="demo-window trace-preview">
+                <div class="demo-bar">
+                  <span>Trace</span>
+                  <span>customers.csv · exact</span>
+                </div>
+                <div class="trace-preview-metrics">
+                  <div class="trace-preview-metric">
+                    <strong>30</strong>
+                    <span>records</span>
+                  </div>
+                  <div class="trace-preview-metric">
+                    <strong>7</strong>
+                    <span>fields</span>
+                  </div>
+                  <div class="trace-preview-metric">
+                    <strong>2</strong>
+                    <span>findings</span>
+                  </div>
+                </div>
+                <div class="trace-preview-body">
+                  <div class="trace-preview-findings">
+                    <div class="trace-preview-finding">
+                      <span>Missing values</span>
+                      <strong>monthly_spend</strong>
+                      <small>1 of 30 records</small>
+                    </div>
+                    <div class="trace-preview-finding is-notable">
+                      <span>Unusual value</span>
+                      <strong>2,499</strong>
+                      <small>median 129</small>
+                    </div>
+                  </div>
+                  <div class="trace-preview-chart">
+                    <div class="trace-preview-chart-head">
+                      <span>monthly_spend</span>
+                      <small>most values 29–269</small>
+                    </div>
+                    <div class="trace-preview-bars">
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                      <i></i>
+                      <i class="is-notable"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="trace-preview-foot">
+                  <span class="demo-status">Worth a look</span>
+                  <code>Evidence linked to field and record</code>
+                  <small>local · no upload</small>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="honesty-strip band--alt" aria-label="Product guarantees">
+            <div>
+              <p class="section-label">Deterministic</p>
+              <p>Same input, same rule. Every check can be replayed.</p>
+            </div>
+            <div>
+              <p class="section-label">Client-side</p>
+              <p>Your data stays in the browser. Nothing is uploaded.</p>
+            </div>
+            <div>
+              <p class="section-label">No LLM</p>
+              <p>A symbolic engine verifies the evidence or refuses. No AI checking AI.</p>
+            </div>
+          </section>
+
+          <section class="honesty-strip honesty-strip--dev" aria-label="Developer interfaces">
+            <div>
+              <p class="section-label">Browser</p>
+              <p>You're already here. Nothing installs, nothing uploads.</p>
+            </div>
+            <div>
+              <p class="section-label">CLI &amp; CI</p>
+              <p>The prepared CLI checks a batch and exits 0 or 1.</p>
+            </div>
+            <div>
+              <p class="section-label">MCP</p>
+              <p>Point any MCP client at latentmachine.com/api/mcp. Verify becomes a tool your agent can call.</p>
+            </div>
+            <div>
+              <p class="section-label">HTTP</p>
+              <p>Plain JSON-RPC. No key, no account, no state.</p>
+            </div>
+            <a class="button is-primary" href="/developers">Read the developer docs &rarr;</a>
+          </section>
+
+          <section id="articles" aria-label="Further reading">
+            <div class="article-list">
+              <div class="article-intro">
+                <p class="section-label">Further reading</p>
+                <h2>Trust, verification, and what the AI missed.</h2>
+                <p>Why LLM batch outputs drift, how deterministic rules catch the rows that broke, and when refusal is the correct answer.</p>
+              </div>
+              <a class="article-item" href="/latentlog/verify-llm-data-transformations">
+                <span class="article-item-title">How to verify LLM data transformations</span>
+                <span class="article-item-description">LLMs can reshape data fast, but batch outputs drift. Here's how to check every row.</span>
+              </a>
+              <a class="article-item" href="/latentlog/when-ai-gets-your-data-transformation-almost-right">
+                <span class="article-item-title">When AI gets your data transformation almost right</span>
+                <span class="article-item-description">The three specific ways language models fail at structured data, and what deterministic inference does instead.</span>
+              </a>
+              <a class="article-item" href="/latentlog/the-tool-that-refuses-to-guess">
+                <span class="article-item-title">The tool that refuses to guess</span>
+                <span class="article-item-description">Why refusal is a feature when data transformations need trust.</span>
+              </a>
+            </div>
+          </section>
+        </article>
+      </div>
+      <!--@partial:footer-->
+    </main>
+    <script type="module" src="/src/local/chrome.js"></script>
+    <script type="module" src="/src/local/landing-demo.js"></script>
+  </body>
+</html>

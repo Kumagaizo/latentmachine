@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-n8n-webhook-id": "wh_300"
+  },
+  "body": {
+    "event": "signup",
+    "user": {
+      "id": "u003",
+      "email": "tim@example.com",
+      "plan": "enterprise"
+    },
+    "timestamp": "2024-09-20T08:00:00Z"
+  },
+  "query": {
+    "source": "website"
+  }
+}

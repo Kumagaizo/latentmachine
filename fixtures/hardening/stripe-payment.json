@@ -1,0 +1,13 @@
+{
+  "id": "pi_300",
+  "object": "payment_intent",
+  "amount": 24075,
+  "currency": "usd",
+  "status": "succeeded",
+  "customer": "cus_300",
+  "metadata": {
+    "order_id": "ORDER-300",
+    "account_id": "00123"
+  },
+  "created": "2024-09-20T10:15:00Z"
+}

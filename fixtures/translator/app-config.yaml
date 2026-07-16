@@ -1,0 +1,11 @@
+service:
+  name: api
+  region: eu-central
+  environment: production
+  released: "2024-01-15"
+features:
+  checkout: true
+  recommendations: false
+countries:
+  primary: NO
+  fallback: DE

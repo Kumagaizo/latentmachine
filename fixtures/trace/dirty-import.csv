@@ -1,0 +1,9 @@
+id,status,amount,note
+A-1,paid,84,ok
+A-2,paid,91,ok
+A-2,pending,unknown,"   "
+A-4,paid,88,
+A-5,paid,93,ok
+A-5,paid,93,ok
+A-7,pending,79,review
+A-8,paid,86,ok

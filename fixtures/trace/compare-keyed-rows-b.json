@@ -1,0 +1,127 @@
+[
+  {
+    "id": "duplicate",
+    "value": 1,
+    "state": "active"
+  },
+  {
+    "id": "R-2",
+    "value": 2,
+    "state": "active"
+  },
+  {
+    "id": "R-3",
+    "value": 3,
+    "state": "active"
+  },
+  {
+    "id": "R-4",
+    "value": 4,
+    "state": "active"
+  },
+  {
+    "id": "R-5",
+    "value": 5,
+    "state": "active"
+  },
+  {
+    "id": "R-6",
+    "value": 6,
+    "state": "active"
+  },
+  {
+    "id": "R-7",
+    "value": 7,
+    "state": "active"
+  },
+  {
+    "id": "R-8",
+    "value": 88,
+    "state": "active"
+  },
+  {
+    "id": "R-9",
+    "value": 9,
+    "state": "active"
+  },
+  {
+    "id": "R-10",
+    "value": 10,
+    "state": "active"
+  },
+  {
+    "id": "R-11",
+    "value": 11,
+    "state": "active"
+  },
+  {
+    "id": "R-12",
+    "value": 12,
+    "state": "active"
+  },
+  {
+    "id": "R-13",
+    "value": 13,
+    "state": "active"
+  },
+  {
+    "id": "R-14",
+    "value": 14,
+    "state": "active"
+  },
+  {
+    "id": "R-15",
+    "value": 15,
+    "state": "active"
+  },
+  {
+    "id": "R-16",
+    "value": 16,
+    "state": "active"
+  },
+  {
+    "id": "R-17",
+    "value": 17,
+    "state": "active"
+  },
+  {
+    "id": "R-18",
+    "value": 18,
+    "state": "active"
+  },
+  {
+    "id": "R-19",
+    "value": 19,
+    "state": "active"
+  },
+  {
+    "id": "R-20",
+    "value": 20,
+    "state": "active"
+  },
+  {
+    "id": "R-21",
+    "value": 21,
+    "state": "active"
+  },
+  {
+    "id": "R-22",
+    "value": 22,
+    "state": "active"
+  },
+  {
+    "id": "R-23",
+    "value": 23,
+    "state": "active"
+  },
+  {
+    "id": "R-24",
+    "value": 24,
+    "state": "active"
+  },
+  {
+    "id": "R-25",
+    "value": 25,
+    "state": "new"
+  }
+]

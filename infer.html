@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--@partial:head-commons-->
+    <title>Infer | Transform JSON, CSV, YAML, TOML, XML by Example</title>
+    <meta name="description" content="Transform JSON, CSV, YAML, TOML, XML, .env, and SQL INSERT data by example. Latentmachine infers an inspectable deterministic rule and exports the output or JavaScript code." />
+    <link rel="canonical" href="https://latentmachine.com/infer" />
+    <meta property="og:title" content="Infer | Transform Data by Example" />
+    <meta property="og:description" content="Show before-and-after structured data examples, infer the rule, and export deterministic transformation code." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://latentmachine.com/infer" />
+    <meta name="twitter:title" content="Infer | Transform Data by Example" />
+    <meta name="twitter:description" content="Transform JSON, CSV, YAML, TOML, XML, .env, and SQL INSERT data by example with inspectable deterministic rules." />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Latentmachine Infer",
+        "url": "https://latentmachine.com/infer",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web browser",
+        "description": "A browser-based tool that infers deterministic data transformation rules from before-and-after examples.",
+        "featureList": [
+          "Transform JSON, XML, CSV, TOML, YAML, .env, and SQL INSERT data by example",
+          "Infer inspectable symbolic transformation rules",
+          "Diagnose ambiguity, contradictions, missing fields, and schema drift",
+          "Export transformed output",
+          "Export JavaScript, n8n code, Make.com code, and standalone CLI tools"
+        ],
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What can Infer do?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Infer turns before-and-after examples into deterministic data transformation rules. It can rename fields, reshape nested structures, clean strings, convert types, handle arrays, and translate between supported structured data formats."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Which formats does Infer support?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Infer supports JSON, XML, CSV, TOML, YAML, and .env as input and output formats, plus SQL INSERT as an input-only format. You can transform within one output-capable format or convert between supported input and output formats."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Infer send my data to a server?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Infer runs in the browser. Your examples, generated output, and inferred rules stay on your device unless you copy or export them yourself."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What happens if the examples are ambiguous?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "If multiple rules fit the examples, or if an input contains missing fields, unseen values, or schema drift, Infer diagnoses the issue and asks for stronger evidence instead of silently guessing."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I export the rule?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Safe transformations can be exported as JavaScript, n8n Code, Make.com JavaScript, or a standalone CLI tool."
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <main class="page">
+      <a href="#main-content" class="skip-link">Skip to content</a>
+      <!--@partial:nav-->
+      <div id="main-content">
+        <div id="app">
+          <div class="tool-loading" role="status" aria-label="Loading Infer">
+            <span class="loading-mark"></span>
+          </div>
+          <noscript>
+            <div class="format-diagnostic is-danger">
+              <p>This tool runs entirely in your browser and needs JavaScript. Nothing is sent to a server, but nothing runs without it either.</p>
+            </div>
+          </noscript>
+        </div>
+      </div>
+      <!--@partial:footer-->
+    </main>
+    <script type="module" src="/src/local/chrome.js"></script>
+    <script type="module" src="/src/local/app.js"></script>
+  </body>
+</html>

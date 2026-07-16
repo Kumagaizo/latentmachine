@@ -1,0 +1,4 @@
+id,name,email,role,active
+100,Ana Lopez,ana@example.com,admin,true
+200,Bo Smith,bo@example.com,viewer,false
+300,Tim Berg,tim@example.com,editor,true

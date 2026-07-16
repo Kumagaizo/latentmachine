@@ -1,0 +1,17 @@
+{
+  "id": 303,
+  "admin_graphql_api_id": "gid://shopify/Product/303",
+  "title": "Cable Box",
+  "vendor": "Latent Supply",
+  "product_type": "Storage",
+  "status": "active",
+  "tags": "Office, Storage, Hardware",
+  "variants": [
+    {
+      "id": 9003,
+      "sku": "CB-003",
+      "price": "18.00",
+      "inventory_quantity": 24
+    }
+  ]
+}

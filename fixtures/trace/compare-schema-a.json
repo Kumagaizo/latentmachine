@@ -1,0 +1,5 @@
+[
+  { "id": "R-1", "name": "Ada", "amount": 10, "legacy": true },
+  { "id": "R-2", "name": "Grace", "amount": 12, "legacy": false },
+  { "id": "R-3", "name": "Linus", "amount": 14, "legacy": true }
+]

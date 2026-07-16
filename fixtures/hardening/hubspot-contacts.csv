@@ -1,0 +1,4 @@
+Contact ID,First Name,Last Name,Email,Phone,Lifecycle Stage,Score,Tags
+000101,Ana,Lopez,ANA@EXAMPLE.COM,+1 415 555 0101,lead,120,"sales; vip"
+000202,Bo,Smith,BO@EXAMPLE.COM,+1 415 555 0102,customer,80,"support; product"
+000303,Tim,Berg,TIM@EXAMPLE.COM,+1 415 555 0103,customer,145,"sales; product"

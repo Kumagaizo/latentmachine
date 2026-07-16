@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--@partial:head-commons-->
+    <title>Developers | Latentmachine</title>
+    <meta name="description" content="Use Latentmachine through the live MCP and HTTP endpoint. npm package, local MCP server, and CLI are implemented and documented as the public release target." />
+    <link rel="canonical" href="https://latentmachine.com/developers" />
+
+    <meta property="og:title" content="Developers | Latentmachine" />
+    <meta property="og:description" content="Developer docs for Latentmachine's live MCP and HTTP endpoint, plus implemented npm package, local MCP server, and CLI release targets." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://latentmachine.com/developers" />
+    <meta name="twitter:title" content="Developers | Latentmachine" />
+    <meta name="twitter:description" content="Embed Latentmachine's verification engine through the live MCP and HTTP endpoint. npm and CLI release targets are documented." />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How do I use Latentmachine in my Node.js project?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The @latentmachine/verify package is implemented and prepared for npm publishing. Until the public npm release, use the browser tools or the live HTTP MCP endpoint."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I connect Latentmachine to Claude Desktop?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Add latentmachine.com/api/mcp as a remote MCP server in your Claude Desktop config. The local @latentmachine/mcp server is implemented and prepared for npm publishing after @latentmachine/verify."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does the npm package use an LLM?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. The package uses deterministic program synthesis. It infers rules by comparing examples, not by calling a language model. The same input always produces the same result."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I use Latentmachine in a CI pipeline?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, after the public npm release. The CLI exits with code 0 if consistent and code 1 if inconsistent."
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <main class="page">
+      <a href="#main-content" class="skip-link">Skip to content</a>
+      <!--@partial:nav-->
+      <div id="main-content">
+        <article class="content-page">
+          <p class="section-label">Developers</p>
+          <h1>Use the engine outside the browser.</h1>
+
+          <p>
+            The browser tools at <a href="/verify">Verify</a> and <a href="/infer">Infer</a>
+            are the fastest way to check AI data transformations. For pipelines, scripts, and
+            AI agents, the same engine is live today as a hosted MCP/HTTP endpoint. The npm
+            package, local MCP server, and CLI are implemented in the repo and documented below
+            as the public release target.
+          </p>
+          <p>
+            All four interfaces run the same deterministic program synthesis engine. No LLM.
+            Same input, same rule, same result.
+          </p>
+          <div class="format-diagnostic is-neutral">
+            <p><strong>Availability:</strong> the hosted MCP/HTTP endpoint is live today. The npm package, local MCP package, and CLI are implemented and verified in the repo; the commands below are the public release target and will work after the npm packages are published.</p>
+          </div>
+
+          <hr class="divider" />
+
+          <h2>npm package</h2>
+          <p><strong>Availability:</strong> implemented and prepared for npm publishing. Use the hosted MCP/HTTP endpoint below until <code>@latentmachine/verify</code> is available on npm.</p>
+          <p>
+            <code>@latentmachine/verify</code> is a zero-dependency, ESM-only Node.js package.
+            It exposes <code>verify</code>, <code>infer</code>, <code>transform</code>, <code>fingerprint</code>, <code>canonicalize</code>, <code>structuralDiff</code>, and <code>profileStructure</code>,
+            plus format utilities for JSON, CSV, YAML, TOML, XML, .env, and SQL INSERT input.
+          </p>
+
+          <h3>Install</h3>
+          <pre><code>npm install @latentmachine/verify</code></pre>
+
+          <h3>Verify a batch</h3>
+          <p>
+            Pass the original records and the AI-generated output. The engine infers the majority
+            transformation rule and flags every row that does not follow it.
+          </p>
+          <pre><code class="language-js">import { verify } from "@latentmachine/verify";
+
+const result = verify({
+  original: [
+    { first: "Ana", last: "Meyer", joined: "2026-03-02" },
+    { first: "Bo", last: "Singh", joined: "2026-03-04" },
+    { first: "Clara", last: "Diaz", joined: "2026-03-05" },
+  ],
+  transformed: [
+    { name: "Ana Meyer", joinedDate: "2026-03-02" },
+    { name: "Bo Singh", joinedDate: "March 4, 2026" },
+    { name: "Clara Diaz", joinedDate: "2026-03-05" },
+  ],
+});
+
+console.log(result.verdict);
+// "inconsistent"
+
+console.log(result.flaggedRows);
+// [{ index: 1, input: {...}, expected: {...}, actual: {...} }]</code></pre>
+
+          <h3>Infer a rule</h3>
+          <p>
+            Show input/output pairs. The engine infers the simplest deterministic rule that explains
+            the examples, or reports ambiguity, contradictions, or insufficient evidence.
+          </p>
+          <pre><code class="language-js">import { infer } from "@latentmachine/verify";
+
+const result = infer({
+  examples: [
+    { input: { first: "Ana", last: "Meyer" }, output: { name: "Ana Meyer" } },
+    { input: { first: "Bo", last: "Singh" }, output: { name: "Bo Singh" } },
+  ],
+});
+
+console.log(result.status);
+// "safe"</code></pre>
+
+          <h3>Apply a rule</h3>
+          <p>
+            Once you have a safe rule, apply it to new input. The transformation is deterministic:
+            same input, same rule, same output.
+          </p>
+          <pre><code class="language-js">import { infer, transform } from "@latentmachine/verify";
+
+const { rule } = infer({
+  examples: [
+    { input: { first: "Ana", last: "Meyer" }, output: { name: "Ana Meyer" } },
+    { input: { first: "Bo", last: "Singh" }, output: { name: "Bo Singh" } },
+  ],
+});
+
+const output = transform({
+  rule,
+  input: { first: "Clara", last: "Diaz" },
+});
+
+console.log(output);
+// { name: "Clara Diaz" }</code></pre>
+
+          <h3>Fingerprint data</h3>
+          <p>
+            Compute a deterministic, non-cryptographic identity hash for parsed data, profile its structure, or compare two values path by path. Object key order is ignored; array order is significant.
+          </p>
+          <pre><code class="language-js">import { fingerprint, structuralDiff } from "@latentmachine/verify";
+
+const left = { a: 1, b: [2, 3] };
+const right = { b: [2, 4], a: 1 };
+
+console.log(fingerprint(left).hex);
+console.log(structuralDiff(left, right).counts);
+// { added: 0, changed: 1, removed: 0, same: 1 }</code></pre>
+
+          <h3>Trace analysis contracts</h3>
+          <p>
+            The stable Trace product uses deterministic <code>analyzeTrace(value, options)</code> and <code>compareTrace(baseline, candidate, options)</code> contracts for field profiles, ranked evidence, sampling, and single or compound keyed row comparison. These website-source contracts are versioned but are not exported by <code>@latentmachine/verify</code> yet. The package's existing fingerprint exports above remain stable and unchanged.
+          </p>
+
+          <h3>String input and formats</h3>
+          <p>
+            <code>verify</code> also accepts raw strings. The format can be auto-detected, and the
+            package exposes the same parsers used by the browser tool.
+          </p>
+          <pre><code class="language-js">import { detectFormat, parseWithFormat, serializeWithFormat } from "@latentmachine/verify";
+
+detectFormat('[{"id": 1}]');    // "json"
+detectFormat('id,name\n1,Ada'); // "csv"
+detectFormat('key: value');     // "yaml"
+
+const data = parseWithFormat('[{"id": 1}]', "auto");
+const csv = serializeWithFormat(data, "csv");
+// "id\n1"</code></pre>
+
+          <h3>Return values</h3>
+          <p><code>verify()</code> returns:</p>
+          <ul>
+            <li><code>verdict</code>: <code>"consistent"</code> or <code>"inconsistent"</code>.</li>
+            <li><code>totalRows</code>: number of rows checked.</li>
+            <li><code>matchedRows</code>: rows that followed the majority rule.</li>
+            <li><code>flaggedRows</code>: <code>{ index, input, expected, actual }</code> for rows that broke the pattern.</li>
+            <li><code>ruleStatus</code>: <code>safe</code>, <code>ambiguous</code>, <code>contradictory</code>, <code>unsafe</code>, or <code>insufficient</code>.</li>
+          </ul>
+          <p><code>infer()</code> returns:</p>
+          <ul>
+            <li><code>status</code>: the evidence state for the inferred rule.</li>
+            <li><code>rule</code>: the symbolic program to pass to <code>transform()</code>.</li>
+            <li><code>confidence</code>: evidentiary confidence assessment.</li>
+            <li><code>diagnosis</code>: contradictions, ambiguities, guardrails, and suggested examples.</li>
+            <li><code>warnings</code>: runtime or inference risks.</li>
+          </ul>
+
+          <hr class="divider" />
+
+          <h2>MCP server</h2>
+          <p>
+            The Latentmachine engine is available as a
+            <a href="https://modelcontextprotocol.io">Model Context Protocol</a> server.
+            When connected, AI assistants can call the verification engine directly inside a
+            conversation: the AI transforms data, then Latentmachine checks whether every row is
+            consistent.
+          </p>
+
+          <h3>Remote server</h3>
+          <p>Connect any MCP client that supports remote HTTP MCP servers to the hosted endpoint. No install required.</p>
+          <p><strong>Remote MCP config</strong> for clients that accept a URL:</p>
+          <pre><code class="language-json">{
+  "mcpServers": {
+    "latentmachine": {
+      "url": "https://latentmachine.com/api/mcp"
+    }
+  }
+}</code></pre>
+
+          <p><strong>Claude Code</strong> when HTTP transport is enabled:</p>
+          <pre><code class="language-bash">claude mcp add --transport http latentmachine https://latentmachine.com/api/mcp</code></pre>
+
+          <p><strong>Workspace config</strong> for clients that read <code>.cursor/mcp.json</code>-style files:</p>
+          <pre><code class="language-json">{
+  "mcpServers": {
+    "latentmachine": {
+      "url": "https://latentmachine.com/api/mcp"
+    }
+  }
+}</code></pre>
+
+          <h3>Local server</h3>
+          <p><strong>Availability:</strong> implemented and prepared for npm publishing. Use the remote MCP server above until <code>@latentmachine/mcp</code> is available on npm.</p>
+          <p>Run the MCP server locally over stdio. Data stays on your machine.</p>
+          <pre><code class="language-bash">npm install -g @latentmachine/mcp</code></pre>
+          <p>Then add to your MCP client config:</p>
+          <pre><code class="language-json">{
+  "mcpServers": {
+    "latentmachine": {
+      "command": "latentmachine-mcp"
+    }
+  }
+}</code></pre>
+          <p>Or without a global install:</p>
+          <pre><code class="language-json">{
+  "mcpServers": {
+    "latentmachine": {
+      "command": "npx",
+      "args": ["@latentmachine/mcp"]
+    }
+  }
+}</code></pre>
+
+          <h3>Available tools</h3>
+          <ul>
+            <li><strong>verify_data_transformation</strong>: check whether a batch of transformed rows all follow one rule.</li>
+            <li><strong>infer_transformation_rule</strong>: infer a rule from input/output examples.</li>
+            <li><strong>apply_transformation_rule</strong>: apply a previously inferred rule to new data.</li>
+            <li><strong>detect_data_format</strong>: detect JSON, CSV, YAML, TOML, XML, .env, SQL INSERT, or unknown data.</li>
+            <li><strong>fingerprint_data</strong>: compute a deterministic structural fingerprint, or compare two datasets path by path.</li>
+          </ul>
+
+          <h3>Example conversation</h3>
+          <pre><code>You: I asked ChatGPT to transform these customer records. Can you check
+     if it got every row right?
+
+     [paste original + transformed data]
+
+Claude: I checked 200 rows against the majority rule. 197 followed
+        the pattern, but 3 rows have inconsistencies: rows 44, 89,
+        and 156 show date format drift. The rule expects ISO dates,
+        but those rows switched to US format.</code></pre>
+
+          <hr class="divider" />
+
+          <h2>CLI</h2>
+          <p><strong>Availability:</strong> implemented and prepared for npm publishing. The command below is the public release target and will work after <code>@latentmachine/verify</code> is published.</p>
+          <p>
+            Verify data transformations from the command line. Useful in shell scripts,
+            CI pipelines, and pre-commit hooks.
+          </p>
+
+          <h3>Usage</h3>
+          <pre><code class="language-bash">npx @latentmachine/verify original.json transformed.json
+npx @latentmachine/verify fingerprint data.json
+npx @latentmachine/verify fingerprint before.json after.json</code></pre>
+          <p>
+            Prints the verification result as JSON. Exits with code <code>0</code> if consistent,
+            code <code>1</code> if inconsistent. Pipe to <code>jq</code> for specific fields:
+          </p>
+          <pre><code class="language-bash">npx @latentmachine/verify original.json ai-output.json | jq '.verdict'
+# "consistent"</code></pre>
+          <p>
+            The <code>fingerprint</code> subcommand prints a deterministic, non-cryptographic identity hash and exits with code <code>1</code> when two compared files differ.
+          </p>
+
+          <h3>In CI</h3>
+          <pre><code class="language-yaml"># GitHub Actions example
+- name: Verify data transformation
+  run: npx @latentmachine/verify fixtures/input.json fixtures/expected.json</code></pre>
+          <p>The step fails if any row breaks the pattern.</p>
+
+          <hr class="divider" />
+
+          <h2>HTTP API</h2>
+          <p>
+            The MCP endpoint at <code>https://latentmachine.com/api/mcp</code> also works
+            as a standard JSON-RPC API. You can call it from any HTTP client.
+          </p>
+
+          <h3>List available tools</h3>
+          <pre><code class="language-bash">curl -X POST https://latentmachine.com/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'</code></pre>
+
+          <h3>Verify a batch</h3>
+          <pre><code class="language-bash">curl -X POST https://latentmachine.com/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "verify_data_transformation",
+      "arguments": {
+        "original": "[{\"id\":1,\"date\":\"2026-01-01\"},{\"id\":2,\"date\":\"2026-01-02\"}]",
+        "transformed": "[{\"id\":1,\"date\":\"2026-01-01\"},{\"id\":2,\"date\":\"01/02/2026\"}]"
+      }
+    }
+  }'</code></pre>
+
+          <h3>Fingerprint data</h3>
+          <pre><code class="language-bash">curl -X POST https://latentmachine.com/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/call",
+    "params": {
+      "name": "fingerprint_data",
+      "arguments": {
+        "data": "{\"a\":1,\"b\":[2,3]}",
+        "compare_to": "{\"b\":[2,4],\"a\":1}"
+      }
+    }
+  }'</code></pre>
+
+          <h3>Server info</h3>
+          <pre><code class="language-bash">curl https://latentmachine.com/api/mcp</code></pre>
+          <p>Returns the server name, version, and list of available tool names.</p>
+
+          <hr class="divider" />
+
+          <h2>Privacy</h2>
+          <p>
+            The <a href="/verify">browser tools</a> process data entirely on your device.
+            Nothing is uploaded. This is an architectural decision, not a policy.
+          </p>
+          <p>
+            The <strong>local MCP server</strong> (<code>@latentmachine/mcp</code> via stdio)
+            and the <strong>npm package</strong> also process data locally. Your data never
+            leaves your machine.
+          </p>
+          <p>
+            The <strong>remote MCP endpoint</strong> and <strong>HTTP API</strong> at
+            <code>latentmachine.com/api/mcp</code> process data on Vercel infrastructure.
+            No data is stored, logged, or persisted by the function. It is stateless and returns
+            the result immediately, but the data does travel over the network. If that matters for
+            your use case, use the local MCP server or the npm package instead.
+          </p>
+
+          <hr class="divider" />
+
+          <h2>Links</h2>
+          <ul>
+            <li>npm package links will appear after the packages are published.</li>
+            <li><a href="https://github.com/kumagaizo/latentmachine">Source on GitHub</a></li>
+            <li><a href="/about">About Latentmachine</a></li>
+            <li><a href="/case-study">Case Study</a></li>
+          </ul>
+        </article>
+      </div>
+      <!--@partial:footer-->
+    </main>
+    <script type="module" src="/src/local/chrome.js"></script>
+  </body>
+</html>

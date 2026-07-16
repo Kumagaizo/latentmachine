@@ -1,0 +1,4 @@
+Record ID,Title,Owner Email,Status,Tags,Active
+rec001,Roadmap,ANA@EXAMPLE.COM,In progress,"strategy; planning",true
+rec002,QA Checklist,BO@EXAMPLE.COM,Done,"quality; release",false
+rec003,Launch Notes,TIM@EXAMPLE.COM,In progress,"marketing; release",true

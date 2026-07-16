@@ -1,0 +1,10 @@
+{
+  "service": "billing",
+  "enabled": false,
+  "limits": {
+    "daily": 1200,
+    "burst": 50,
+    "weekly": 5000
+  },
+  "owner": "ops"
+}

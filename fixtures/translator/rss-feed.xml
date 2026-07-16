@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Latentlog</title>
+    <item>
+      <guid>post-1</guid>
+      <title>Convert XML to JSON</title>
+      <category>formats</category>
+    </item>
+    <item>
+      <guid>post-2</guid>
+      <title>Trust Transformations</title>
+      <category>verification</category>
+    </item>
+  </channel>
+</rss>

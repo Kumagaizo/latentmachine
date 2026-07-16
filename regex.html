@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--@partial:head-commons-->
+    <title>Regex Builder | Build Regex from Examples</title>
+    <meta name="description" content="Build a regex from match and reject examples. Latentmachine synthesizes a deterministic pattern, verifies it against your samples, explains it, and refuses when examples are ambiguous." />
+    <link rel="canonical" href="https://latentmachine.com/regex" />
+    <meta property="og:title" content="Regex Builder | Build Regex from Examples" />
+    <meta property="og:description" content="Create a regular expression from examples, with positive and negative samples, verification, named captures, and plain-English explanation." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://latentmachine.com/regex" />
+    <meta name="twitter:title" content="Regex Builder | Build Regex from Examples" />
+    <meta name="twitter:description" content="Build regex by example. Verified against your samples, explained, deterministic, and client-side." />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Latentmachine Regex Builder",
+        "url": "https://latentmachine.com/regex",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web browser",
+        "description": "A browser-based regex generator that builds regular expressions from positive and negative examples, verifies them, explains them, and supports named captures.",
+        "featureList": [
+          "Build regex patterns from examples",
+          "Use match and reject samples",
+          "Verify patterns before showing them",
+          "Explain regex tokens in plain English",
+          "Create named capture groups from selected substrings",
+          "Preview matches live in the browser"
+        ],
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main class="page">
+      <a href="#main-content" class="skip-link">Skip to content</a>
+      <!--@partial:nav-->
+      <div id="main-content">
+        <div id="regex">
+          <div class="tool-loading" role="status" aria-label="Loading Regex Builder">
+            <span class="loading-mark"></span>
+          </div>
+          <noscript>
+            <div class="format-diagnostic is-danger">
+              <p>This tool runs entirely in your browser and needs JavaScript. Nothing is sent to a server, but nothing runs without it either.</p>
+            </div>
+          </noscript>
+        </div>
+      </div>
+      <!--@partial:footer-->
+    </main>
+    <script type="module" src="/src/local/chrome.js"></script>
+    <script type="module" src="/src/local/regex.js"></script>
+  </body>
+</html>

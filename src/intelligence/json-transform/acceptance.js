@@ -1,0 +1,297 @@
+export const JSON_TRANSFORM_ACCEPTANCE_PACK = [
+  {
+    id: "accept-n8n-stripe-payment",
+    suite: "acceptance-workflow",
+    category: "automation",
+    examples: [
+      {
+        input: { data: { object: { id: "pi_1", amount: 4999, currency: "usd", customer: "cus_1", metadata: { order_id: "order_500" } } } },
+        output: { paymentId: "pi_1", amount: 49.99, currency: "USD", customerId: "cus_1", orderId: "order_500" },
+      },
+      {
+        input: { data: { object: { id: "pi_2", amount: 1200, currency: "eur", customer: "cus_2", metadata: { order_id: "order_501" } } } },
+        output: { paymentId: "pi_2", amount: 12, currency: "EUR", customerId: "cus_2", orderId: "order_501" },
+      },
+      {
+        input: { data: { object: { id: "pi_3", amount: 2500, currency: "gbp", customer: "cus_3", metadata: { order_id: "order_502" } } } },
+        output: { paymentId: "pi_3", amount: 25, currency: "GBP", customerId: "cus_3", orderId: "order_502" },
+      },
+    ],
+    newInput: { data: { object: { id: "pi_4", amount: 7500, currency: "usd", customer: "cus_4", metadata: { order_id: "order_503" } } } },
+    expectedOutput: { paymentId: "pi_4", amount: 75, currency: "USD", customerId: "cus_4", orderId: "order_503" },
+    minConfidence: 0.82,
+    expectedDiagnosis: {
+      status: "safe",
+      suggestedExampleExists: false,
+      expectedTriagedAmbiguities: [
+        { target: "$.amount", strength: "resolved-by-new-input" },
+        { target: "$.currency", strength: "equivalent" },
+      ],
+    },
+  },
+  {
+    id: "accept-hubspot-mailchimp-subscriber",
+    suite: "acceptance-workflow",
+    category: "automation",
+    examples: [
+      {
+        input: { properties: { firstname: "Ana", lastname: "Lopez", email: "ana@acme.com", company: "Acme Corp", lifecyclestage: "lead" } },
+        output: { email_address: "ana@acme.com", merge_fields: { FNAME: "Ana", LNAME: "Lopez", COMPANY: "Acme Corp" }, status: "subscribed" },
+      },
+      {
+        input: { properties: { firstname: "Bo", lastname: "Smith", email: "bo@nova.io", company: "Nova Inc", lifecyclestage: "customer" } },
+        output: { email_address: "bo@nova.io", merge_fields: { FNAME: "Bo", LNAME: "Smith", COMPANY: "Nova Inc" }, status: "subscribed" },
+      },
+    ],
+    newInput: { properties: { firstname: "Tim", lastname: "Berg", email: "tim@latent.test", company: "Latent Machine", lifecyclestage: "opportunity" } },
+    expectedOutput: { email_address: "tim@latent.test", merge_fields: { FNAME: "Tim", LNAME: "Berg", COMPANY: "Latent Machine" }, status: "subscribed" },
+    minConfidence: 0.82,
+    expectedDiagnosis: { status: "safe", suggestedExampleExists: false },
+  },
+  {
+    id: "accept-github-issue-slack-message",
+    suite: "acceptance-workflow",
+    category: "automation",
+    examples: [
+      {
+        input: { action: "opened", issue: { number: 42, title: "Login page broken", html_url: "https://github.com/org/repo/issues/42", user: { login: "alice" } } },
+        output: { text: "alice opened #42: Login page broken", url: "https://github.com/org/repo/issues/42" },
+      },
+      {
+        input: { action: "opened", issue: { number: 99, title: "Add dark mode", html_url: "https://github.com/org/repo/issues/99", user: { login: "bob" } } },
+        output: { text: "bob opened #99: Add dark mode", url: "https://github.com/org/repo/issues/99" },
+      },
+    ],
+    newInput: { action: "opened", issue: { number: 157, title: "Update dependencies", html_url: "https://github.com/org/repo/issues/157", user: { login: "carol" } } },
+    expectedOutput: { text: "carol opened #157: Update dependencies", url: "https://github.com/org/repo/issues/157" },
+    minConfidence: 0.7,
+  },
+  {
+    id: "accept-airtable-crm-import",
+    suite: "acceptance-workflow",
+    category: "messy-import",
+    examples: [
+      {
+        input: { fields: { Name: "Ana Lopez", Email: "ana@acme.com", Company: "Acme Corp", Stage: "Qualified", "Created Time": "2024-03-15T10:00:00.000Z" } },
+        output: { name: "Ana Lopez", email: "ana@acme.com", organization: "Acme Corp", stage: "Qualified" },
+      },
+      {
+        input: { fields: { Name: "Bo Smith", Email: "bo@nova.io", Company: "Nova Inc", Stage: "Prospect", "Created Time": "2024-04-20T14:00:00.000Z" } },
+        output: { name: "Bo Smith", email: "bo@nova.io", organization: "Nova Inc", stage: "Prospect" },
+      },
+    ],
+    newInput: { fields: { Name: "Tim Berg", Email: "tim@latent.test", Company: "Latent Machine", Stage: "Lead", "Created Time": "2024-05-10T09:00:00.000Z" } },
+    expectedOutput: { name: "Tim Berg", email: "tim@latent.test", organization: "Latent Machine", stage: "Lead" },
+    minConfidence: 0.82,
+    expectedDiagnosis: { status: "safe", suggestedExampleExists: false },
+  },
+  {
+    id: "accept-shopify-primary-variant",
+    suite: "acceptance-workflow",
+    category: "commerce",
+    examples: [
+      {
+        input: { title: "Widget Pro", vendor: "Acme", product_type: "Tools", variants: [{ sku: "WP-001", price: "29.99", primary: true }, { sku: "WP-001-B", price: "31.99", primary: false }] },
+        output: { name: "Widget Pro", brand: "Acme", category: "Tools", sku: "WP-001", price: "29.99" },
+      },
+      {
+        input: { title: "Gadget Mini", vendor: "Nova", product_type: "Electronics", variants: [{ sku: "GM-002", price: "14.50", primary: true }] },
+        output: { name: "Gadget Mini", brand: "Nova", category: "Electronics", sku: "GM-002", price: "14.50" },
+      },
+    ],
+    newInput: { title: "Sensor Basic", vendor: "Latent", product_type: "Sensors", variants: [{ sku: "SB-003", price: "9.00", primary: true }] },
+    expectedOutput: { name: "Sensor Basic", brand: "Latent", category: "Sensors", sku: "SB-003", price: "9.00" },
+    minConfidence: 0.7,
+  },
+  {
+    id: "accept-order-line-items-filter-project",
+    suite: "acceptance-workflow",
+    category: "arrays",
+    examples: [
+      {
+        input: { order: { lines: [{ type: "product", name: "Widget", qty: 2, ignored: "x" }, { type: "shipping", name: "Ground", qty: 1 }] } },
+        output: { items: [{ name: "Widget", qty: 2 }] },
+      },
+      {
+        input: { order: { lines: [{ type: "product", name: "Gadget", qty: 1 }, { type: "product", name: "Cable", qty: 3 }] } },
+        output: { items: [{ name: "Gadget", qty: 1 }, { name: "Cable", qty: 3 }] },
+      },
+    ],
+    newInput: { order: { lines: [{ type: "shipping", name: "Express", qty: 1 }, { type: "product", name: "Sensor", qty: 4 }] } },
+    expectedOutput: { items: [{ name: "Sensor", qty: 4 }] },
+    minConfidence: 0.7,
+  },
+  {
+    id: "accept-analytics-event-normalization",
+    suite: "acceptance-workflow",
+    category: "analytics",
+    examples: [
+      { input: { event: "page_view", user_id: "u1", properties: { page: "/pricing", source: "ad" } }, output: { type: "page_view", userId: "u1", page: "/pricing", channel: "ad" } },
+      { input: { event: "signup", user_id: "u2", properties: { page: "/join", source: "organic" } }, output: { type: "signup", userId: "u2", page: "/join", channel: "organic" } },
+    ],
+    newInput: { event: "purchase", user_id: "u3", properties: { page: "/checkout", source: "email" } },
+    expectedOutput: { type: "purchase", userId: "u3", page: "/checkout", channel: "email" },
+    minConfidence: 0.82,
+    expectedDiagnosis: { status: "safe", suggestedExampleExists: false },
+  },
+  {
+    id: "accept-notion-page-record",
+    suite: "acceptance-workflow",
+    category: "nested-data",
+    examples: [
+      {
+        input: { properties: { Name: { title: [{ plain_text: "Launch plan" }] }, Status: { select: { name: "Active" } }, Owner: { people: [{ name: "Ana" }] } } },
+        output: { title: "Launch plan", status: "Active", owner: "Ana" },
+      },
+      {
+        input: { properties: { Name: { title: [{ plain_text: "Bug bash" }] }, Status: { select: { name: "Planned" } }, Owner: { people: [{ name: "Bo" }] } } },
+        output: { title: "Bug bash", status: "Planned", owner: "Bo" },
+      },
+    ],
+    newInput: { properties: { Name: { title: [{ plain_text: "Research review" }] }, Status: { select: { name: "Done" } }, Owner: { people: [{ name: "Tim" }] } } },
+    expectedOutput: { title: "Research review", status: "Done", owner: "Tim" },
+    minConfidence: 0.7,
+  },
+  {
+    id: "accept-webflow-cms-cleanup",
+    suite: "acceptance-workflow",
+    category: "cms",
+    examples: [
+      { input: { post_title: "solar panel install", post_date: "2024-03-15 09:30:00", post_author: "admin", categories: "Projects, Solar" }, output: { name: "Solar Panel Install", date: "2024-03-15", author: "Admin", tags: ["Projects", "Solar"] } },
+      { input: { post_title: "office renovation", post_date: "2024-06-01 14:00:00", post_author: "editor", categories: "Projects, Interior" }, output: { name: "Office Renovation", date: "2024-06-01", author: "Editor", tags: ["Projects", "Interior"] } },
+    ],
+    newInput: { post_title: "heat pump maintenance", post_date: "2024-09-20 08:00:00", post_author: "admin", categories: "Services, Maintenance" },
+    expectedOutput: { name: "Heat Pump Maintenance", date: "2024-09-20", author: "Admin", tags: ["Services", "Maintenance"] },
+    minConfidence: 0.7,
+  },
+  {
+    id: "accept-support-ticket-sla",
+    suite: "acceptance-workflow",
+    category: "conditional",
+    examples: [
+      { input: { id: "t1", priority: "urgent", requester: "Ana" }, output: { id: "t1", owner: "Ana", queue: "rush", responseHours: 1 } },
+      { input: { id: "t2", priority: "normal", requester: "Bo" }, output: { id: "t2", owner: "Bo", queue: "standard", responseHours: 24 } },
+      { input: { id: "t3", priority: "urgent", requester: "Cara" }, output: { id: "t3", owner: "Cara", queue: "rush", responseHours: 1 } },
+    ],
+    newInput: { id: "t4", priority: "urgent", requester: "Tim" },
+    expectedOutput: { id: "t4", owner: "Tim", queue: "rush", responseHours: 1 },
+    minConfidence: 0.7,
+    expectedDiagnosis: {
+      status: "safe",
+      suggestedExampleExists: false,
+    },
+  },
+  {
+    id: "accept-messy-contact-cleanup",
+    suite: "acceptance-workflow",
+    category: "messy-import",
+    examples: [
+      { input: { Name: "  ana lopez ", Email: " ANA@ACME.COM ", OptIn: "true" }, output: { name: "Ana Lopez", email: "ana@acme.com", subscribed: true } },
+      { input: { Name: " bo SMITH", Email: "BO@NOVA.IO  ", OptIn: "false" }, output: { name: "Bo Smith", email: "bo@nova.io", subscribed: false } },
+    ],
+    newInput: { Name: "tim BERG ", Email: " TIM@LATENT.TEST ", OptIn: "true" },
+    expectedOutput: { name: "Tim Berg", email: "tim@latent.test", subscribed: true },
+    minConfidence: 0.7,
+  },
+  {
+    id: "accept-invoice-total",
+    suite: "acceptance-workflow",
+    category: "numeric",
+    examples: [
+      { input: { invoice: "i1", subtotal: 100, tax: 19 }, output: { id: "i1", total: 119 } },
+      { input: { invoice: "i2", subtotal: 80, tax: 16 }, output: { id: "i2", total: 96 } },
+    ],
+    newInput: { invoice: "i3", subtotal: 50, tax: 9.5 },
+    expectedOutput: { id: "i3", total: 59.5 },
+    minConfidence: 0.7,
+  },
+  {
+    id: "accept-form-submission-owner-email",
+    suite: "acceptance-workflow",
+    category: "extract",
+    examples: [
+      { input: { title: "Demo request", owner: "Ana Lopez <ana@acme.com>", submitted_at: "2024-03-15T10:00:00Z" }, output: { title: "Demo request", ownerEmail: "ana@acme.com", month: "2024-03" } },
+      { input: { title: "Support", owner: "Bo Smith <bo@nova.io>", submitted_at: "2024-04-20T14:00:00Z" }, output: { title: "Support", ownerEmail: "bo@nova.io", month: "2024-04" } },
+    ],
+    newInput: { title: "Partnership", owner: "Tim Berg <tim@latent.test>", submitted_at: "2024-05-10T09:00:00Z" },
+    expectedOutput: { title: "Partnership", ownerEmail: "tim@latent.test", month: "2024-05" },
+    minConfidence: 0.7,
+  },
+  {
+    id: "accept-array-join-category-names",
+    suite: "acceptance-workflow",
+    category: "arrays",
+    examples: [
+      { input: { categories: [{ name: "Projects" }, { name: "Solar" }] }, output: { categoryList: "Projects | Solar" } },
+      { input: { categories: [{ name: "Services" }, { name: "Maintenance" }] }, output: { categoryList: "Services | Maintenance" } },
+    ],
+    newInput: { categories: [{ name: "Products" }, { name: "Heat Pumps" }] },
+    expectedOutput: { categoryList: "Products | Heat Pumps" },
+    minConfidence: 0.7,
+  },
+  {
+    id: "accept-primary-email-find",
+    suite: "acceptance-workflow",
+    category: "arrays",
+    examples: [
+      { input: { emails: [{ type: "work", value: "a@work.com" }, { type: "home", value: "a@home.com" }] }, output: { email: "a@work.com" } },
+      { input: { emails: [{ type: "home", value: "b@home.com" }, { type: "work", value: "b@work.com" }] }, output: { email: "b@work.com" } },
+    ],
+    newInput: { emails: [{ type: "home", value: "t@home.com" }, { type: "work", value: "t@work.com" }] },
+    expectedOutput: { email: "t@work.com" },
+    minConfidence: 0.7,
+  },
+  {
+    id: "accept-correction-resolves-output",
+    suite: "acceptance-correction",
+    category: "correction",
+    examples: [
+      { input: { first: "Ana", last: "Lopez" }, output: { name: "AnaLopez" } },
+      { input: { first: "Ana", last: "Lopez" }, output: { name: "Ana Lopez" }, correction: true },
+      { input: { first: "Bo", last: "Smith" }, output: { name: "Bo Smith" } },
+    ],
+    newInput: { first: "Tim", last: "Berg" },
+    expectedOutput: { name: "Tim Berg" },
+    minConfidence: 0.7,
+    expectedDiagnosis: { status: "safe", suggestedExampleExists: false },
+  },
+  {
+    id: "accept-unseen-order-status",
+    suite: "acceptance-guardrail",
+    category: "guardrail",
+    examples: [
+      { input: { order: "o1", fulfillment: "shipped" }, output: { order: "o1", label: "On the way" } },
+      { input: { order: "o2", fulfillment: "pending" }, output: { order: "o2", label: "Waiting" } },
+    ],
+    newInput: { order: "o3", fulfillment: "returned" },
+    expectedOutput: { order: "o3", label: "[unresolved: unseen value at $.fulfillment]" },
+    minConfidence: 0.4,
+    expectedDiagnosis: { status: "unsafe", expectedWarnings: ["unseen-value-map"], suggestedExampleExists: true },
+  },
+  {
+    id: "accept-missing-author-path",
+    suite: "acceptance-guardrail",
+    category: "guardrail",
+    examples: [
+      { input: { post: { title: "Intro", author: { name: "Ana" } } }, output: { title: "Intro", byline: "Ana" } },
+      { input: { post: { title: "Guide", author: { name: "Bo" } } }, output: { title: "Guide", byline: "Bo" } },
+    ],
+    newInput: { post: { title: "Reference" } },
+    expectedOutput: { title: "Reference", byline: "[missing $.post.author.name]" },
+    minConfidence: 0.4,
+    expectedDiagnosis: { status: "unsafe", expectedWarnings: ["missing-source"], suggestedExampleExists: true },
+  },
+  {
+    id: "accept-contradictory-role-policy",
+    suite: "acceptance-guardrail",
+    category: "guardrail",
+    examples: [
+      { input: { user: "Ana", role: "admin" }, output: { user: "Ana", access: "full" } },
+      { input: { user: "Bo", role: "admin" }, output: { user: "Bo", access: "limited" } },
+    ],
+    newInput: { user: "Tim", role: "admin" },
+    expectedOutput: { user: "Tim", access: "[conflict: examples disagree for $.access]" },
+    minConfidence: 0.4,
+    expectedDiagnosis: { status: "contradictory", expectedContradictions: ["value-map-conflict"], suggestedExampleExists: true },
+  },
+];

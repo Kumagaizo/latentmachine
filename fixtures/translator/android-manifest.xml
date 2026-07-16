@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.latentmachine.app">
+  <application android:label="Latentmachine" android:debuggable="false">
+    <activity android:name=".MainActivity" android:exported="true"/>
+  </application>
+</manifest>

@@ -1,0 +1,16 @@
+service: billing
+enabled: true
+owner: payments
+retry:
+  attempts: 4
+  backoff_ms: 250
+  jitter: true
+regions:
+  - eu-central
+  - us-east
+limits:
+  daily: 1000
+  burst: 50
+optional_token: null
+feature_flags: []
+metadata: {}

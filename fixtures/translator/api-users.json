@@ -1,0 +1,20 @@
+[
+  {
+    "id": "u100",
+    "profile": {
+      "name": "Ana Lopez",
+      "email": "ana@example.com"
+    },
+    "plan": "pro",
+    "active": true
+  },
+  {
+    "id": "u200",
+    "profile": {
+      "name": "Bo Smith",
+      "email": "bo@example.com"
+    },
+    "plan": "starter",
+    "active": false
+  }
+]

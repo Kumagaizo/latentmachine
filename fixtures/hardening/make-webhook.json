@@ -1,0 +1,24 @@
+{
+  "scenario": {
+    "id": "9003",
+    "name": "Order intake"
+  },
+  "bundle": {
+    "input": {
+      "order": {
+        "id": "ORD-300",
+        "customer": {
+          "email": "tim@example.com"
+        },
+        "total": "240.75",
+        "items": [
+          { "sku": "CB-003", "qty": 2 },
+          { "sku": "HD-010", "qty": 1 }
+        ]
+      }
+    }
+  },
+  "metadata": {
+    "execution_id": "exec-300"
+  }
+}

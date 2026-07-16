@@ -1,0 +1,62 @@
+{
+  "name": "@latentmachine/verify",
+  "version": "0.1.0",
+  "description": "Deterministic verification engine for AI data transformations. Check whether every row followed the same rule.",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./verify": "./src/verify.js",
+    "./infer": "./src/infer.js",
+    "./transform": "./src/transform.js",
+    "./formats": "./src/formats.js"
+  },
+  "bin": {
+    "latentmachine-verify": "./bin/latentmachine.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "verify",
+    "ai",
+    "llm",
+    "data-transformation",
+    "data-quality",
+    "deterministic",
+    "json",
+    "csv",
+    "validation",
+    "consistency",
+    "mcp"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Sandro Vogel",
+    "url": "https://www.sandrovogel.de/"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kumagaizo/latentmachine",
+    "directory": "packages/verify"
+  },
+  "bugs": {
+    "url": "https://github.com/kumagaizo/latentmachine/issues"
+  },
+  "homepage": "https://latentmachine.com/developers",
+  "scripts": {
+    "test": "node test/verify.test.js && node test/infer.test.js && node test/transform.test.js && node test/formats.test.js",
+    "prepare:publish": "node scripts/prepare-publish.mjs",
+    "prepublishOnly": "node scripts/guard-root-publish.mjs"
+  }
+}

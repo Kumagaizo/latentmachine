@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--@partial:head-commons-->
+    <title>Case Study | Latentmachine</title>
+    <meta name="description" content="The design decisions behind Latentmachine: why Verify leads, why the engine shows its work, why confidence is a checklist, why the tool refuses to guess, and how program synthesis becomes a product." />
+    <link rel="canonical" href="https://latentmachine.com/case-study" />
+
+    <meta property="og:title" content="Case Study | Latentmachine" />
+    <meta property="og:description" content="The design decisions behind Latentmachine: why Verify leads, why the engine shows its work, why confidence is a checklist, why the tool refuses to guess, and how program synthesis becomes a product." />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://latentmachine.com/case-study" />
+    <meta name="twitter:title" content="Case Study | Latentmachine" />
+    <meta name="twitter:description" content="The design decisions behind Latentmachine: why Verify leads, why the engine shows its work, why confidence is a checklist, why the tool refuses to guess, and how program synthesis becomes a product." />
+  </head>
+  <body>
+    <main class="page">
+      <a href="#main-content" class="skip-link">Skip to content</a>
+      <!--@partial:nav-->
+      <div id="main-content">
+        <article class="content-page">
+          <p class="section-label">Case Study</p>
+          <h1>Decisions, not process.</h1>
+
+          <p>Latentmachine is a browser-based engine for verifying AI-transformed data and inferring deterministic rules from examples. It accepts JSON, XML, CSV, TOML, YAML, .env, and SQL INSERT as input, exports reusable code and output formats, and refuses when its evidence is insufficient. This page is not about what the tool does — you can try that yourself. It is about the decisions behind it: what was chosen, what was rejected, and why.</p>
+
+          <p>The project is solo work, built over several months with heavy AI-assisted development. The architectural direction, the product thinking, and the design choices are mine. The implementation was a collaboration between my judgment and AI coding agents. That distinction matters, so I am stating it upfront.</p>
+
+          <h2>Why Verify leads</h2>
+
+          <p>Latentmachine did not start as a verification tool. It started as Infer — transform structured data by demonstrating a before-and-after example. Verify was the last tool I built. Today it is first in the navigation, the hero of the landing page, and the first thing a new visitor is asked to try. That inversion is a positioning decision, and it is the most consequential one in the project.</p>
+
+          <p>The reasoning: casual data transformation is being commoditized by the same technology this tool quietly competes with. If you need thirty records reshaped once, pasting them into a chat model is a fine answer, and it gets better every quarter. Betting the product on that use case means betting against the tide. But every batch an LLM transforms creates an artifact that did not exist before: output nobody has checked. Generation and verification sit on opposite sides of the same trade — as one gets cheaper, the other becomes more valuable. Verify is positioned on the side that appreciates.</p>
+
+          <p>What made the decision cheap is that nothing had to be rebuilt. The engine already inferred rules from evidence; Verify points that ability at a batch and asks whether one rule explains every row. The repositioning was navigation order, hierarchy, and copy — which door the site opens first, and what you read when you arrive. The resulting workflow is the honest one: the AI does the work, Verify checks it, Infer replaces the step that broke. A deterministic engine will not out-generate a language model. It can out-verify one, permanently — "no LLM" is not a limitation here, it is the qualification for the job. You do not audit a system with a second instance of the same system.</p>
+
+          <h2>The rule is the product, not the output</h2>
+
+          <p>Most transformation tools optimize for producing output as fast as possible. Paste data in, get data out. The output is the product. Latentmachine inverts this. The primary result is the symbolic rule — a list of named operations, each one inspectable, each one traceable to the examples that support it.</p>
+
+          <svg viewBox="0 0 680 152" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing the rule as the primary product between input and output" style="width:100%;max-width:680px;display:block;margin:8px 0 4px">
+            <style>
+              .cs-mono { font-family: 'Martian Mono', monospace; }
+              .cs-ui { font-family: 'Stack Sans Text', system-ui, sans-serif; }
+            </style>
+            <!-- input box -->
+            <rect x="1" y="36" width="148" height="80" rx="8" style="fill:none;stroke:var(--border);stroke-width:1"/>
+            <text x="75" y="26" text-anchor="middle" class="cs-mono" style="fill:var(--text-tertiary);font-size:9px;letter-spacing:0.04em">INPUT</text>
+            <text x="75" y="68" text-anchor="middle" class="cs-mono" style="fill:var(--text-secondary);font-size:9.5px">$.first  "Ada"</text>
+            <text x="75" y="84" text-anchor="middle" class="cs-mono" style="fill:var(--text-secondary);font-size:9.5px">$.last   "Lovelace"</text>
+            <text x="75" y="100" text-anchor="middle" class="cs-mono" style="fill:var(--text-secondary);font-size:9.5px">$.role   "admin"</text>
+            <!-- arrow 1 -->
+            <line x1="157" y1="76" x2="204" y2="76" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <polygon points="202,72 212,76 202,80" style="fill:var(--text-tertiary)"/>
+            <!-- rule box (emphasized) -->
+            <rect x="216" y="24" width="248" height="104" rx="10" style="fill:var(--safe-bg);stroke:var(--safe);stroke-width:1.5"/>
+            <text x="340" y="16" text-anchor="middle" class="cs-mono" style="fill:var(--safe);font-size:9px;font-weight:600;letter-spacing:0.04em">RULE</text>
+            <text x="340" y="56" text-anchor="middle" class="cs-mono" style="fill:var(--text-primary);font-size:9.5px">copy $.role → $.role</text>
+            <text x="340" y="74" text-anchor="middle" class="cs-mono" style="fill:var(--text-primary);font-size:9.5px">join first + last → fullName</text>
+            <text x="340" y="92" text-anchor="middle" class="cs-mono" style="fill:var(--text-primary);font-size:9.5px">trim created → joinDate</text>
+            <text x="340" y="116" text-anchor="middle" class="cs-ui" style="fill:var(--safe);font-size:9px">proven · 5/5 checks · exportable</text>
+            <!-- arrow 2 -->
+            <line x1="472" y1="76" x2="519" y2="76" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <polygon points="517,72 527,76 517,80" style="fill:var(--text-tertiary)"/>
+            <!-- output box -->
+            <rect x="531" y="36" width="148" height="80" rx="8" style="fill:none;stroke:var(--border);stroke-width:1"/>
+            <text x="605" y="26" text-anchor="middle" class="cs-mono" style="fill:var(--text-tertiary);font-size:9px;letter-spacing:0.04em">OUTPUT</text>
+            <text x="605" y="68" text-anchor="middle" class="cs-mono" style="fill:var(--text-secondary);font-size:9.5px">"Ada Lovelace"</text>
+            <text x="605" y="84" text-anchor="middle" class="cs-mono" style="fill:var(--text-secondary);font-size:9.5px">"admin"</text>
+            <text x="605" y="100" text-anchor="middle" class="cs-mono" style="fill:var(--text-secondary);font-size:9.5px">"2024-03-15"</text>
+            <!-- annotation -->
+            <text x="340" y="148" text-anchor="middle" class="cs-ui" style="fill:var(--text-tertiary);font-size:8.5px;font-style:italic">The rule is the primary artifact. Input and output are evidence.</text>
+          </svg>
+
+          <p>The alternative was obvious: just show the transformed output and let the user copy it. That is what most users expect. But the output is only useful once. The rule is useful every time the source format sends new data. And the rule is the only thing the user can actually verify — you cannot look at a transformed JSON object and know whether field X was copied correctly without seeing the rule that produced it.</p>
+
+          <p>This decision shaped everything downstream. The diagnosis panel exists because the rule is visible and needs annotation. The confidence system exists because the rule needs a trust label. The export system produces code that embeds the rule as a comment header, so the rule survives even after it leaves the tool. If the output were the product, none of those features would exist.</p>
+
+          <h2>Confidence is a checklist, not a number</h2>
+
+          <p>The engine's confidence label is not a percentage. It is a named state — proven, supported, needs-proof, unsafe, blocked — derived from a checklist of five evidence checks: exact fit, no blocking guardrails, all paths explained, no meaningful ambiguity, and at least two examples.</p>
+
+          <svg viewBox="0 0 680 168" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of checklist confidence versus numeric percentage" style="width:100%;max-width:680px;display:block;margin:8px 0 4px">
+            <style>
+              .cs-mono { font-family: 'Martian Mono', monospace; }
+              .cs-ui { font-family: 'Stack Sans Text', system-ui, sans-serif; }
+            </style>
+            <!-- Chosen: checklist -->
+            <text x="168" y="14" text-anchor="middle" class="cs-mono" style="fill:var(--safe);font-size:9px;letter-spacing:0.04em">CHOSEN</text>
+            <rect x="18" y="24" width="300" height="120" rx="10" style="fill:var(--safe-bg);stroke:var(--safe);stroke-width:1.5"/>
+            <text x="44" y="50" class="cs-mono" style="fill:var(--safe);font-size:11px">✓</text>
+            <text x="62" y="50" class="cs-ui" style="fill:var(--text-primary);font-size:10.5px">Exact fit across all examples</text>
+            <text x="44" y="70" class="cs-mono" style="fill:var(--safe);font-size:11px">✓</text>
+            <text x="62" y="70" class="cs-ui" style="fill:var(--text-primary);font-size:10.5px">No blocking guardrails</text>
+            <text x="44" y="90" class="cs-mono" style="fill:var(--safe);font-size:11px">✓</text>
+            <text x="62" y="90" class="cs-ui" style="fill:var(--text-primary);font-size:10.5px">All target paths explained</text>
+            <text x="44" y="110" class="cs-mono" style="fill:var(--safe);font-size:11px">✓</text>
+            <text x="62" y="110" class="cs-ui" style="fill:var(--text-primary);font-size:10.5px">No meaningful ambiguity</text>
+            <text x="44" y="130" class="cs-mono" style="fill:var(--warn);font-size:11px">✗</text>
+            <text x="62" y="130" class="cs-ui" style="fill:var(--text-secondary);font-size:10.5px">At least two examples</text>
+            <text x="168" y="158" text-anchor="middle" class="cs-ui" style="fill:var(--text-tertiary);font-size:8.5px;font-style:italic">Actionable: add a second example</text>
+            <!-- Rejected: percentage -->
+            <text x="520" y="14" text-anchor="middle" class="cs-mono" style="fill:var(--text-tertiary);font-size:9px;letter-spacing:0.04em">REJECTED</text>
+            <rect x="374" y="24" width="292" height="120" rx="10" style="fill:none;stroke:var(--border);stroke-width:1;stroke-dasharray:4,3"/>
+            <text x="520" y="82" text-anchor="middle" class="cs-mono" style="fill:var(--text-tertiary);font-size:32px;font-weight:300">0.78</text>
+            <text x="520" y="106" text-anchor="middle" class="cs-ui" style="fill:var(--text-tertiary);font-size:10.5px">confidence score</text>
+            <text x="520" y="158" text-anchor="middle" class="cs-ui" style="fill:var(--text-tertiary);font-size:8.5px;font-style:italic">Not actionable: is 0.78 enough?</text>
+          </svg>
+
+          <p>The alternative was a numeric score between 0 and 1. It would be easier to compute, easier to display, and easier for users to interpret at a glance. The problem is that a number like "0.78" communicates false precision. It invites the question "is 0.78 high enough?" which has no meaningful answer because the number is not a probability. It is an evidence assessment.</p>
+
+          <p>A checklist makes the evidence legible. The user can see which checks passed and which did not. "4 of 5 checks passed, the missing check is: at least two examples" is actionable. "Confidence: 0.78" is not. The tradeoff is that a checklist requires more screen space and more cognitive load. It is a harder interface to glance at. I chose it anyway because glanceability is the wrong optimization for a trust decision.</p>
+
+          <h2>Refusal as a feature</h2>
+
+          <p>When the engine cannot distinguish between two plausible rules, it does not pick one. It reports both, classifies the ambiguity, and suggests what kind of example would resolve it. When a new input contains a value the engine has never seen, it does not guess the output. It flags the field as unresolved.</p>
+
+          <p>The alternative — and the default in virtually every other tool — is to always produce output. Pick the simpler rule. Use a default for unseen values. Keep the user moving. This is a reasonable design choice for tools where the cost of a wrong output is low. For data transformations that feed into databases, pipelines, and automated workflows, the cost of a wrong output is not low. It is a silent corruption that compounds.</p>
+
+          <p>The refusal system is enforced by a product contract that is tested by the benchmark suite. The engine cannot ship a build where it silently guesses on ambiguous input — the adversarial benchmarks catch it. If someone removes or weakens an ambiguity-detection test, the build fails before it reaches the deploy step. This is not a policy decision. It is an architectural constraint.</p>
+
+          <h2>The diagnosis as a conversation</h2>
+
+          <p>When the engine reports a problem, it also reports a next step. "Ambiguous" comes with "add an example where $.status has a different value." "Contradictory" comes with the specific examples that disagree. "Insufficient" comes with "add a second example with different values." The diagnosis is not a wall of errors. It is one turn in a back-and-forth.</p>
+
+          <p>This changes the interaction pattern. Instead of paste-and-pray, the user teaches the engine iteratively. Two examples, read the diagnosis, add a third if needed. The engine converges within two or three rounds on most real-world payloads. The design decision here was to invest in the suggestion system (which requires the engine to reason about what it does not know) rather than in a more forgiving inference that guesses more aggressively. Both paths lead to faster results. Only one leads to trustworthy results.</p>
+
+          <h2>Why vanilla JS with no framework</h2>
+
+          <p>The UI is 1,857 lines of vanilla JavaScript with string-template rendering and manual DOM event delegation. No React, no Vue, no build-time framework. The rendering layer is extracted into a separate module (<code>render-helpers.js</code>, 1,596 lines) that contains pure functions producing HTML strings.</p>
+
+          <p>The alternative was React or Preact. Either would have given me component composition, reactive state, and virtual DOM diffing. The tradeoff is a build step, a runtime dependency, and a framework idiom that would obscure the application logic behind lifecycle hooks and component boundaries. For a tool where the UI is thin and the engine is thick, the framework would be solving a problem I do not have (complex component state) while adding a problem I do not want (a dependency I cannot audit in the browser).</p>
+
+          <p>The cost is real: no diffing means full re-renders on every state change, which means more manual work in the event handling layer. The benefit is also real: the entire application loads in one request, runs without compilation, and can be read in the browser's source view. For a tool whose trust story depends on transparency, that matters.</p>
+
+          <h2>The cost model</h2>
+
+          <p>The engine uses a Minimum Description Length (MDL) inspired cost model to choose between competing rules. Each operation type has a fixed cost prior — a simple field copy is cheap (1.05), a learned value lookup is expensive (2.25). When multiple rules fit the examples, the engine picks the cheapest one, on the principle that the simplest explanation is the most likely to generalize.</p>
+
+          <svg viewBox="0 0 680 116" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cost model hierarchy from cheapest to most expensive operations" style="width:100%;max-width:680px;display:block;margin:8px 0 4px">
+            <style>
+              .cs-mono { font-family: 'Martian Mono', monospace; }
+              .cs-ui { font-family: 'Stack Sans Text', system-ui, sans-serif; }
+            </style>
+            <!-- axis -->
+            <line x1="40" y1="58" x2="640" y2="58" style="stroke:var(--border);stroke-width:1"/>
+            <text x="40" y="98" class="cs-mono" style="fill:var(--safe);font-size:7.5px;letter-spacing:0.04em">SIMPLER → PREFERRED</text>
+            <text x="640" y="98" text-anchor="end" class="cs-mono" style="fill:var(--danger);font-size:7.5px;letter-spacing:0.04em">COMPLEX → LAST RESORT</text>
+
+            <!-- cost marks -->
+            <rect x="65" y="53" width="6" height="10" rx="1.5" style="fill:var(--safe)"/>
+            <text x="68" y="28" text-anchor="middle" class="cs-mono" style="fill:var(--text-primary);font-size:8px;letter-spacing:0.03em">SET</text>
+            <text x="68" y="40" text-anchor="middle" class="cs-mono" style="fill:var(--text-tertiary);font-size:7.5px">1.05</text>
+
+            <rect x="177" y="53" width="6" height="10" rx="1.5" style="fill:var(--safe)"/>
+            <text x="180" y="28" text-anchor="middle" class="cs-mono" style="fill:var(--text-primary);font-size:8px;letter-spacing:0.03em">COERCE</text>
+            <text x="180" y="40" text-anchor="middle" class="cs-mono" style="fill:var(--text-tertiary);font-size:7.5px">1.45</text>
+
+            <rect x="289" y="53" width="6" height="10" rx="1.5" style="fill:var(--warn)"/>
+            <text x="292" y="28" text-anchor="middle" class="cs-mono" style="fill:var(--text-primary);font-size:8px;letter-spacing:0.03em">FALLBACK</text>
+            <text x="292" y="40" text-anchor="middle" class="cs-mono" style="fill:var(--text-tertiary);font-size:7.5px">1.52</text>
+
+            <rect x="401" y="53" width="6" height="10" rx="1.5" style="fill:var(--warn)"/>
+            <text x="404" y="28" text-anchor="middle" class="cs-mono" style="fill:var(--text-primary);font-size:8px;letter-spacing:0.03em">TEMPLATE</text>
+            <text x="404" y="40" text-anchor="middle" class="cs-mono" style="fill:var(--text-tertiary);font-size:7.5px">1.58</text>
+
+            <rect x="513" y="53" width="6" height="10" rx="1.5" style="fill:var(--warn)"/>
+            <text x="516" y="28" text-anchor="middle" class="cs-mono" style="fill:var(--text-primary);font-size:8px;letter-spacing:0.03em">CONDITIONAL</text>
+            <text x="516" y="40" text-anchor="middle" class="cs-mono" style="fill:var(--text-tertiary);font-size:7.5px">2.00</text>
+
+            <rect x="609" y="53" width="6" height="10" rx="1.5" style="fill:var(--danger)"/>
+            <text x="612" y="28" text-anchor="middle" class="cs-mono" style="fill:var(--text-primary);font-size:8px;letter-spacing:0.03em">VALUEMAP</text>
+            <text x="612" y="40" text-anchor="middle" class="cs-mono" style="fill:var(--text-tertiary);font-size:7.5px">2.25</text>
+
+            <!-- annotation -->
+            <text x="340" y="112" text-anchor="middle" class="cs-mono" style="fill:var(--text-tertiary);font-size:7.5px;letter-spacing:0.04em">COST PRIORS ARE FIXED. EVIDENCE ADJUSTMENTS CANNOT CROSS BAND BOUNDARIES.</text>
+          </svg>
+
+          <p>The cost priors are hand-tuned, not learned. This was deliberate. A learned cost model would optimize for the training distribution, which means it would encode assumptions about what "typical" data looks like. A hand-tuned model encodes structural complexity: a copy is simpler than a template, which is simpler than a lookup. This ordering is true regardless of the data distribution.</p>
+
+          <p>Evidence adjustments are allowed to break ties within a cost band but cannot override the structural ordering. This is enforced by a cap (<code>COST_ADJUSTMENT_CAP</code>) that bounds the total adjustment to less than the gap between adjacent cost priors. The engine can prefer one copy over another based on path similarity, but it cannot make a lookup look simpler than a copy. The constraint prevents the evidence from rewriting the architecture's assumptions.</p>
+
+          <h2>One engine, four tools</h2>
+
+          <p>Verify, Infer, Regex, and jq all share the same intelligence layer. The engine is cleanly separated from the UI: pure functions that take examples and return rule artifacts, with no DOM coupling. Each tool composes the engine differently — Verify uses it to audit a batch, Infer teaches it with examples, Regex uses a different synthesis path for patterns, and jq turns selected or example-shaped JSON into verified query expressions — but the contracts, the benchmark system, and the cost model are shared.</p>
+
+          <svg viewBox="0 0 680 172" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture diagram showing four tools sharing one intelligence engine" style="width:100%;max-width:680px;display:block;margin:8px 0 4px">
+            <style>
+              .cs-mono { font-family: 'Martian Mono', monospace; }
+              .cs-ui { font-family: 'Stack Sans Text', system-ui, sans-serif; }
+            </style>
+            <!-- Engine core -->
+            <rect x="168" y="78" width="344" height="56" rx="10" style="fill:var(--surface);stroke:var(--text-primary);stroke-width:1.5"/>
+            <text x="340" y="103" text-anchor="middle" class="cs-mono" style="fill:var(--text-primary);font-size:10px;letter-spacing:0.03em">intelligence layer</text>
+            <text x="340" y="122" text-anchor="middle" class="cs-ui" style="fill:var(--text-tertiary);font-size:8.5px">contracts · cost model · benchmarks · diagnosis</text>
+            <!-- Tool boxes -->
+            <rect x="48" y="8" width="120" height="36" rx="8" style="fill:var(--safe-bg);stroke:var(--safe);stroke-width:1"/>
+            <text x="108" y="31" text-anchor="middle" class="cs-mono" style="fill:var(--safe);font-size:10px">Verify</text>
+
+            <rect x="206" y="8" width="120" height="36" rx="8" style="fill:var(--safe-bg);stroke:var(--safe);stroke-width:1"/>
+            <text x="266" y="31" text-anchor="middle" class="cs-mono" style="fill:var(--safe);font-size:10px">Infer</text>
+
+            <rect x="364" y="8" width="120" height="36" rx="8" style="fill:var(--safe-bg);stroke:var(--safe);stroke-width:1"/>
+            <text x="424" y="31" text-anchor="middle" class="cs-mono" style="fill:var(--safe);font-size:10px">Regex</text>
+
+            <rect x="522" y="8" width="120" height="36" rx="8" style="fill:var(--safe-bg);stroke:var(--safe);stroke-width:1"/>
+            <text x="582" y="31" text-anchor="middle" class="cs-mono" style="fill:var(--safe);font-size:10px">jq</text>
+            <!-- Connection lines -->
+            <line x1="108" y1="44" x2="108" y2="68" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <line x1="108" y1="68" x2="340" y2="68" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <line x1="266" y1="44" x2="266" y2="68" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <line x1="424" y1="44" x2="424" y2="68" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <line x1="582" y1="44" x2="582" y2="68" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <line x1="340" y1="68" x2="340" y2="78" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <line x1="340" y1="68" x2="582" y2="68" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <!-- annotation -->
+            <text x="340" y="164" text-anchor="middle" class="cs-ui" style="fill:var(--text-tertiary);font-size:8.5px;font-style:italic">Each tool composes the engine differently. The honesty model is inherited, not reimplemented.</text>
+          </svg>
+
+          <p>The architectural benefit is consistency: every tool inherits the honesty model and the evidence system without reimplementing them. The portfolio benefit is different: having four tools that share one engine demonstrates that the architecture generalizes. It is easy to build one tool well. It is harder to build a platform that supports multiple tools without the abstraction leaking. The tool contract system — a shared lifecycle with explicit states, benchmark assertions, and versioned schemas — is what makes this work.</p>
+
+          <h2>The engine leaves the browser</h2>
+
+          <p>The website is the demonstration. The engine is the product. Because the intelligence layer is pure functions with zero dependencies and no DOM coupling, extraction cost structure, not rewriting: the same artifact now exists as a standalone npm package with its own test suite and publish pipeline, as a CLI that exits 0 or 1 so a CI pipeline can gate on batch consistency, and as an MCP server that lets AI agents call the engine as tools.</p>
+
+          <svg viewBox="0 0 680 172" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing one engine shipping to four surfaces: browser, npm package, CLI, and MCP server" style="width:100%;max-width:680px;display:block;margin:8px 0 4px">
+            <style>
+              .cs-mono { font-family: 'Martian Mono', monospace; }
+              .cs-ui { font-family: 'Stack Sans Text', system-ui, sans-serif; }
+            </style>
+            <!-- Engine core -->
+            <rect x="168" y="8" width="344" height="56" rx="10" style="fill:var(--surface);stroke:var(--text-primary);stroke-width:1.5"/>
+            <text x="340" y="33" text-anchor="middle" class="cs-mono" style="fill:var(--text-primary);font-size:10px;letter-spacing:0.03em">the same engine</text>
+            <text x="340" y="52" text-anchor="middle" class="cs-ui" style="fill:var(--text-tertiary);font-size:8.5px">pure functions · zero dependencies · no DOM coupling</text>
+            <!-- Connection lines -->
+            <line x1="340" y1="64" x2="340" y2="104" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <line x1="108" y1="104" x2="582" y2="104" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <line x1="108" y1="104" x2="108" y2="120" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <line x1="266" y1="104" x2="266" y2="120" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <line x1="424" y1="104" x2="424" y2="120" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <line x1="582" y1="104" x2="582" y2="120" style="stroke:var(--text-tertiary);stroke-width:1"/>
+            <!-- Surface boxes -->
+            <rect x="48" y="120" width="120" height="36" rx="8" style="fill:var(--surface);stroke:var(--border);stroke-width:1"/>
+            <text x="108" y="143" text-anchor="middle" class="cs-mono" style="fill:var(--text-secondary);font-size:10px">browser</text>
+
+            <rect x="206" y="120" width="120" height="36" rx="8" style="fill:var(--surface);stroke:var(--border);stroke-width:1"/>
+            <text x="266" y="143" text-anchor="middle" class="cs-mono" style="fill:var(--text-secondary);font-size:10px">npm</text>
+
+            <rect x="364" y="120" width="120" height="36" rx="8" style="fill:var(--surface);stroke:var(--border);stroke-width:1"/>
+            <text x="424" y="143" text-anchor="middle" class="cs-mono" style="fill:var(--text-secondary);font-size:10px">CLI / CI</text>
+
+            <rect x="522" y="120" width="120" height="36" rx="8" style="fill:var(--safe-bg);stroke:var(--safe);stroke-width:1"/>
+            <text x="582" y="143" text-anchor="middle" class="cs-mono" style="fill:var(--safe);font-size:10px">MCP</text>
+            <!-- annotation -->
+            <text x="340" y="168" text-anchor="middle" class="cs-ui" style="fill:var(--text-tertiary);font-size:8.5px;font-style:italic">One artifact, four surfaces. The check travels to where the work happens.</text>
+          </svg>
+
+          <p>The MCP server forced the most representative decision in this section. The obvious implementation imports <code>@modelcontextprotocol/sdk</code> and <code>zod</code> — two dependencies in a project that has none. But the protocol underneath is JSON-RPC over HTTP POST, and for stateless, synchronous tools it fits comfortably in one serverless file. So the remote server at <code>/api/mcp</code> implements the protocol inline: no SDK, no schema library, no session state — around 400 lines you can read top to bottom, sitting next to an engine you can also read top to bottom.</p>
+
+          <p>MCP matters more than the other surfaces because verification is worth the most inside the loop where the AI works. A website requires someone to remember to check. An MCP tool lets the agent check itself: the model transforms a batch, calls Verify on its own output, and gets a deterministic verdict before the result moves on. The rejected alternative was a hosted API with keys and accounts — which would have meant a database, sessions, and a privacy story with asterisks. This way the architecture keeps the shape it has always had: stateless, inspectable, nothing retained.</p>
+
+          <h2>Over 800 checks gate every deploy</h2>
+
+          <p>The engine cannot ship without passing over 800 checks covering unit tests, composition tests, adversarial tests (ambiguity between competing rules), regression tests, golden tests (with assertion checks for method, confidence, explanation text, and duration), cross-format translation tests, tool acceptances, import checks, and deploy preflight. The build command runs the full suite before producing output. A failing check blocks the deploy.</p>
+
+          <p>This is not test coverage for its own sake. Each benchmark encodes a design decision. The adversarial benchmarks verify that the cost model picks the right rule when two operations compete. The golden benchmarks verify that the explanation text matches the operation. The regression benchmarks encode bugs that were found and fixed. The suite is the executable specification of the product contract. If I change the cost model and a benchmark fails, the failure tells me which product decision I just broke.</p>
+
+          <h2>What I would do differently</h2>
+
+          <p>The rendering layer should have been separated from app.js earlier. The monolith reached 3,287 lines before I extracted render-helpers.js, and some of that extraction was mechanical work that a cleaner initial separation would have avoided. The lesson is that "no framework" does not mean "no architecture." Vanilla JS needs the same separation of concerns as any framework project — it just does not enforce it.</p>
+
+          <p>Verify should have existed from day one. The first section explains why it leads now; the honest admission is that I only saw it after building everything else. The engine's most defensible ability — inferring the majority rule and flagging the rows that break it — was sitting inside Infer the whole time, unnamed. Verify is what makes the engine's value tangible for people who will never build a transformation but constantly need to audit one. If I were starting over, I would build the auditor before the builder.</p>
+
+          <h2>Closing</h2>
+
+          <p>There is a pattern under all of these decisions, and it is worth naming once. Every claim this project makes is designed to be checkable rather than believable. "Nothing leaves your browser" is not a policy — it is visible in the Network tab. "The engine refuses to guess" is not a value statement — adversarial benchmarks fail the build the moment it starts guessing. The product contract has a section titled Refusals, and the benchmark suite is its enforcement. The confidence label is a checklist you can audit, the rule is a program you can read, and the source ships unminified so that reading is actually possible. A verification tool that asked to be taken on faith would be a contradiction in terms.</p>
+
+          <p>That stance is also why the project exists. I design and build with AI every day, and this is the piece of software that refuses to take AI's word for it. The engine, the tools, the articles, and this page are one-person work — with AI agents doing the implementation, and over 800 deterministic checks deciding whether the result ships. If you want to see the decisions in action, <a href="/verify">Verify</a> is the entry point. The <a href="/latentlog">Latentlog</a> covers the technical reasoning behind the engine, the honesty model, and the building process in more detail.</p>
+
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+            <a class="button" href="/verify">Open Verify →</a>
+            <a class="button" href="/infer">Open Infer →</a>
+            <a class="button" href="/regex">Open Regex →</a>
+            <a class="button" href="/jq">Open jq →</a>
+          </div>
+        </article>
+      </div>
+      <!--@partial:footer-->
+    </main>
+    <script type="module" src="/src/local/chrome.js"></script>
+  </body>
+</html>

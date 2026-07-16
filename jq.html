@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--@partial:head-commons-->
+    <title>jq Builder | Build jq Queries by Clicking JSON</title>
+    <meta name="description" content="Build a jq expression from JSON by clicking the values you want or showing the desired output shape. Verified, explained, deterministic, and client-side." />
+    <link rel="canonical" href="https://latentmachine.com/jq" />
+    <meta property="og:title" content="jq Builder | Build jq Queries by Clicking JSON" />
+    <meta property="og:description" content="Create jq from examples and selected JSON values. Latentmachine verifies the result, explains it, and asks when the selection is ambiguous." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://latentmachine.com/jq" />
+    <meta name="twitter:title" content="jq Builder | Build jq Queries by Clicking JSON" />
+    <meta name="twitter:description" content="Build jq by pointing at JSON values, with verified preview output and JSONPath where expressible." />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Latentmachine jq Builder",
+        "url": "https://latentmachine.com/jq",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web browser",
+        "description": "A browser-based jq generator that builds jq expressions from selected JSON values or desired output examples, verifies the result, explains it, and refuses ambiguous selections.",
+        "featureList": [
+          "Build jq expressions by clicking JSON values",
+          "Infer simple reshape queries from desired JSON output",
+          "Show JSONPath equivalents where expressible",
+          "Verify preview output before copying",
+          "Ask for clarification when array selections are ambiguous",
+          "Run client-side in the browser"
+        ],
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main class="page">
+      <a href="#main-content" class="skip-link">Skip to content</a>
+      <!--@partial:nav-->
+      <div id="main-content">
+        <div id="jq">
+          <div class="tool-loading" role="status" aria-label="Loading jq Builder">
+            <span class="loading-mark"></span>
+          </div>
+          <noscript>
+            <div class="format-diagnostic is-danger">
+              <p>This tool runs entirely in your browser and needs JavaScript. Nothing is sent to a server, but nothing runs without it either.</p>
+            </div>
+          </noscript>
+        </div>
+      </div>
+      <!--@partial:footer-->
+    </main>
+    <script type="module" src="/src/local/chrome.js"></script>
+    <script type="module" src="/src/local/jq.js"></script>
+  </body>
+</html>

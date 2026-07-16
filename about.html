@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--@partial:head-commons-->
+    <title>About Latentmachine | Verify AI Data Transformations</title>
+    <meta name="description" content="Latentmachine verifies AI data transformations, flags inconsistent rows, and infers deterministic rules from examples. JSON, XML, CSV, TOML, YAML, .env, and SQL INSERT input. No LLM. No server calls. Free." />
+    <link rel="canonical" href="https://latentmachine.com/about" />
+
+    <meta property="og:title" content="About Latentmachine | Verify AI Data Transformations" />
+    <meta property="og:description" content="Check whether AI-transformed rows followed one rule, then infer deterministic fixes from examples. Deterministic, inspectable, private, and free." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://latentmachine.com/about" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="About Latentmachine | Verify AI Data Transformations" />
+    <meta name="twitter:description" content="Verify AI data transformations and infer deterministic rules from examples. No LLM. No server. Free." />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Latentmachine",
+        "url": "https://latentmachine.com/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web browser",
+        "description": "A browser-based suite of developer tools built on program synthesis: a consistency verifier for AI-transformed data, a rule inference tool, a regex builder, and a jq query generator. All deterministic, all client-side.",
+        "featureList": [
+          "Verify AI-transformed rows and flag records that break the inferred rule",
+          "Infer data transformation rules from before-and-after examples",
+          "Transform JSON, XML, CSV, TOML, YAML, .env, and SQL INSERT data",
+          "Cross-format transformation between any supported format pair",
+          "Diagnose ambiguity, contradictions, missing fields, and unseen values",
+          "Export JavaScript, n8n code, Make.com code, and standalone CLI tools",
+          "Build regular expressions from match and reject examples",
+          "Build jq queries by clicking JSON values or showing desired output",
+          "Run everything client-side in the browser with zero server calls",
+          "Expose the engine to AI agents as an MCP server"
+        ],
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is Latentmachine?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Latentmachine is a browser-based suite of developer tools for working with structured data. It verifies AI-transformed rows against one deterministic rule, infers rules from before-and-after examples, diagnoses ambiguity or contradictions, and exports code you own."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Latentmachine use AI or an LLM?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. The engine is deterministic program synthesis, not a language model. It generates candidate rules, validates them against examples, scores them by simplicity, and refuses when the evidence is not strong enough."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What data formats does Latentmachine support?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Latentmachine supports JSON, XML, CSV, TOML, YAML, and dotenv-style .env files as output formats, with SQL INSERT supported as input only. Cross-format transformations work between any supported input and output pair."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is Latentmachine free?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Latentmachine is free to use, requires no account, has no usage limit, and runs client-side in the browser with no server calls during use."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I export the transformation as code?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Once a rule is marked safe, you can export JavaScript, n8n Code, Make.com JavaScript, and a standalone CLI tool."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can AI agents use Latentmachine?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Latentmachine exposes an MCP server, so MCP clients such as Claude Desktop, Claude Code, and Cursor can call the engine as tools and verify AI data transformations deterministically inside an agent workflow."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Latentmachine track visitors or collect analytics?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. There are no analytics scripts of any kind, no cookies, no tracking pixels, and no telemetry. The site makes no measurement calls, which you can confirm in your browser's network tab."
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <main class="page">
+      <a href="#main-content" class="skip-link">Skip to content</a>
+      <!--@partial:nav-->
+      <div id="main-content">
+        <article class="content-page">
+        <p class="section-label">About</p>
+        <h1>Check the data work. Keep the rule.</h1>
+
+        <p>
+          Latentmachine is a browser-based suite of developer tools for working with structured data after AI, scripts, or humans have touched it. The core loop is simple: verify whether every transformed row followed one deterministic rule, then infer the rule you can inspect, reuse, or export when something needs to be fixed.
+        </p>
+
+        <p>
+          No language model. No server calls. No account. The entire engine runs in your browser, and the source ships unminified so you can read it in your developer tools.
+        </p>
+        <div class="stats">
+          <div class="stat"><strong>800+</strong><span>checks before build</span></div>
+          <div class="stat"><strong>0</strong><span>runtime dependencies</span></div>
+          <div class="stat"><strong>&lt;10ms</strong><span>typical inference</span></div>
+          <div class="stat"><strong>100%</strong><span>client-side</span></div>
+        </div>
+
+        <hr class="divider" />
+
+        <h2>The Problem</h2>
+        <p>
+          The way structured data gets reshaped has changed. You paste a batch of records into a language model, describe the shape you need, and get clean-looking output back in seconds. The shape is right. The field names are better. The first rows pass a glance. That glance is the problem: LLM transformations rarely fail loudly. They fail by being almost consistent — row 27 capitalizes a status the others lowercase, row 93 keeps an empty string where every other row uses null, row 144 writes the date in a different format because the source value looked unusual. Spot-checking the top of the file is exactly how that drift survives into the database.
+        </p>
+        <p>
+          Checking every row by hand defeats the purpose of using AI. Asking a second model to review the first replaces one probabilistic step with two. What the check actually needs is what the transformation was supposed to have all along: one deterministic rule that either explains every row or names the rows it cannot.
+        </p>
+        <p>
+          And the older version of the problem has not gone away. Every integration between two systems still has a transformation step — a webhook payload becoming a database record, a spreadsheet export becoming an API payload, an XML feed becoming clean JSON for an import. The gap is a function you write, test, forget about, and rewrite when the source format changes. Writing a script is reliable but slow for one-off jobs. Visual mapping tools fall apart with nested structures, type conversions, and arrays. Query languages like jq and JSONata are powerful but have a learning curve that punishes you exactly when you are in the middle of something else.
+        </p>
+        <p>
+          Latentmachine covers both halves. Paste the original records next to the transformed records, and Verify checks whether one rule explains the whole batch — flagging every row that breaks it. Show a before-and-after example, and Infer builds the deterministic rule you can inspect, reuse, and export. The result is a verified program — not a guess, and not another model's opinion.
+        </p>
+
+        <h2>The Tools</h2>
+
+        <h3>Verify</h3>
+        <p>
+          The primary check. Paste original records and the AI output side by side. Verify infers the majority transformation rule and flags every row that deviates from it. Built for catching LLM output drift, verifying migration scripts, auditing manual conversions, and finding the one inconsistent row in a batch of 200.
+        </p>
+        <a class="button is-primary" href="/verify">Open Verify</a>
+
+        <h3>Infer</h3>
+        <p>
+          The rule builder. Paste structured data on the left (what you have), paste the desired shape on the right (what you need). The engine compares the two, infers the simplest transformation rule, diagnoses any issues, and lets you export the result as code. It accepts JSON, XML, CSV, TOML, YAML, .env, and SQL INSERT as input, and exports JSON, XML, CSV, TOML, YAML, or .env in any supported cross-format combination.
+        </p>
+        <a class="button is-primary" href="/infer">Open Infer</a>
+
+        <h3>Regex Builder</h3>
+        <p>
+          Provide strings that should match and strings that should not. The engine synthesizes a verified regular expression with named captures, multi-flavor output (JavaScript, PCRE, Python, Java), and a plain-English explanation. It refuses to show unverified patterns and asks for more examples when the evidence is ambiguous.
+        </p>
+        <a class="button is-primary" href="/regex">Open Regex Builder</a>
+
+        <h3>jq Builder</h3>
+        <p>
+          Paste JSON and click the values you want, or show the desired output shape. The engine generates a verified jq expression with JSONPath equivalents where possible. For the 80% of jq use cases where you know what you want but do not want to write the syntax.
+        </p>
+        <a class="button is-primary" href="/jq">Open jq Builder</a>
+
+        <h3>Trace</h3>
+        <p>
+          Trace profiles unfamiliar structured data, explains its shape and patterns, surfaces evidence-backed observations, and compares record sets with safe single or compound keys. The insight-first experience is stable.
+        </p>
+        <a class="button is-primary" href="/trace">Open Trace</a>
+
+        <hr class="divider" />
+
+        <h2>How It Works</h2>
+        <p>
+          Verify and Infer both follow the same program synthesis pipeline. The engine parses each input-output pair into a format-agnostic structure, generates candidate operations for every structural difference, validates each candidate against all examples (exact match required), scores them by simplicity using a Minimum Description Length cost model, and selects the cheapest program that fits.
+        </p>
+        <p>
+          Before returning a result, it runs a diagnosis pass for contradictions, ambiguous mappings, missing fields, and unseen values. The diagnosis is not an afterthought — it is the product. The output should be useful, but the check and the rule should be trustworthy.
+        </p>
+
+        <h2>What It Can Infer</h2>
+        <ul>
+          <li>Field mapping, renaming, removal, nesting, and flattening.</li>
+          <li>String cleanup, concatenation, splitting, case changes, and template-style merges.</li>
+          <li>Type conversion between strings, numbers, booleans, and common date formats.</li>
+          <li>Value maps that stop safely when an unseen value appears.</li>
+          <li>Numeric operations, binary math between fields, and basic unit conversions.</li>
+          <li>Array projection, extraction, filtering, counting, joining, and element lookup.</li>
+          <li>Cross-format translation between JSON, XML, CSV, TOML, YAML, .env, and SQL INSERT (input only).</li>
+        </ul>
+
+        <h2>The Diagnosis</h2>
+        <p>
+          Most transformation tools optimize for producing output. Latentmachine optimizes for telling you when it should not.
+        </p>
+        <p>
+          If your examples contradict each other, the engine identifies the conflicting examples and the specific field. If two rules fit equally well, it reports both interpretations and suggests what kind of additional example would distinguish them. If the new input contains a value the engine has not seen in any example, it flags the field instead of guessing. If a required source field is missing, it warns before producing output.
+        </p>
+        <p>
+          Each diagnosis comes with a specific next step. Not "something went wrong" but "add an example where this field has a different value." Two or three rounds, and the engine is willing to say "safe."
+        </p>
+
+        <h2>What It Does Not Do</h2>
+        <p>
+          Latentmachine is for structured, repetitive data translation. It does not handle free-text rewriting, natural language instructions, language translation, external lookups, arbitrary business logic, database queries, or transformations that depend on information outside the input data. If the transformation requires runtime state, multi-step logic chains, or information outside the input data, write the function yourself.
+        </p>
+
+        <h2>Who It Is For</h2>
+        <h3>People checking AI output</h3>
+        <p>
+          You asked ChatGPT, Claude, or another model to reshape a batch of records and need to know whether every row followed the same transformation. Paste the original records and the AI output into Verify, find the drift, then use Infer when you want to replace the inconsistent step with a deterministic rule.
+        </p>
+        <h3>Automation builders</h3>
+        <p>
+          You use n8n, Make.com, or another automation platform and need a Code node between a webhook trigger and the next step. Paste the payload your trigger produces, show the shape your next node expects, and export the inferred rule as a ready-to-paste snippet.
+        </p>
+        <h3>Developers integrating APIs</h3>
+        <p>
+          You are connecting a payment processor to a database, syncing a CRM to a mailing list, or normalizing responses from multiple APIs into one internal format. Use examples to infer the glue code between nested JSON, flat CSV rows, YAML configs, XML feeds, and composed operations.
+        </p>
+        <h3>People migrating or cleaning data</h3>
+        <p>
+          You are moving records between a CMS and an import system, and the fields have different names, different nesting, different types, and trailing whitespace. Show the source record and the clean target record, and the engine infers the cleanup rule — trim, title-case, type-coerce, split, and restructure — in one step.
+        </p>
+        <h3>Anyone who does not want to learn jq today</h3>
+        <p>
+          You know which fields you want from a JSON payload. You can see them. The jq Builder lets you point to them instead of writing the syntax.
+        </p>
+
+        <h2>Exports</h2>
+        <p>
+          Once a rule is marked safe, Latentmachine can copy the translated output, download in any output format (JSON, XML, CSV, TOML, YAML, or .env), copy the symbolic rule program, or export code:
+        </p>
+        <ul>
+          <li>Standalone JavaScript — a dependency-free <code>transform()</code> function.</li>
+          <li>n8n Code — a snippet using <code>$input.all()</code>, ready to paste into a Code node.</li>
+          <li>Make.com JavaScript — a snippet using <code>inputData</code> for Make.com modules.</li>
+          <li>Standalone CLI — a single file you run from a terminal, CI pipeline, or cron job. Includes the transformation, input validation, guardrail checks, a diagnostic report, and a baked self-test. No dependencies. No internet.</li>
+        </ul>
+
+        <pre><code>// Latentmachine inferred transformation
+// Status: safe | Confidence: proven (5/5 checks)
+function transform(input) {
+  return {
+    name: `${input?.user?.first ?? ""} ${input?.user?.last ?? ""}`,
+    accountId: input?.account?.id,
+    logins: Number(input?.login_count ?? 0),
+  };
+}</code></pre>
+
+        <hr class="divider" />
+
+        <h2>Beyond the Browser</h2>
+        <p>
+          The browser tools are the demonstration. The engine itself is a standalone, zero-dependency artifact that runs anywhere JavaScript runs. The <a href="/developers">developers page</a> documents the live MCP/HTTP endpoint and the implemented npm package, local MCP server, and CLI release targets.
+        </p>
+        <p>
+          The MCP surface is the interesting one. Point Claude Desktop, Claude Code, Cursor, or any other MCP client at <code>latentmachine.com/api/mcp</code> and Verify becomes a tool the agent can call on its own output — a deterministic check inside the loop, at the exact moment the AI has just transformed your data. No key, no account, no state.
+        </p>
+
+        <hr class="divider" />
+
+        <h2>Where It Came From</h2>
+        <p>
+          Latentmachine started as an experiment with ARC — the Abstraction and Reasoning Corpus, a benchmark from AI research designed to test whether systems can learn new rules from a few examples without pretraining. The challenge: look at a handful of input-output grid pairs, figure out the underlying rule, and apply it to a new grid. No training data. No learned weights. Just structured search and discipline.
+        </p>
+        <p>
+          Building a solver for that problem required a specific set of primitives: perceive structure, generate hypotheses, validate against evidence, score by simplicity, and refuse to guess when the evidence is insufficient. Those same primitives turned out to be exactly what you need to infer a data transformation rule from before-and-after examples.
+        </p>
+        <p>
+          The grid-domain engine still exists in the codebase as a research prototype. The data transformation engine was built on the reasoning model that emerged from it. The diagnosis system — contradictions, ambiguity, suggested next examples — came directly from the insight that knowing why a solver fails is as valuable as knowing when it succeeds.
+        </p>
+
+        <h2>Design Principles</h2>
+        <p>
+          <strong>Deterministic.</strong> The same examples always produce the same rule. No randomness, no sampling, no temperature parameter. The engine is a pure function.
+        </p>
+        <p>
+          <strong>Inspectable.</strong> The symbolic rule is the primary result, not the output. You can read every operation, see which examples support it, and understand why it was chosen over alternatives. The source code ships unminified.
+        </p>
+        <p>
+          <strong>Honest.</strong> The engine would rather give you a warning you ignore than an output you should not trust. When the evidence is insufficient, it says so. When two rules tie, it reports both. When a value is unseen, it stops.
+        </p>
+        <p>
+          <strong>Private.</strong> There is no backend API, no database, no account system, and no analytics — not even the cookieless kind. The site makes zero measurement calls of any sort. The URL does not change when you paste data. Nothing leaves your machine unless you copy or export it. This is not a promise to take on faith: open the Network tab of your browser and watch.
+        </p>
+        <p>
+          <strong>Free.</strong> No paywall, no usage limit, no feature gating. The engine and all four tools are free to use.
+        </p>
+
+        <h2>Privacy</h2>
+        <p>
+          Latentmachine runs in the browser. Your examples, inputs, outputs, and rules stay on your machine. There is no server-side processing step, no account system, and no telemetry of any kind — not on your data, not on your visit. This is not a policy — it is an architectural decision. The engine has zero runtime dependencies and makes zero network calls during use.
+        </p>
+        <p>
+          You can paste production data, real API keys, real customer records, and real financial payloads. None of it leaves your device. If the page is already loaded, you can disconnect from the internet and keep working.
+        </p>
+
+        <h2>Built By</h2>
+        <p>
+          Latentmachine is built by Sandro, a Berlin-based designer, creative developer, and solo builder. The project grew out of a curiosity about the primitive structure of intelligence — what it takes to figure out a rule from a few examples without being told — and a practical frustration with writing the same kind of glue code between systems over and over.
+        </p>
+        <p>
+          The engine, the tools, the benchmark suite, the articles, and the site are all one-person work. If you have feedback, questions, or find a transformation that should work but does not, reach out on <a href="https://www.threads.net/@kumagaizo">Threads</a>.
+        </p>
+
+        <h2>Status</h2>
+        <p>
+          Latentmachine is in active development. Verify, Infer, Regex, jq, and Trace are stable and free to use. Trace's existing fingerprint APIs remain compatible, while its insight-first product adds deterministic profiles, evidence, sampling, and safe keyed comparison. The engine supports JSON, XML, CSV, TOML, YAML, .env, and SQL INSERT, tested by a benchmark and acceptance suite that gates every deploy. The same engine runs outside the browser too: the <a href="/developers">developers page</a> covers the live MCP/HTTP endpoint plus the implemented npm package, local MCP server, and CLI release targets. A detailed <a href="/case-study">case study</a> covers the design decisions. Technical notes are published in the <a href="/latentlog">Latentlog</a>.
+        </p>
+        </article>
+      </div>
+      <!--@partial:footer-->
+    </main>
+    <script type="module" src="/src/local/chrome.js"></script>
+  </body>
+</html>

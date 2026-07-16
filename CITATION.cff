@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If Latentmachine supports your work, please cite the project and link to its website."
+title: "Latentmachine"
+abstract: "A deterministic toolkit for inferring, inspecting, applying, and verifying structured data transformations."
+authors:
+  - family-names: "Vogel"
+    given-names: "Sandro"
+    website: "https://www.sandrovogel.de/"
+type: software
+license: MIT
+repository-code: "https://github.com/kumagaizo/latentmachine"
+url: "https://latentmachine.com/"
+keywords:
+  - deterministic AI
+  - program synthesis
+  - data transformation
+  - data verification
+  - MCP

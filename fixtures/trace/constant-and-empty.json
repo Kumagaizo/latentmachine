@@ -1,0 +1,10 @@
+[
+  { "id": "R-1", "constant": "same", "empty_list": [], "empty_object": {}, "nothing": null },
+  { "id": "R-2", "constant": "same", "empty_list": [], "empty_object": {}, "nothing": null },
+  { "id": "R-3", "constant": "same", "empty_list": [], "empty_object": {}, "nothing": null },
+  { "id": "R-4", "constant": "same", "empty_list": [], "empty_object": {}, "nothing": null },
+  { "id": "R-5", "constant": "same", "empty_list": [], "empty_object": {}, "nothing": null },
+  { "id": "R-6", "constant": "same", "empty_list": [], "empty_object": {}, "nothing": null },
+  { "id": "R-7", "constant": "same", "empty_list": [], "empty_object": {}, "nothing": null },
+  { "id": "R-8", "constant": "same", "empty_list": [], "empty_object": {}, "nothing": null }
+]

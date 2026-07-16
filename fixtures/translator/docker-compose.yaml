@@ -1,0 +1,16 @@
+services:
+  api:
+    image: registry.example.com/api:3.0
+    ports:
+      - "8080:8080"
+    environment:
+      APP_ENV: production
+      LOG_LEVEL: warn
+    depends_on:
+      - db
+  db:
+    image: postgres:16
+    volumes:
+      - db-data:/var/lib/postgresql/data
+volumes:
+  db-data:

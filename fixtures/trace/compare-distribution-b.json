@@ -1,0 +1,402 @@
+[
+  {
+    "id": "R-0",
+    "value": 70,
+    "category": "new-category"
+  },
+  {
+    "id": "R-1",
+    "value": 72,
+    "category": "common"
+  },
+  {
+    "id": "R-2",
+    "value": 74,
+    "category": "common"
+  },
+  {
+    "id": "R-3",
+    "value": 76,
+    "category": "common"
+  },
+  {
+    "id": "R-4",
+    "value": 78,
+    "category": "common"
+  },
+  {
+    "id": "R-5",
+    "value": 75,
+    "category": "new-category"
+  },
+  {
+    "id": "R-6",
+    "value": 77,
+    "category": "common"
+  },
+  {
+    "id": "R-7",
+    "value": 79,
+    "category": "common"
+  },
+  {
+    "id": "R-8",
+    "value": 81,
+    "category": "common"
+  },
+  {
+    "id": "R-9",
+    "value": 83,
+    "category": "common"
+  },
+  {
+    "id": "R-10",
+    "value": 80,
+    "category": "new-category"
+  },
+  {
+    "id": "R-11",
+    "value": 71,
+    "category": "common"
+  },
+  {
+    "id": "R-12",
+    "value": 73,
+    "category": "common"
+  },
+  {
+    "id": "R-13",
+    "value": 75,
+    "category": "common"
+  },
+  {
+    "id": "R-14",
+    "value": 77,
+    "category": "common"
+  },
+  {
+    "id": "R-15",
+    "value": 74,
+    "category": "new-category"
+  },
+  {
+    "id": "R-16",
+    "value": 76,
+    "category": "common"
+  },
+  {
+    "id": "R-17",
+    "value": 78,
+    "category": "common"
+  },
+  {
+    "id": "R-18",
+    "value": 80,
+    "category": "common"
+  },
+  {
+    "id": "R-19",
+    "value": 82,
+    "category": "common"
+  },
+  {
+    "id": "R-20",
+    "value": 79,
+    "category": "new-category"
+  },
+  {
+    "id": "R-21",
+    "value": 81,
+    "category": "common"
+  },
+  {
+    "id": "R-22",
+    "value": 72,
+    "category": "common"
+  },
+  {
+    "id": "R-23",
+    "value": 74,
+    "category": "common"
+  },
+  {
+    "id": "R-24",
+    "value": 76,
+    "category": "common"
+  },
+  {
+    "id": "R-25",
+    "value": 73,
+    "category": "new-category"
+  },
+  {
+    "id": "R-26",
+    "value": 75,
+    "category": "common"
+  },
+  {
+    "id": "R-27",
+    "value": 77,
+    "category": "common"
+  },
+  {
+    "id": "R-28",
+    "value": 79,
+    "category": "common"
+  },
+  {
+    "id": "R-29",
+    "value": 81,
+    "category": "common"
+  },
+  {
+    "id": "R-30",
+    "value": 78,
+    "category": "new-category"
+  },
+  {
+    "id": "R-31",
+    "value": 80,
+    "category": "common"
+  },
+  {
+    "id": "R-32",
+    "value": 82,
+    "category": "common"
+  },
+  {
+    "id": "R-33",
+    "value": 73,
+    "category": "common"
+  },
+  {
+    "id": "R-34",
+    "value": 75,
+    "category": "common"
+  },
+  {
+    "id": "R-35",
+    "value": 72,
+    "category": "new-category"
+  },
+  {
+    "id": "R-36",
+    "value": 74,
+    "category": "common"
+  },
+  {
+    "id": "R-37",
+    "value": 76,
+    "category": "common"
+  },
+  {
+    "id": "R-38",
+    "value": 78,
+    "category": "common"
+  },
+  {
+    "id": "R-39",
+    "value": 80,
+    "category": "common"
+  },
+  {
+    "id": "R-40",
+    "value": 77,
+    "category": "new-category"
+  },
+  {
+    "id": "R-41",
+    "value": 79,
+    "category": "common"
+  },
+  {
+    "id": "R-42",
+    "value": 81,
+    "category": "common"
+  },
+  {
+    "id": "R-43",
+    "value": 83,
+    "category": "common"
+  },
+  {
+    "id": "R-44",
+    "value": 74,
+    "category": "common"
+  },
+  {
+    "id": "R-45",
+    "value": 71,
+    "category": "new-category"
+  },
+  {
+    "id": "R-46",
+    "value": 73,
+    "category": "common"
+  },
+  {
+    "id": "R-47",
+    "value": 75,
+    "category": "common"
+  },
+  {
+    "id": "R-48",
+    "value": 77,
+    "category": "common"
+  },
+  {
+    "id": "R-49",
+    "value": 79,
+    "category": "common"
+  },
+  {
+    "id": "R-50",
+    "value": 76,
+    "category": "new-category"
+  },
+  {
+    "id": "R-51",
+    "value": 78,
+    "category": "common"
+  },
+  {
+    "id": "R-52",
+    "value": 80,
+    "category": "common"
+  },
+  {
+    "id": "R-53",
+    "value": 82,
+    "category": "common"
+  },
+  {
+    "id": "R-54",
+    "value": 84,
+    "category": "common"
+  },
+  {
+    "id": "R-55",
+    "value": 70,
+    "category": "new-category"
+  },
+  {
+    "id": "R-56",
+    "value": 72,
+    "category": "common"
+  },
+  {
+    "id": "R-57",
+    "value": 74,
+    "category": "common"
+  },
+  {
+    "id": "R-58",
+    "value": 76,
+    "category": "common"
+  },
+  {
+    "id": "R-59",
+    "value": 78,
+    "category": "common"
+  },
+  {
+    "id": "R-60",
+    "value": 75,
+    "category": "new-category"
+  },
+  {
+    "id": "R-61",
+    "value": 77,
+    "category": "common"
+  },
+  {
+    "id": "R-62",
+    "value": 79,
+    "category": "common"
+  },
+  {
+    "id": "R-63",
+    "value": 81,
+    "category": "common"
+  },
+  {
+    "id": "R-64",
+    "value": 83,
+    "category": "common"
+  },
+  {
+    "id": "R-65",
+    "value": 80,
+    "category": "new-category"
+  },
+  {
+    "id": "R-66",
+    "value": 71,
+    "category": "common"
+  },
+  {
+    "id": "R-67",
+    "value": 73,
+    "category": "common"
+  },
+  {
+    "id": "R-68",
+    "value": 75,
+    "category": "common"
+  },
+  {
+    "id": "R-69",
+    "value": 77,
+    "category": "common"
+  },
+  {
+    "id": "R-70",
+    "value": 74,
+    "category": "new-category"
+  },
+  {
+    "id": "R-71",
+    "value": 76,
+    "category": "common"
+  },
+  {
+    "id": "R-72",
+    "value": 78,
+    "category": "common"
+  },
+  {
+    "id": "R-73",
+    "value": 80,
+    "category": "common"
+  },
+  {
+    "id": "R-74",
+    "value": 82,
+    "category": "common"
+  },
+  {
+    "id": "R-75",
+    "value": 79,
+    "category": "new-category"
+  },
+  {
+    "id": "R-76",
+    "value": 81,
+    "category": "common"
+  },
+  {
+    "id": "R-77",
+    "value": 72,
+    "category": "common"
+  },
+  {
+    "id": "R-78",
+    "value": 74,
+    "category": "common"
+  },
+  {
+    "id": "R-79",
+    "value": 76,
+    "category": "common"
+  }
+]

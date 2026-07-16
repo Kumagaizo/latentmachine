@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--@partial:head-commons-->
+    <title>Trace | Local Data Profiling and Comparison</title>
+    <meta name="description" content="Understand structured data before you trust it. Trace profiles fields, ranks evidence-backed findings, and compares datasets by stable keys. Local, browser-based, and no LLM." />
+    <link rel="canonical" href="https://latentmachine.com/trace" />
+    <meta property="og:title" content="Trace | Local Data Profiling and Comparison" />
+    <meta property="og:description" content="Profile fields, spot missing or unusual values, and compare datasets by stable keys. Browser-based, local, and no LLM." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://latentmachine.com/trace" />
+    <meta name="twitter:title" content="Trace | Local Data Profiling and Comparison" />
+    <meta name="twitter:description" content="Profile structured data, investigate evidence-backed findings, and compare versions safely in your browser." />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Latentmachine Trace",
+        "url": "https://latentmachine.com/trace",
+        "applicationCategory": "DataAnalysisApplication",
+        "operatingSystem": "Web browser",
+        "description": "A local browser-based tool for profiling structured data, ranking evidence-backed findings, and comparing datasets by stable keys.",
+        "featureList": [
+          "Profile completeness, types, roles, distributions, and cardinality",
+          "Rank missingness, duplicate, category, and unusual-value findings",
+          "Explore field, record, and structure views",
+          "Compare datasets by inferred stable identifiers",
+          "Export privacy-safe JSON and printable reports",
+          "Run client-side in the browser"
+        ],
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main class="page">
+      <a href="#main-content" class="skip-link">Skip to content</a>
+      <!--@partial:nav-->
+      <div id="main-content">
+        <div id="trace">
+          <div class="tool-loading" role="status" aria-label="Loading Trace">
+            <span class="loading-mark"></span>
+          </div>
+          <noscript>
+            <div class="format-diagnostic is-danger">
+              <p>This tool runs entirely in your browser and needs JavaScript. Nothing is sent to a server, but nothing runs without it either.</p>
+            </div>
+          </noscript>
+        </div>
+      </div>
+      <!--@partial:footer-->
+    </main>
+    <script type="module" src="/src/local/chrome.js"></script>
+    <script type="module" src="/src/local/trace.js"></script>
+  </body>
+</html>

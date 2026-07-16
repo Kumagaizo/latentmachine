@@ -1,0 +1,50 @@
+{
+  "name": "@latentmachine/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Latentmachine. Deterministic data transformation verification as a tool for AI agents.",
+  "type": "module",
+  "bin": {
+    "latentmachine-mcp": "./bin/latentmachine-mcp.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@latentmachine/verify": "0.1.0"
+  },
+  "keywords": [
+    "mcp",
+    "latentmachine",
+    "verify",
+    "ai",
+    "data-quality",
+    "deterministic",
+    "stdio"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Sandro Vogel",
+    "url": "https://www.sandrovogel.de/"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kumagaizo/latentmachine",
+    "directory": "packages/mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/kumagaizo/latentmachine/issues"
+  },
+  "homepage": "https://latentmachine.com/developers",
+  "scripts": {
+    "smoke": "node test/smoke.js"
+  }
+}

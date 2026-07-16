@@ -1,0 +1,21 @@
+{
+  "service": "climate",
+  "enabled": true,
+  "limit": null,
+  "owner": {
+    "team": "ops",
+    "region": "eu"
+  },
+  "sensors": [
+    { "id": "S0", "temp": 20.1, "ok": true },
+    { "id": "S1", "temp": 20.3, "ok": true },
+    { "id": "S2", "temp": 20.5, "ok": true },
+    { "id": "S3", "temp": 20.6, "ok": true },
+    { "id": "S4", "temp": 20.7, "ok": false },
+    { "id": "S5", "temp": 20.9, "ok": true },
+    { "id": "S6", "temp": 21.1, "ok": true },
+    { "id": "S7", "temp": 42.8, "ok": true },
+    { "id": "S8", "temp": 21.2, "ok": true },
+    { "id": "S9", "temp": 21.4, "ok": true }
+  ]
+}

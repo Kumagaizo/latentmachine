@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--@partial:head-commons-->
+    <title>Verify | Check AI Data Transformations</title>
+    <meta name="description" content="Paste original records and what the AI gave you back. Latentmachine checks whether every row followed the same rule and flags the ones that didn't. No LLM. Browser-based." />
+    <link rel="canonical" href="https://latentmachine.com/verify" />
+    <meta property="og:title" content="Verify | Check AI Data Transformations" />
+    <meta property="og:description" content="Did the AI get every row right? Paste original and transformed records. Latentmachine flags what doesn't match." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://latentmachine.com/verify" />
+    <meta name="twitter:title" content="Verify | Check AI Data Transformations" />
+    <meta name="twitter:description" content="Paste original records and AI output. Latentmachine checks every row for consistency and flags the drift." />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Latentmachine Verify",
+        "url": "https://latentmachine.com/verify",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web browser",
+        "description": "A browser-based tool that checks whether AI data transformations are consistent. Paste original records and AI output, and see which rows broke the pattern.",
+        "featureList": [
+          "Check whether AI-generated data transformations are consistent across every row",
+          "Flag transformed rows that do not match the inferred rule",
+          "Check JSON, XML, CSV, TOML, YAML, and .env data",
+          "Surface contradictions and inconsistent outputs",
+          "Verify ChatGPT, Claude, and other LLM data output for row-level consistency"
+        ],
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How does Verify check AI data transformations?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Paste the original records and the AI-generated output. Verify infers the majority transformation rule from the batch, replays it across every original row, and flags any row where the AI output does not match what the rule predicts."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Verify use an LLM?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Verify uses a deterministic symbolic engine. It infers rules through program synthesis, not language models. The check is repeatable and inspectable."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What kinds of AI output can Verify check?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Verify checks structured data transformations in JSON, CSV, YAML, TOML, XML, and .env formats. It catches format drift, schema drift, and enum inconsistencies across rows, the failure modes most common in LLM-generated data."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Verify send my data to a server?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Verify runs entirely in the browser. Your data stays on your device."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What does Verify do when rows are inconsistent?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "It shows the inferred rule, the count of consistent rows, and for each flagged row: the original input, what the rule predicts, and what the AI actually produced. This gives you a concrete diff to fix."
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <main class="page">
+      <a href="#main-content" class="skip-link">Skip to content</a>
+      <!--@partial:nav-->
+      <div id="main-content">
+        <div id="verify">
+          <div class="tool-loading" role="status" aria-label="Loading Verify">
+            <span class="loading-mark"></span>
+          </div>
+          <noscript>
+            <div class="format-diagnostic is-danger">
+              <p>This tool runs entirely in your browser and needs JavaScript. Nothing is sent to a server, but nothing runs without it either.</p>
+            </div>
+          </noscript>
+        </div>
+      </div>
+      <!--@partial:footer-->
+    </main>
+    <script type="module" src="/src/local/chrome.js"></script>
+    <script type="module" src="/src/local/verify.js"></script>
+  </body>
+</html>

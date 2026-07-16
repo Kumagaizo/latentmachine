@@ -1,0 +1,35 @@
+# Dependencies and generated output
+node_modules/
+/dist/
+/.vercel/
+coverage/
+.npm-cache/
+packages/*/.npm-cache/
+packages/verify/publish/
+packages/verify/src/_engine/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Private working material (never part of the public repository)
+/notes/
+/private/
+/scratch/
+/SECURITY_AUDIT_REPORT.md
+/.agents/
+/.codex/
+
+# Editor, operating-system, and log noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.local
+*.log
+npm-debug.log*

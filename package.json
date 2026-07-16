@@ -1,0 +1,52 @@
+{
+  "name": "latentmachine",
+  "description": "Verify-first tools for deterministic structured data transformations.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "author": {
+    "name": "Sandro Vogel",
+    "url": "https://www.sandrovogel.de/"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kumagaizo/latentmachine"
+  },
+  "bugs": {
+    "url": "https://github.com/kumagaizo/latentmachine/issues"
+  },
+  "homepage": "https://latentmachine.com",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "node scripts/serve-static.mjs",
+    "build": "node scripts/run-deploy-preflight.mjs --source && node scripts/run-benchmarks.mjs && node scripts/build-static.mjs && node scripts/run-ui-smoke.mjs && node scripts/run-deploy-preflight.mjs --dist",
+    "preview": "node scripts/serve-static.mjs dist",
+    "check": "npm run build",
+    "test": "node scripts/run-benchmarks.mjs",
+    "bench:all": "node scripts/run-benchmarks.mjs",
+    "bench:arc": "node scripts/run-arc-benchmarks.mjs",
+    "bench:pattern": "node scripts/run-pattern-lab-benchmarks.mjs",
+    "bench:research": "node scripts/run-research-benchmarks.mjs",
+    "bench:json": "node scripts/run-json-benchmarks.mjs",
+    "bench:translator": "node scripts/run-translator-benchmarks.mjs",
+    "bench:exports": "node scripts/run-json-export-benchmarks.mjs",
+    "bench:trace": "node scripts/run-trace-benchmarks.mjs",
+    "generate:trace-fixtures": "node scripts/generate-trace-fixtures.mjs",
+    "accept:file-import": "node scripts/run-file-import-acceptance.mjs",
+    "accept:verify": "node scripts/run-verify-acceptance.mjs",
+    "accept:trace": "node scripts/run-trace-acceptance.mjs",
+    "accept:formats": "node scripts/run-data-format-acceptance.mjs",
+    "accept:mcp": "node scripts/run-mcp-acceptance.mjs",
+    "test:package:verify": "node packages/verify/test/verify.test.js && node packages/verify/test/infer.test.js && node packages/verify/test/transform.test.js && node packages/verify/test/formats.test.js && node packages/verify/test/fingerprint.test.js",
+    "accept:yaml": "node scripts/run-yaml-reliability.mjs",
+    "accept:fixtures": "node scripts/run-fixture-corpus.mjs",
+    "smoke:ui": "node scripts/run-ui-smoke.mjs",
+    "preflight:deploy": "node scripts/run-deploy-preflight.mjs",
+    "prepublish:check": "npm run test:package:verify && npm --workspace packages/mcp run smoke && npm run preflight:deploy"
+  }
+}
