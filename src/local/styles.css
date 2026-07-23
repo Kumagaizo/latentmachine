@@ -420,16 +420,6 @@ a {
   color: var(--text-primary);
 }
 
-:root[data-theme="dark"] .brand-logo {
-  filter: invert(1);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .brand-logo {
-    filter: invert(1);
-  }
-}
-
 .site-link {
   border-radius: 999px;
   color: var(--text-secondary);
@@ -489,9 +479,8 @@ a {
 
 .brand-logo {
   display: block;
-  width: auto;
-  height: 10px;
-  transition: filter 160ms ease;
+  width: 32px;
+  height: 32px;
 }
 
 .status-pill {

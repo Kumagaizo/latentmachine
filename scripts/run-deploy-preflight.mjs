@@ -191,7 +191,7 @@ async function assertSourceBrowserGraph() {
 }
 
 async function assertDistVendor() {
-  await assertFile("dist/logo.svg");
+  await assertFile("dist/assets/LM-Logo.png");
   await assertFile("dist/src/vendor/yaml/index.js");
   await assertFile("dist/src/vendor/yaml/dist/index.js");
   await assertFile("dist/src/intelligence/data-formats/yaml.js");
@@ -386,7 +386,7 @@ async function assertDistSeo() {
 }
 
 async function assertDistChromePolish() {
-  await assertFile("dist/favicon.svg");
+  await assertFile("dist/assets/LM-Logo.png");
 
   const ogPngExists = await fileExists("dist/og.png");
   const toolPages = new Set(["infer.html", "verify.html", "regex.html", "jq.html"]);
@@ -399,7 +399,7 @@ async function assertDistChromePolish() {
     assert.ok(html.includes('<a href="#main-content" class="skip-link">Skip to content</a>'), `${normalized} must include the shared skip link`);
     assert.match(html, /\bid=["']main-content["']/, `${normalized} must expose #main-content`);
     assert.doesNotMatch(html, /\bid=["']content["']/, `${normalized} must not regress to the old #content anchor`);
-    assert.ok(html.includes('<link rel="icon" href="/favicon.svg" type="image/svg+xml" />'), `${normalized} must include the SVG favicon`);
+    assert.ok(html.includes('<link rel="icon" href="/assets/LM-Logo.png" type="image/png" />'), `${normalized} must include the PNG favicon`);
     assert.ok(html.includes('<meta name="theme-color" content="#f4f4f2" media="(prefers-color-scheme: light)" />'), `${normalized} must include the light theme-color`);
     assert.ok(html.includes('<meta name="theme-color" content="#131314" media="(prefers-color-scheme: dark)" />'), `${normalized} must include the dark theme-color`);
 
