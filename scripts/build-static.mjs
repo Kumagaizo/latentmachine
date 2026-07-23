@@ -18,7 +18,7 @@ const files = [
   "legal.html",
   "privacy.html",
   "404.html",
-  "assets/LM-Logo.png",
+  "assets/latentmachine-logo.png",
   "assets/og/og-image.svg",
   "fonts/StackSansText-VariableFont_wght.ttf",
   "fonts/MartianMono-VariableFont_wdth,wght.ttf",
