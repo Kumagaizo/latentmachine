@@ -6,12 +6,7 @@
 <meta name="theme-color" content="#131314" media="(prefers-color-scheme: dark)" />
 <link rel="preload" href="/fonts/StackSansText-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin />
 <link rel="preload" href="/fonts/MartianMono-VariableFont_wdth,wght.ttf" as="font" type="font/ttf" crossorigin />
-<script>
-  try {
-    var theme = localStorage.getItem("lm-theme");
-    if (theme === "dark" || theme === "light") document.documentElement.setAttribute("data-theme", theme);
-  } catch (error) {}
-</script>
+<script src="/src/local/theme-boot.js"></script>
 <link rel="stylesheet" href="/src/local/styles.css" />
 <meta property="og:site_name" content="Latentmachine" />
 <meta name="twitter:card" content="summary" />

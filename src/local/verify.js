@@ -30,10 +30,59 @@ const state = {
   shareNotice: "",
   reviewMode: "all",
   activeFlagIndex: 0,
+  busy: false,
 };
 
 let shareTimer = null;
 let summaryTimer = null;
+let verifyRequestId = 0;
+let verifyWorker = null;
+let verifyWorkerMessageId = 0;
+const verifyWorkerRequests = new Map();
+
+function rejectVerifyWorkerRequests(message) {
+  for (const request of verifyWorkerRequests.values()) request.reject(new Error(message));
+  verifyWorkerRequests.clear();
+}
+
+function getVerifyWorker() {
+  if (verifyWorker || typeof Worker === "undefined") return verifyWorker;
+  try {
+    verifyWorker = new Worker(new URL("./verify-worker.js", import.meta.url), { type: "module" });
+  } catch {
+    verifyWorker = null;
+    return null;
+  }
+  verifyWorker.addEventListener("message", event => {
+    const request = verifyWorkerRequests.get(event.data?.id);
+    if (!request) return;
+    verifyWorkerRequests.delete(event.data.id);
+    if (event.data.error) request.reject(new Error(event.data.error));
+    else request.resolve(event.data);
+  });
+  verifyWorker.addEventListener("error", () => {
+    rejectVerifyWorkerRequests("The background verification worker stopped unexpectedly.");
+    verifyWorker?.terminate();
+    verifyWorker = null;
+  });
+  return verifyWorker;
+}
+
+function analyzeVerifyInBackground(payload) {
+  const worker = getVerifyWorker();
+  if (!worker) {
+    const original = parsePane("original", "Original");
+    const transformed = parsePane("transformed", "Transformed");
+    if (original.rows.length !== transformed.rows.length) throw new Error(alignmentErrorText(original.rows, transformed.rows));
+    if (!original.rows.length) throw new Error("Paste at least one aligned record on each side.");
+    return Promise.resolve({ original, transformed, inference: inferVerifyRule(original.rows, transformed.rows) });
+  }
+  const id = ++verifyWorkerMessageId;
+  return new Promise((resolve, reject) => {
+    verifyWorkerRequests.set(id, { resolve, reject });
+    worker.postMessage({ id, ...payload });
+  });
+}
 
 const VERIFY_IMPORT_ACCEPT = ".json,.xml,.csv,.tsv,.toml,.sql,.yaml,.yml,.env,application/json,application/xml,text/xml,text/csv,text/tab-separated-values,application/toml,text/toml,text/yaml,application/yaml,text/plain";
 
@@ -87,6 +136,7 @@ function runTone(run = state.run) {
 }
 
 function runStatusText(run = state.run) {
+  if (state.busy) return "Checking";
   if (!run) return state.original.trim() && state.transformed.trim() ? "Ready to check" : "Paste original records and AI output";
   if (run.error) return "Blocked by input";
   if (run.result?.status !== "safe" && !run.flagged?.length) return "Blocked";
@@ -796,22 +846,20 @@ function alignmentErrorText(originalRows, transformedRows) {
   ].join(" ");
 }
 
-function runVerify() {
+async function runVerify() {
+  const requestId = ++verifyRequestId;
+  const originalText = normalizeVerifyInputText(state.original);
+  const transformedText = normalizeVerifyInputText(state.transformed);
+  const formats = { ...state.formats };
+  state.busy = true;
+  render();
   try {
-    const original = parsePane("original", "Original");
-    const transformed = parsePane("transformed", "Transformed");
-    if (original.rows.length !== transformed.rows.length) {
-      state.run = { error: alignmentErrorText(original.rows, transformed.rows) };
-      render();
-      return;
-    }
-    if (!original.rows.length) {
-      state.run = { error: "Paste at least one aligned record on each side." };
-      render();
-      return;
-    }
-
-    const inference = inferVerifyRule(original.rows, transformed.rows);
+    const { original, transformed, inference } = await analyzeVerifyInBackground({
+      originalText,
+      transformedText,
+      formats,
+    });
+    if (requestId !== verifyRequestId) return;
 
     state.run = {
       result: inference.result,
@@ -831,8 +879,10 @@ function runVerify() {
     state.activeFlagIndex = 0;
     state.reviewMode = inference.flagged.length ? "all" : state.reviewMode;
   } catch (error) {
+    if (requestId !== verifyRequestId) return;
     state.run = { error: error?.message || "Verify could not parse or verify this transformation." };
   }
+  state.busy = false;
   render();
 }
 
@@ -1044,7 +1094,7 @@ function render() {
     </section>
 
     <section class="action-bar verify-actions">
-      <button class="button is-primary" type="button" data-run-verify>Check every row</button>
+      <button class="button is-primary" type="button" data-run-verify ${state.busy ? "disabled" : ""}>${state.busy ? "Checking rows" : "Check every row"}</button>
       <button class="button" type="button" data-share-verify>${state.copied ? "Link copied" : "Share"}</button>
       ${state.run && !state.run.error ? `<button class="button" type="button" data-copy-audit-summary>${state.summaryCopied ? "Summary copied" : "Copy audit summary"}</button>` : ""}
       ${state.run && !state.run.error ? `<button class="button" type="button" data-download-verify-report>Download verification report</button>` : ""}
@@ -1061,6 +1111,8 @@ function render() {
 }
 
 function invalidateVerifyInput(key) {
+  verifyRequestId += 1;
+  state.busy = false;
   state.activeSample = "";
   state.importNotice = null;
   state.shareNotice = "";
@@ -1109,6 +1161,8 @@ verify.addEventListener("change", event => {
   }
   const key = event.target?.dataset?.formatFor;
   if (!key) return;
+  verifyRequestId += 1;
+  state.busy = false;
   state.formats[key] = event.target.value;
   state.run = null;
   state.activeFlagIndex = 0;

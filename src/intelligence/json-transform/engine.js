@@ -7,7 +7,7 @@ import { buildProgram } from "./program-builder.js";
 import { evidenceForProgram, explanationForProgram, preconditionsForProgram, programTitle, summarizeProgram } from "./program-view.js";
 import { executeJsonTransform, runtimeWarnings } from "./runtime.js";
 import { schemaDriftForProgram, schemaPathKey } from "./schema.js";
-import { deepEqual } from "./shared.js";
+import { deepEqual, stableStringify } from "./shared.js";
 
 export { executeJsonTransform };
 export { applySuggestions, hasValuableSuggestions, suggestTransformations } from "./suggestions.js";
@@ -19,7 +19,7 @@ function makeTrace(phase, message, data = {}) {
 
 function normalizeExamples(input = {}) {
   const raw = input.examples || [];
-  const examples = raw.map((example, index) => ({
+  const parsed = raw.map((example, index) => ({
     id: example.id || `example-${index + 1}`,
     input: parseJson(example.input, `Example ${index + 1} input`),
     output: parseJson(example.output, `Example ${index + 1} output`),
@@ -27,8 +27,34 @@ function normalizeExamples(input = {}) {
   }));
 
   const byInput = new Map();
-  for (const example of examples) byInput.set(JSON.stringify(example.input), example);
-  return [...byInput.values()];
+  for (const example of parsed) {
+    const key = stableStringify(example.input);
+    const group = byInput.get(key) || [];
+    const duplicate = group.find(existing => deepEqual(existing.output, example.output));
+    if (duplicate) {
+      duplicate.correction ||= example.correction;
+      continue;
+    }
+    if (example.correction) group.splice(0, group.length);
+    group.push(example);
+    byInput.set(key, group);
+  }
+
+  const contradictions = [...byInput.values()]
+    .filter(group => group.length > 1)
+    .map(group => {
+      const exampleIds = group.map(example => example.id);
+      return {
+        type: "same-input-conflict",
+        message: `${exampleIds.join(", ")} use the same input but require different outputs. Resolve the conflicting expected outputs before trusting a rule.`,
+        exampleIds,
+      };
+    });
+
+  return {
+    examples: [...byInput.values()].flat(),
+    contradictions,
+  };
 }
 
 function perceive(examples) {
@@ -46,7 +72,8 @@ function perceive(examples) {
 export function runJsonTransform(input = {}) {
   const started = Date.now();
   const traces = [];
-  let examples = normalizeExamples(input);
+  const normalized = normalizeExamples(input);
+  let examples = normalized.examples;
   if (!examples.length) throw new Error("At least one input/output example is required.");
   const perception = perceive(examples);
   traces.push(makeTrace("perceive", `${perception.inputFields.length} input fields and ${perception.outputFields.length} output fields detected.`, perception));
@@ -63,7 +90,7 @@ export function runJsonTransform(input = {}) {
 
   const output = executeJsonTransform(built.program, newInput);
   const schemaDrift = schemaDriftForProgram(built.program, examples, newInput);
-  const warnings = [...runtimeWarnings(built.program, newInput), ...schemaDrift.blocking];
+  const warnings = [...normalized.contradictions, ...runtimeWarnings(built.program, newInput), ...schemaDrift.blocking];
   traces.push(makeTrace("execute", `Rule executed with ${built.program.ops.length} step${built.program.ops.length === 1 ? "" : "s"}.`));
   if (schemaDrift.blocking.length || schemaDrift.advisory.length) {
     traces.push(makeTrace("schema", `${schemaDrift.blocking.length} blocking and ${schemaDrift.advisory.length} advisory schema drift item${schemaDrift.blocking.length + schemaDrift.advisory.length === 1 ? "" : "s"} detected.`, schemaDrift));
@@ -145,8 +172,6 @@ export function runJsonTransform(input = {}) {
       method: "jsonTransform",
       exampleCount: examples.length,
       operationCount: built.program.ops.length,
-      budgetMs: input.budgetMs ?? 500,
-      timedOut: false,
     },
   };
 }

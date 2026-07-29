@@ -1,4 +1,9 @@
 const CONFIDENCE_NOTE = "Evidence from exact fit, examples, ambiguity, schema drift, and guardrails. Not a probability.";
+const CONTRADICTION_WARNING_TYPES = new Set([
+  "same-input-conflict",
+  "template-conflict",
+  "value-map-conflict",
+]);
 
 function evidenceReason(kind, detail, caps = null) {
   return caps ? { kind, detail, caps } : { kind, detail };
@@ -96,8 +101,7 @@ export function riskTypes({ status, warnings, ambiguous }) {
 }
 
 export function diagnosisStatus({ built, warnings, examples }) {
-  if (warnings.some(warning => warning.type === "template-conflict")) return "contradictory";
-  if (warnings.some(warning => warning.type === "value-map-conflict")) return "contradictory";
+  if (warnings.some(warning => CONTRADICTION_WARNING_TYPES.has(warning.type))) return "contradictory";
   if (!built.exact || built.unexplained.length) return "unsafe";
   if (warnings.length) return "unsafe";
   const unprovenGroupBy = examples.length < 2 && built.targetCandidates.some(row => (
@@ -112,6 +116,13 @@ export function diagnosisStatus({ built, warnings, examples }) {
 function suggestedExamplesFor({ status, built, warnings }) {
   const suggestions = [];
   for (const warning of warnings) {
+    if (warning.type === "same-input-conflict") {
+      suggestions.push({
+        type: "conflict",
+        reason: "Keep one expected output for this input, or change the input so the examples describe distinct cases.",
+        exampleIds: warning.exampleIds || [],
+      });
+    }
     if (warning.type === "template-conflict") {
       suggestions.push({
         type: "conflict",
@@ -220,14 +231,15 @@ function suggestedExamplesFor({ status, built, warnings }) {
 
 export function buildDiagnosis({ status, built, warnings, tests, alternatives, examples, schemaDrift }) {
   const contradictions = warnings
-    .filter(warning => ["template-conflict", "value-map-conflict"].includes(warning.type))
+    .filter(warning => CONTRADICTION_WARNING_TYPES.has(warning.type))
     .map(warning => ({
       type: warning.type,
       field: warning.op?.target || null,
       message: warning.message,
+      exampleIds: warning.exampleIds || [],
     }));
   const guardrails = warnings
-    .filter(warning => warning.type !== "template-conflict")
+    .filter(warning => !CONTRADICTION_WARNING_TYPES.has(warning.type))
     .map(warning => ({
       type: warning.type,
       field: warning.source || warning.op?.source || warning.op?.target || null,

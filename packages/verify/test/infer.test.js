@@ -20,7 +20,9 @@ import { infer } from "../src/index.js";
     ],
   });
   assert.notEqual(result.status, "safe");
-  assert.equal(result.status, "insufficient");
+  assert.equal(result.status, "contradictory");
+  assert.equal(result.diagnosis.examplesProvided, 2);
+  assert.ok(result.warnings.some(warning => warning.type === "same-input-conflict"));
 }
 
 {

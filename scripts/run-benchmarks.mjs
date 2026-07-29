@@ -20,6 +20,7 @@ import "./run-toml-reliability.mjs";
 import "./run-yaml-reliability.mjs";
 import "./run-fixture-corpus.mjs";
 import "./run-hardening-fixtures.mjs";
+import "./run-engine-hardening-acceptance.mjs";
 import "./run-sample-presets.mjs";
 import "./run-contract-benchmarks.mjs";
 import "./run-contract-acceptance.mjs";

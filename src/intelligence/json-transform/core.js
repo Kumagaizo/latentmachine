@@ -1,5 +1,5 @@
 export function clone(value) {
-  return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+  return value === undefined ? undefined : structuredClone(value);
 }
 
 export function typeOf(value) {
@@ -14,6 +14,9 @@ export function formatPath(path = []) {
 }
 
 const UNSAFE_PATH_KEYS = new Set(["__proto__", "prototype", "constructor"]);
+const PATH_CACHE_LIMIT = 2048;
+const PATH_CACHE = new Map([["$", Object.freeze([])]]);
+const PATH_TOKEN_PATTERN = /\.([A-Za-z_$][\w$]*)|\[(\d+|".*?"|'.*?')\]/g;
 
 function assertSafePathParts(parts, path) {
   for (const part of parts) {
@@ -24,17 +27,27 @@ function assertSafePathParts(parts, path) {
 }
 
 export function parsePath(path = "$") {
-  if (path === "$") return [];
+  const cached = PATH_CACHE.get(path);
+  if (cached) return cached;
   const parts = [];
-  const regex = /\.([A-Za-z_$][\w$]*)|\[(\d+|".*?"|'.*?')\]/g;
+  PATH_TOKEN_PATTERN.lastIndex = 0;
   let match;
-  while ((match = regex.exec(path))) {
+  while ((match = PATH_TOKEN_PATTERN.exec(path))) {
     if (match[1]) parts.push(match[1]);
     else if (/^\d+$/.test(match[2])) parts.push(Number(match[2]));
     else parts.push(JSON.parse(match[2].replace(/^'/, "\"").replace(/'$/, "\"")));
   }
   assertSafePathParts(parts, path);
-  return parts;
+  const frozen = Object.freeze(parts);
+  if (PATH_CACHE.size >= PATH_CACHE_LIMIT) {
+    for (const key of PATH_CACHE.keys()) {
+      if (key === "$") continue;
+      PATH_CACHE.delete(key);
+      break;
+    }
+  }
+  PATH_CACHE.set(path, frozen);
+  return frozen;
 }
 
 export function getPath(value, path) {

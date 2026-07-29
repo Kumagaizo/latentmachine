@@ -158,6 +158,8 @@ async function assertRuntimeModulesImport() {
   assert.equal(typeof contracts.learnContract, "function", "Contract runtime must export learning");
   assert.equal(typeof contracts.runContract, "function", "Contract runtime must export execution");
   assert.equal(typeof contracts.checkContract, "function", "Contract runtime must export checking");
+  await assertFile("src/local/infer-worker.js");
+  await assertFile("src/local/verify-worker.js");
   await assertFile("src/local/trace-worker.js");
   await assertFile("src/local/signal-worker.js");
 }
@@ -303,6 +305,23 @@ async function assertTraceProductSurface() {
   }
 }
 
+async function assertTransformWorkers() {
+  const inferUi = await readFile(path.join(dist, "src/local/app.js"), "utf8");
+  const inferWorker = await readFile(path.join(dist, "src/local/infer-worker.js"), "utf8");
+  const verifyUi = await readFile(path.join(dist, "src/local/verify.js"), "utf8");
+  const verifyWorker = await readFile(path.join(dist, "src/local/verify-worker.js"), "utf8");
+
+  assert.ok(inferUi.includes('new Worker(new URL("./infer-worker.js", import.meta.url)'), "built Infer UI must use its background worker");
+  assert.ok(inferWorker.includes("runBuiltTransform"), "built Infer worker must execute the shared transform runtime");
+  assert.ok(verifyUi.includes('new Worker(new URL("./verify-worker.js", import.meta.url)'), "built Verify UI must use its background worker");
+  assert.ok(verifyWorker.includes("inferVerifyRule"), "built Verify worker must execute the shared verification runtime");
+  for (const source of [inferWorker, verifyWorker]) {
+    for (const forbidden of ["fetch(", "XMLHttpRequest", "WebSocket"]) {
+      assert.ok(!source.includes(forbidden), `built transform workers must not include ${forbidden}`);
+    }
+  }
+}
+
 async function assertSignalProductSurface() {
   const landing = await readFile(path.join(dist, "index.html"), "utf8");
   const signalUi = await readFile(path.join(dist, "src/local/signal.js"), "utf8");
@@ -372,16 +391,18 @@ async function assertContractProductSurface() {
 for (const page of pages) await assertPage(page);
 await assertRuntimeModulesImport();
 await assertRuntimeBehavior();
+await assertTransformWorkers();
 await assertTraceProductSurface();
 await assertSignalProductSurface();
 await assertContractProductSurface();
 
 console.log(JSON.stringify({
-  passed: pages.length + 5,
+  passed: pages.length + 6,
   checks: [
     ...pages.map(page => `${page.file} shell and module scripts`),
     "built runtime modules import without benchmark barrels",
     "built runtime modules perform transform, jq, regex, Trace, and Signal smoke cases",
+    "built Infer and Verify use local background workers with synchronous fallbacks",
     "built Trace UI ships format, record-set, evidence, export, accessibility, and worker-progress contracts",
     "built Signal landing and UI ship navigation, visualization, local analysis, routing, source-ledger, evidence, export-review, and worker-progress contracts",
     "built Contract Studio ships the five-stage local workflow, runtime review, export, share warning, accessibility, and responsive contracts",

@@ -1,7 +1,17 @@
 export function stableStringify(value) {
   if (value === undefined) return "__undefined__";
+  if (typeof value === "number") {
+    if (Number.isNaN(value)) return "__number__:NaN";
+    if (value === Infinity) return "__number__:Infinity";
+    if (value === -Infinity) return "__number__:-Infinity";
+    if (Object.is(value, -0)) return "__number__:-0";
+  }
   if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  if (Array.isArray(value)) {
+    return `[${Array.from({ length: value.length }, (_, index) => (
+      index in value ? stableStringify(value[index]) : "__hole__"
+    )).join(",")}]`;
+  }
   return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
 }
 

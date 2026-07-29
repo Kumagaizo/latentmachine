@@ -3,11 +3,14 @@ export const SECURITY_LIMITS = Object.freeze({
   maxRequestCharacters: 1_000_000,
   maxToolTextCharacters: 500_000,
   maxDetectCharacters: 100_000,
-  maxSerializedCharacters: 750_000,
+  maxSerializedCharacters: 2_500_000,
   maxRows: 5_000,
   maxExamples: 100,
   maxTransformRows: 5_000,
   maxMcpBatchLength: 4,
+  maxMcpRequestsPerWindow: 30,
+  maxMcpCharactersPerWindow: 2_000_000,
+  mcpRateLimitWindowMs: 60_000,
 });
 
 export function assertTextLimit(value, label, maxCharacters = SECURITY_LIMITS.maxToolTextCharacters) {

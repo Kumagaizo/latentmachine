@@ -1,12 +1,8 @@
 import { FORMATS, detectUnsupportedFormat, formatLabel, normalizeFormatId, resolveFormat, serializeWithFormat } from "../data-formats/index.js";
-import { getPath } from "./core.js";
+import { clone, getPath } from "./core.js";
 import { runJsonTransform } from "./engine.js";
 import { executeJsonTransform, runtimeWarnings } from "./runtime.js";
 import { deepEqual, opSources } from "./shared.js";
-
-function clone(value) {
-  return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
-}
 
 function formatWarnings(warnings = [], label = "Input", format = "unknown") {
   return warnings

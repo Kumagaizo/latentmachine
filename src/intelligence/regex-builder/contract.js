@@ -70,7 +70,6 @@ export function createRegexBuilderSession(options = {}) {
   return {
     id: options.id || `regex-builder-session-${Date.now().toString(36)}`,
     seed: options.seed || "regex-builder-v0.1",
-    budgetMs: options.budgetMs ?? 500,
     telemetry: [],
     events: [createTraceEvent("session.created", "session", "Session created", { toolId: REGEX_BUILDER_METADATA.id })],
   };

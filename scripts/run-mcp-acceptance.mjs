@@ -167,6 +167,25 @@ function parseToolText(response) {
 }
 
 {
+  const client = `203.0.113.${Math.floor(Date.now() / 1000) % 200 + 1}`;
+  for (let index = 0; index < SECURITY_LIMITS.maxMcpRequestsPerWindow; index += 1) {
+    const response = await callHandler({
+      body: { jsonrpc: "2.0", id: `rate-${index}`, method: "ping" },
+      headers: { "x-vercel-forwarded-for": client },
+    });
+    assert.equal(response.statusCode, 200);
+  }
+  const response = await callHandler({
+    body: { jsonrpc: "2.0", id: "rate-blocked", method: "ping" },
+    headers: { "x-vercel-forwarded-for": client },
+  });
+  assert.equal(response.statusCode, 429);
+  assert.equal(response.headers.get("x-ratelimit-remaining"), "0");
+  assert.ok(Number(response.headers.get("retry-after")) >= 1);
+  console.log("OK MCP per-client rate limit");
+}
+
+{
   const result = handleVerify({
     original: '[{"id":1,"name":"Ada"},{"id":2,"name":"Bo"}]',
     transformed: '[{"userId":1,"fullName":"Ada"},{"userId":2,"fullName":"Bo"}]',

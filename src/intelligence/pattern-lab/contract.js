@@ -70,7 +70,6 @@ export function createPatternLabSession(options = {}) {
   return {
     id: options.id || `pattern-lab-session-${Date.now().toString(36)}`,
     seed: options.seed || "pattern-lab-v0.1",
-    budgetMs: options.budgetMs ?? 500,
     memory: createMemoryStore(options.memory),
     telemetry: [],
     events: [createTraceEvent("session.created", "session", "Session created", { toolId: PATTERN_LAB_METADATA.id })],
@@ -93,11 +92,11 @@ export function runPatternLabTool(input, session = createPatternLabSession(), op
       traces: events,
       events,
       logs: validation.errors,
-      telemetry: { durationMs: 0, budgetMs: session.budgetMs, timedOut: false, method: "invalid" },
+      telemetry: { durationMs: 0, method: "invalid" },
     };
   }
 
-  const result = runPatternLab({ ...input, budgetMs: options.budgetMs ?? session.budgetMs });
+  const result = runPatternLab(input);
   events.push(createTraceEvent("pattern.perceived", "perceive", "Examples parsed into pattern candidates", { examples: result.examples.length, intent: result.intent }, "success"));
   events.push(createTraceEvent("hypothesis.selected", "hypothesize", "Best pattern hypothesis selected", { id: result.hypothesis.id, title: result.hypothesis.title }, "success"));
   events.push(createTraceEvent("pattern.applied", "execute", "Pattern applied to try input", { outputCharacters: result.output.length }, "success"));

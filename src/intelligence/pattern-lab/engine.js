@@ -341,8 +341,6 @@ export function runPatternLab(input = {}) {
       method: "patternLab",
       intent,
       exampleCount: examples.length,
-      budgetMs: input.budgetMs ?? 500,
-      timedOut: false,
     },
   };
 }

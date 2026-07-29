@@ -20,6 +20,66 @@ import { SECURITY_LIMITS, assertArrayLimit, assertSerializedLimit, assertTextLim
 const FORMAT_ENUM = ["auto", "json", "csv", "yaml", "toml", "xml", "env", "sql"];
 const DIFF_PATH_LIST_LIMIT = 100;
 const CONTRACT_RECORD_LIST_LIMIT = 20;
+const MCP_RATE_LIMIT_BUCKET_CAP = 10_000;
+const mcpRateLimitBuckets = new Map();
+
+function requestClientId(req) {
+  const forwarded = req.headers?.["x-vercel-forwarded-for"]
+    || req.headers?.["x-forwarded-for"]
+    || req.socket?.remoteAddress
+    || "unknown";
+  return String(Array.isArray(forwarded) ? forwarded[0] : forwarded).split(",")[0].trim() || "unknown";
+}
+
+function requestCharacterCount(rawBody, parsedBody) {
+  if (typeof rawBody === "string") return rawBody.length;
+  try {
+    return JSON.stringify(parsedBody)?.length || 0;
+  } catch {
+    return SECURITY_LIMITS.maxRequestCharacters;
+  }
+}
+
+function pruneRateLimitBuckets(windowStart) {
+  for (const [key, bucket] of mcpRateLimitBuckets) {
+    if (bucket.windowStart < windowStart) mcpRateLimitBuckets.delete(key);
+  }
+  while (mcpRateLimitBuckets.size >= MCP_RATE_LIMIT_BUCKET_CAP) {
+    mcpRateLimitBuckets.delete(mcpRateLimitBuckets.keys().next().value);
+  }
+}
+
+export function consumeMcpRateLimit({
+  clientId,
+  characters,
+  now = Date.now(),
+} = {}) {
+  const windowMs = SECURITY_LIMITS.mcpRateLimitWindowMs;
+  const windowStart = Math.floor(now / windowMs) * windowMs;
+  pruneRateLimitBuckets(windowStart);
+  const key = String(clientId || "unknown");
+  const current = mcpRateLimitBuckets.get(key);
+  const bucket = current?.windowStart === windowStart
+    ? current
+    : { windowStart, requests: 0, characters: 0 };
+  const nextRequests = bucket.requests + 1;
+  const nextCharacters = bucket.characters + Math.max(0, Number(characters) || 0);
+  const limited = nextRequests > SECURITY_LIMITS.maxMcpRequestsPerWindow
+    || nextCharacters > SECURITY_LIMITS.maxMcpCharactersPerWindow;
+
+  if (!limited) {
+    bucket.requests = nextRequests;
+    bucket.characters = nextCharacters;
+    mcpRateLimitBuckets.set(key, bucket);
+  }
+
+  return {
+    limited,
+    remainingRequests: Math.max(0, SECURITY_LIMITS.maxMcpRequestsPerWindow - (limited ? bucket.requests : nextRequests)),
+    remainingCharacters: Math.max(0, SECURITY_LIMITS.maxMcpCharactersPerWindow - (limited ? bucket.characters : nextCharacters)),
+    retryAfterSeconds: Math.max(1, Math.ceil((windowStart + windowMs - now) / 1000)),
+  };
+}
 
 export const TOOLS = [
   {
@@ -736,6 +796,17 @@ export default async function handler(req, res) {
     }
     if (!body) {
       return res.status(400).json(jsonRpcError(null, -32700, "Empty request body."));
+    }
+
+    const rate = consumeMcpRateLimit({
+      clientId: requestClientId(req),
+      characters: requestCharacterCount(req.body, body),
+    });
+    res.setHeader("X-RateLimit-Limit", String(SECURITY_LIMITS.maxMcpRequestsPerWindow));
+    res.setHeader("X-RateLimit-Remaining", String(rate.remainingRequests));
+    if (rate.limited) {
+      res.setHeader("Retry-After", String(rate.retryAfterSeconds));
+      return res.status(429).json(jsonRpcError(null, -32029, "Rate limit exceeded. Retry after the indicated delay."));
     }
 
     res.setHeader("Content-Type", "application/json");

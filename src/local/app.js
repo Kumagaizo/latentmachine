@@ -44,6 +44,7 @@ const state = {
   hasPendingChanges: false,
   outputPreviewMode: "preview",
   transformNotice: "",
+  transformBusy: false,
   importNotice: null,
   savedRules: loadSavedRules(),
   loadedRule: null,
@@ -59,6 +60,48 @@ let renderTimer = null;
 let copyTimer = null;
 let batchTimer = null;
 let batchJobId = 0;
+let transformRequestId = 0;
+let inferWorker = null;
+let inferWorkerMessageId = 0;
+const inferWorkerRequests = new Map();
+
+function rejectInferWorkerRequests(message) {
+  for (const request of inferWorkerRequests.values()) request.reject(new Error(message));
+  inferWorkerRequests.clear();
+}
+
+function getInferWorker() {
+  if (inferWorker || typeof Worker === "undefined") return inferWorker;
+  try {
+    inferWorker = new Worker(new URL("./infer-worker.js", import.meta.url), { type: "module" });
+  } catch {
+    inferWorker = null;
+    return null;
+  }
+  inferWorker.addEventListener("message", event => {
+    const request = inferWorkerRequests.get(event.data?.id);
+    if (!request) return;
+    inferWorkerRequests.delete(event.data.id);
+    if (event.data.error) request.reject(new Error(event.data.error));
+    else request.resolve(event.data.result);
+  });
+  inferWorker.addEventListener("error", () => {
+    rejectInferWorkerRequests("The background transform worker stopped unexpectedly.");
+    inferWorker?.terminate();
+    inferWorker = null;
+  });
+  return inferWorker;
+}
+
+function inferTransform(rawTask, transformTask) {
+  const worker = getInferWorker();
+  if (!worker) return Promise.resolve(runBuiltTransform(rawTask, transformTask, { applyBatch: false }));
+  const id = ++inferWorkerMessageId;
+  return new Promise((resolve, reject) => {
+    inferWorkerRequests.set(id, { resolve, reject });
+    worker.postMessage({ id, rawTask, transformTask });
+  });
+}
 
 function pretty(value) {
   return JSON.stringify(value, null, 2);
@@ -104,6 +147,8 @@ function batchInputKey() {
 }
 
 function clearBatchJob() {
+  transformRequestId += 1;
+  state.transformBusy = false;
   batchJobId += 1;
   window.clearTimeout(batchTimer);
   batchTimer = null;
@@ -879,6 +924,11 @@ function evaluateTransformBatch(items, ruleResult, started) {
   };
 }
 
+function finishEvaluation(transformTask, result, started) {
+  if (transformTask.applyAsBatch) return evaluateTransformBatch(transformTask.newInput, result, started);
+  return { result, error: null, durationMs: performance.now() - started, batch: false };
+}
+
 function evaluate() {
   if (!completedExamples().length) return { result: null, error: null, durationMs: 0 };
   const started = performance.now();
@@ -886,8 +936,20 @@ function evaluate() {
     const rawTask = parseTask();
     const transformTask = buildTransformTask(rawTask);
     const result = runBuiltTransform(rawTask, transformTask, { applyBatch: false });
-    if (transformTask.applyAsBatch) return evaluateTransformBatch(transformTask.newInput, result, started);
-    return { result, error: null, durationMs: performance.now() - started, batch: false };
+    return finishEvaluation(transformTask, result, started);
+  } catch (error) {
+    return { result: null, error: error.message, durationMs: performance.now() - started, batch: false };
+  }
+}
+
+async function evaluateInBackground() {
+  if (!completedExamples().length) return { result: null, error: null, durationMs: 0 };
+  const started = performance.now();
+  try {
+    const rawTask = parseTask();
+    const transformTask = buildTransformTask(rawTask);
+    const result = await inferTransform(rawTask, transformTask);
+    return finishEvaluation(transformTask, result, started);
   } catch (error) {
     return { result: null, error: error.message, durationMs: performance.now() - started, batch: false };
   }
@@ -904,12 +966,18 @@ function currentEvaluation() {
   return state.evaluation || { result: null, error: null, durationMs: 0, batch: false };
 }
 
-function runCurrentTransform() {
+async function runCurrentTransform() {
   const checking = isSavedRuleCheck();
-  state.evaluation = evaluate();
+  const requestId = ++transformRequestId;
+  state.transformBusy = true;
+  state.transformNotice = checking ? "Checking payload in the background..." : "Inferring the transform in the background...";
+  render(captureFocus());
+  const evaluation = await evaluateInBackground();
+  if (requestId !== transformRequestId) return;
+  state.transformBusy = false;
+  state.evaluation = evaluation;
   state.hasPendingChanges = false;
   state.outputPreviewMode = "preview";
-  const evaluation = state.evaluation;
   if (evaluation.error) {
     state.transformNotice = checking ? "Check blocked. See the result panel." : "Transform blocked. Check the message in the result panel.";
   } else if (evaluation.batch) {
@@ -930,14 +998,14 @@ function transformStep(evaluation) {
   const pending = state.hasPendingChanges;
   const result = evaluation?.result;
   const summary = evaluation?.batchSummary;
-  const isProcessing = summary?.status === "processing";
+  const isProcessing = state.transformBusy || summary?.status === "processing";
   const checking = isSavedRuleCheck();
   const notice = pending
     ? checking ? "Ready to check this payload against the saved rule." : "Ready to transform with the latest input."
     : state.transformNotice || (result || evaluation?.error ? checking ? "Latest check is shown below." : "Latest transform is shown below." : checking ? "Paste a payload and run the check." : "Run the transform when examples and input are ready.");
   const tone = pending ? "warn" : evaluation?.error ? "danger" : result ? "safe" : "muted";
   return `<div class="transform-step">
-    <button class="button is-primary" type="button" data-run-transform title="${checking ? "Run check" : "Run evaluation"} (Cmd/Ctrl+Enter)" ${hasExamples || result ? "" : "disabled"}>${isProcessing ? (checking ? "Checking" : "Transforming") : (checking ? "Check" : "Transform")}</button>
+    <button class="button is-primary" type="button" data-run-transform title="${checking ? "Run check" : "Run evaluation"} (Cmd/Ctrl+Enter)" ${hasExamples || result ? state.transformBusy ? "disabled" : "" : "disabled"}>${isProcessing ? (checking ? "Checking" : "Transforming") : (checking ? "Check" : "Transform")}</button>
     <p class="transform-feedback is-${esc(tone)}" aria-live="polite" role="status">${esc(notice)}</p>
   </div>`;
 }

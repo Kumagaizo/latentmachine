@@ -1,4 +1,6 @@
 import { buildTransformTask, runBuiltTransform } from "../json-transform/translator.js";
+import { clone } from "../json-transform/core.js";
+import { deepEqual, stableStringify } from "../json-transform/shared.js";
 import { generateTransformationChallenges } from "./challenges.js";
 import { withTransformationContractIdentity } from "./identity.js";
 import { withTransformationInvariantSuggestions } from "./invariants.js";
@@ -13,7 +15,7 @@ import {
 export const TRANSFORMATION_CONTRACT_ARTIFACT_VERSION = 1;
 
 function cloneJson(value) {
-  return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+  return clone(value);
 }
 
 function normalizedEvidenceExamples(examples = []) {
@@ -25,10 +27,21 @@ function normalizedEvidenceExamples(examples = []) {
     formats: cloneJson(example.formats || { input: "json", output: "json" }),
   }));
   const byInput = new Map();
-  for (const example of parsed) byInput.set(JSON.stringify(example.input), example);
+  for (const example of parsed) {
+    const key = stableStringify(example.input);
+    const group = byInput.get(key) || [];
+    const duplicate = group.find(existing => deepEqual(existing.output, example.output));
+    if (duplicate) {
+      duplicate.correction ||= example.correction;
+    } else {
+      if (example.correction) group.splice(0, group.length);
+      group.push(example);
+    }
+    byInput.set(key, group);
+  }
 
   const usedIds = new Set();
-  return [...byInput.values()].map(example => {
+  return [...byInput.values()].flat().map(example => {
     const sourceId = example.id;
     let id = sourceId;
     let suffix = 2;

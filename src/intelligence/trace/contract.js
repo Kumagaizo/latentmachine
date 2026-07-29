@@ -174,7 +174,6 @@ export function createTraceSession(options = {}) {
   return {
     id: options.id || `trace-session-${Date.now().toString(36)}`,
     seed: options.seed || "trace-v0.1",
-    budgetMs: options.budgetMs ?? 500,
     telemetry: [],
     events: [createTraceEvent("session.created", "session", "Session created", { toolId: TRACE_METADATA.id })],
   };

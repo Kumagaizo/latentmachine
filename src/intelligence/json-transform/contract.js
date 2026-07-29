@@ -74,7 +74,6 @@ export function createJsonTransformSession(options = {}) {
   return {
     id: options.id || `json-transform-session-${Date.now().toString(36)}`,
     seed: options.seed || "json-transform-v0.1",
-    budgetMs: options.budgetMs ?? 500,
     memory: createMemoryStore(options.memory),
     telemetry: [],
     events: [createTraceEvent("session.created", "session", "Session created", { toolId: JSON_TRANSFORM_METADATA.id })],
@@ -125,12 +124,12 @@ export function runJsonTransformTool(input, session = createJsonTransformSession
       traces: events,
       events,
       logs: validation.errors,
-      telemetry: { durationMs: 0, budgetMs: session.budgetMs, timedOut: false, method: "invalid" },
+      telemetry: { durationMs: 0, method: "invalid" },
     };
   }
 
   try {
-    const result = runJsonTransform({ ...input, budgetMs: options.budgetMs ?? session.budgetMs });
+    const result = runJsonTransform(input);
     events.push(...result.traces.map(trace => createTraceEvent(`json.${trace.phase}`, trace.phase, trace.message, trace.data, "success")));
     const output = {
       validation,
@@ -160,7 +159,7 @@ export function runJsonTransformTool(input, session = createJsonTransformSession
       traces: [...events, event],
       events: [...events, event],
       logs: [error.message],
-      telemetry: { durationMs: 0, budgetMs: session.budgetMs, timedOut: false, method: "jsonTransform" },
+      telemetry: { durationMs: 0, method: "jsonTransform" },
     };
   }
 }

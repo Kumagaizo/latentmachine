@@ -27,7 +27,9 @@ const expectedDistFonts = [
 
 const browserScriptEntries = [
   "src/local/app.js",
+  "src/local/infer-worker.js",
   "src/local/verify.js",
+  "src/local/verify-worker.js",
   "src/local/regex.js",
   "src/local/jq.js",
   "src/local/trace.js",
@@ -36,6 +38,7 @@ const browserScriptEntries = [
   "src/local/signal-worker.js",
   "src/local/landing-demo.js",
   "src/local/chrome.js",
+  "src/local/theme-boot.js",
 ];
 
 const canonicalOrigin = "https://latentmachine.com";
@@ -81,6 +84,24 @@ async function assertGitignoreKeepsVendorDistTrackable() {
 
 async function assertSourceVendor() {
   for (const file of sourceVendorFiles) await assertFile(file);
+}
+
+async function assertSourceSecurityConfig() {
+  const config = JSON.parse(await readFile(path.join(root, "vercel.json"), "utf8"));
+  const globalHeaders = config.headers?.find(rule => rule.source === "/(.*)")?.headers || [];
+  const headers = new Map(globalHeaders.map(header => [header.key.toLowerCase(), header.value]));
+  const csp = headers.get("content-security-policy") || "";
+
+  assert.match(csp, /(?:^|;\s*)default-src 'none'(?:;|$)/, "CSP must fail closed by default");
+  assert.match(csp, /(?:^|;\s*)script-src 'self'(?:;|$)/, "CSP must not allow inline or third-party scripts");
+  assert.match(csp, /(?:^|;\s*)frame-ancestors 'none'(?:;|$)/, "CSP must block framing");
+  assert.equal(headers.get("x-frame-options"), "DENY", "Legacy framing protection must remain enabled");
+  assert.match(headers.get("strict-transport-security") || "", /^max-age=\d+/, "HSTS must remain enabled");
+
+  const sharedHead = await readFile(path.join(root, "partials", "head-commons.html"), "utf8");
+  const inlineExecutableScripts = [...sharedHead.matchAll(/<script\b([^>]*)>/gi)]
+    .filter(([, attributes]) => !/\bsrc=/i.test(attributes) && !/\btype=["']application\/ld\+json["']/i.test(attributes));
+  assert.equal(inlineExecutableScripts.length, 0, "Shared head must not contain inline executable scripts");
 }
 
 function localJavaScriptImports(source, text) {
@@ -482,6 +503,8 @@ try {
   if (mode === "source" || mode === "all") {
     await assertSourceVendor();
     checks.push("source vendored YAML files exist");
+    await assertSourceSecurityConfig();
+    checks.push("source security headers fail closed for scripts and framing");
     await assertSourceBrowserGraph();
     checks.push("browser source graphs isolate Contract Studio and exclude benchmark modules");
   }

@@ -120,6 +120,10 @@ console.log(structuralDiff({ a: 1 }, { a: 2 }).counts);
 
 Determinism contract: same parsed value, same fingerprint; object key order is ignored; array order is significant. The fingerprint is non-cryptographic and intended for identity and change detection, not tamper-proofing.
 
+## Resource limits
+
+The public APIs accept at most 5,000 rows per aligned input and at most 2,500,000 serialized characters per parsed value. String inputs are additionally capped at 500,000 characters. These are independent safety limits: whichever limit is reached first applies.
+
 ## CLI
 
 ```sh

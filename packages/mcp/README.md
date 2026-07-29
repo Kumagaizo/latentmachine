@@ -71,6 +71,8 @@ This package is the local stdio transport. Examples, contracts, input, and outpu
 
 The hosted endpoint at `https://latentmachine.com/api/mcp` is different: payloads travel to Latentmachine's Vercel function for stateless processing. Its contract run/check tools default to privacy-safe report shaping, but that does not make the network transfer local.
 
+The hosted adapter rejects request bodies over 1,000,000 characters, tool text fields over 500,000 characters, JSON-RPC batches over four calls, and per-client bursts over 30 requests or 2,000,000 request characters per minute. The in-function limiter is a safety valve; production deployments should also configure a Vercel WAF rate-limit rule for `/api/mcp` so enforcement happens globally before function execution.
+
 ## Local smoke test
 
 ```sh

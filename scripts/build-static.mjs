@@ -26,6 +26,7 @@ const files = [
   "fonts/StackSansText-VariableFont_wght.ttf",
   "fonts/MartianMono-VariableFont_wdth,wght.ttf",
   "src/local/styles.css",
+  "src/local/theme-boot.js",
 ];
 
 const directories = [];
@@ -33,7 +34,9 @@ const directories = [];
 const scriptEntries = [
   "src/local/contract.js",
   "src/local/app.js",
+  "src/local/infer-worker.js",
   "src/local/verify.js",
+  "src/local/verify-worker.js",
   "src/local/regex.js",
   "src/local/jq.js",
   "src/local/trace.js",
