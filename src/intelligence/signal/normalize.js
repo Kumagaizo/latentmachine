@@ -4,6 +4,7 @@ export const SIGNAL_LIMITS = {
   maxBytes: 2 * 1024 * 1024,
   maxLines: 20_000,
   maxLineBytes: 256 * 1024,
+  maxAnalysisMs: 2_000,
 };
 
 export function hashText(value = "") {

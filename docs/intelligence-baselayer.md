@@ -127,6 +127,6 @@ Signal extends the baselayer to line-oriented logs, reports, and technical docum
 3. Scoring tests each line against global repetition, section structure, neighboring lines, observable language features, and bounded byte predictability.
 4. Tracing records privacy-safe method events with counts rather than source content.
 5. Correction memory is expressed through manual pins and an explicitly reviewed evidence-pack selection.
-6. Benchmarking gates heuristic weights, adversarial language cases, routing behavior, deterministic IDs, and the 20,000-line performance target.
+6. Benchmarking gates heuristic weights, adversarial language cases, routing behavior, deterministic IDs, and a portable two-second ceiling for the maximum supported 20,000-line artifact.
 
 The measurements remain separate in the result artifact. Compression novelty cannot create a finding by itself, and Signal does not decide which source lines matter to the user's business.

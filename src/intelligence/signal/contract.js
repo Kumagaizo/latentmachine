@@ -2,6 +2,7 @@ import { createBenchmarkReport, createReliabilityProfile, evaluateBenchmarkAsser
 import { SIGNAL_BENCHMARKS } from "./benchmarks.js";
 import { analyzeSignal } from "./engine.js";
 import { createEvidencePack } from "./explain.js";
+import { SIGNAL_LIMITS } from "./normalize.js";
 
 export const SIGNAL_RESULT_SCHEMA = {
   type: "object",
@@ -91,7 +92,7 @@ export function createSignalSession(options = {}) {
   return {
     id: options.id || `signal-session-${options.seed || "v0.1"}`,
     seed: options.seed || "signal-v0.1",
-    budgetMs: options.budgetMs ?? 1_000,
+    budgetMs: options.budgetMs ?? SIGNAL_LIMITS.maxAnalysisMs,
     telemetry: [],
     events: [],
   };
@@ -188,4 +189,3 @@ export const signalTool = {
   reliability: reliabilitySignal,
   benchmarks: SIGNAL_BENCHMARKS,
 };
-

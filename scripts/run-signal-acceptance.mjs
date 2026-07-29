@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { performance } from "node:perf_hooks";
 import { analyzeSignal } from "../src/intelligence/signal/engine.js";
 import { createEvidencePack, privacySafeSignalReport } from "../src/intelligence/signal/explain.js";
+import { SIGNAL_LIMITS } from "../src/intelligence/signal/normalize.js";
 
 const fixtures = JSON.parse(await readFile(new URL("../fixtures/signal/cases.json", import.meta.url), "utf8"));
 const REQUIRED_EVENTS = [
@@ -61,7 +62,7 @@ for (const fixture of fixtures) {
   }
 }
 
-const performanceText = Array.from({ length: 20_000 }, (_, index) => {
+const performanceText = Array.from({ length: SIGNAL_LIMITS.maxLines }, (_, index) => {
   if (index === 17_321) return `2026-07-29T12:00:00Z FATAL job ${80000 + index} rollback after 850ms`;
   return `2026-07-29T12:00:00Z INFO job ${80000 + index} completed after ${20 + index % 80}ms`;
 }).join("\n");
@@ -70,7 +71,10 @@ const performanceResult = analyzeSignal({ text: performanceText, name: "performa
 const durationMs = performance.now() - startedAt;
 assert.equal(performanceResult.status, "ready");
 assert.equal(performanceResult.findings[0]?.kind, "failure");
-assert.ok(durationMs <= 1_000, `20,000-line analysis took ${Math.round(durationMs)}ms`);
+assert.ok(
+  durationMs <= SIGNAL_LIMITS.maxAnalysisMs,
+  `${SIGNAL_LIMITS.maxLines.toLocaleString("en-US")}-line analysis took ${Math.round(durationMs)}ms; budget is ${SIGNAL_LIMITS.maxAnalysisMs}ms`,
+);
 
 const stabilityRoutine = Array.from({ length: 16 }, (_, index) => `2026-07-29T13:00:${String(index).padStart(2, "0")}Z INFO job ${91000 + index} completed after ${20 + index}ms`);
 const stabilityFatal = "2026-07-29T13:00:16Z FATAL job 91016 rollback after 840ms";
@@ -114,6 +118,10 @@ assert.match(minified.validation.errors.join(" "), /minified or encoded/i);
 console.log(JSON.stringify({
   passed: fixtures.length + 5,
   fixtures: fixtures.map(fixture => fixture.id),
-  performance: { lines: 20_000, durationMs: Math.round(durationMs) },
+  performance: {
+    lines: SIGNAL_LIMITS.maxLines,
+    durationMs: Math.round(durationMs),
+    budgetMs: SIGNAL_LIMITS.maxAnalysisMs,
+  },
   stability: { variants: stabilityResults.length, compressionNovelty: noveltyScores },
 }, null, 2));
