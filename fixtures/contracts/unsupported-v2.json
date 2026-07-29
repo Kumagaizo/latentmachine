@@ -1,0 +1,131 @@
+{
+  "kind": "latentmachine.transformation-contract",
+  "contractVersion": "2.0",
+  "engine": {
+    "name": "latentmachine",
+    "transformVersion": 3,
+    "artifactVersion": 1
+  },
+  "identity": {
+    "contractId": "lmct_7affaecdbb00",
+    "coreFingerprint": "7affaecdbb00db87",
+    "programFingerprint": "af4cf897e4b5a081",
+    "evidenceFingerprint": "55c71715c8133fd7"
+  },
+  "lifecycle": {
+    "approvalState": "unreviewed",
+    "revision": 1,
+    "supersedes": null
+  },
+  "title": "Unsupported future contract",
+  "description": "Fixture proving that unknown major versions fail closed.",
+  "formats": {
+    "input": "json",
+    "output": "json"
+  },
+  "evidence": {
+    "examples": [
+      {
+        "id": "example-1",
+        "input": {
+          "first": "Ada"
+        },
+        "output": {
+          "name": "Ada"
+        }
+      }
+    ],
+    "count": 1,
+    "coverage": {
+      "examplesMatched": 1
+    },
+    "contradictions": [],
+    "source": "user-provided"
+  },
+  "inference": {
+    "status": "safe",
+    "confidence": {
+      "label": "proven",
+      "risk": "low",
+      "checks": {
+        "passed": 5,
+        "total": 5
+      }
+    },
+    "candidatesConsidered": [
+      "set"
+    ],
+    "ambiguities": [],
+    "reasons": [
+      "Fixture content is structurally complete."
+    ]
+  },
+  "input": {
+    "schema": {
+      "type": "object",
+      "required": [
+        "first"
+      ],
+      "properties": {
+        "first": {
+          "type": "string"
+        }
+      }
+    },
+    "preconditions": [
+      {
+        "field": "$.first",
+        "type": "string",
+        "required": true,
+        "usedBy": "$.name"
+      }
+    ],
+    "unknownFieldPolicy": "allow"
+  },
+  "output": {
+    "schema": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "unknownFieldPolicy": "block",
+    "unresolvedValuePolicy": "block"
+  },
+  "program": {
+    "version": 3,
+    "ops": [
+      {
+        "op": "set",
+        "source": "$.first",
+        "target": "$.name"
+      }
+    ]
+  },
+  "invariants": [],
+  "challenges": [],
+  "runtimePolicy": {
+    "requireApproval": true,
+    "onRecordViolation": "quarantine",
+    "onBatchViolation": "block",
+    "warningThreshold": 0
+  },
+  "evidenceLinks": [
+    {
+      "operationIndex": 0,
+      "exampleIds": [
+        "example-1"
+      ]
+    }
+  ],
+  "approval": null,
+  "extensions": {},
+  "metadata": {
+    "createdBy": "contract-v1-fixture"
+  }
+}

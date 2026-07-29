@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "approval": {
+    "method": "local-human-review",
+    "note": "Reviewed against the supplied evidence and accepted invariant set."
+  },
+  "revocation": {
+    "reason": "Retired after the source-system contract changed."
+  },
+  "comparisonCases": [
+    {
+      "id": "compare-identical",
+      "variant": "identical",
+      "classification": "identical",
+      "categories": [],
+      "breaking": false,
+      "requiresReapproval": false
+    },
+    {
+      "id": "compare-metadata-only",
+      "variant": "metadata-fixture",
+      "classification": "metadata_only",
+      "categories": [
+        "metadata"
+      ],
+      "breaking": false,
+      "requiresReapproval": false
+    },
+    {
+      "id": "compare-evidence-only",
+      "variant": "evidence-only",
+      "classification": "evidence_only",
+      "categories": [
+        "evidence",
+        "review_state"
+      ],
+      "breaking": false,
+      "requiresReapproval": true
+    },
+    {
+      "id": "compare-program-behavior",
+      "variant": "behavior-fixture",
+      "classification": "behavioral_change",
+      "requiredCategories": [
+        "evidence",
+        "program_behavior",
+        "preconditions_schema"
+      ],
+      "breaking": true,
+      "requiresReapproval": true
+    },
+    {
+      "id": "compare-schema",
+      "variant": "schema",
+      "classification": "behavioral_change",
+      "categories": [
+        "preconditions_schema",
+        "review_state"
+      ],
+      "breaking": true,
+      "requiresReapproval": true
+    },
+    {
+      "id": "compare-invariants",
+      "variant": "invariants",
+      "classification": "behavioral_change",
+      "categories": [
+        "invariants",
+        "review_state",
+        "review_context"
+      ],
+      "breaking": true,
+      "requiresReapproval": true
+    },
+    {
+      "id": "compare-runtime-policy",
+      "variant": "runtime-policy",
+      "classification": "behavioral_change",
+      "categories": [
+        "runtime_policy",
+        "review_state"
+      ],
+      "breaking": true,
+      "requiresReapproval": true
+    }
+  ]
+}

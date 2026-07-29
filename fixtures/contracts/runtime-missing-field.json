@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "mode": "run",
+  "input": [
+    {
+      "id": "c3"
+    }
+  ],
+  "expected": {
+    "verdict": "quarantine",
+    "diagnosticCodes": [
+      "input-required-path-missing",
+      "required-input-missing",
+      "missing-source",
+      "unresolved-output-value",
+      "invariant-violation"
+    ],
+    "quarantinedRowIds": [
+      "key:\"c3\""
+    ]
+  }
+}

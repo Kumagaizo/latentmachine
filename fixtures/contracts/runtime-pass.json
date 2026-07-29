@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "mode": "run",
+  "input": [
+    {
+      "id": "c3",
+      "status": "new"
+    },
+    {
+      "id": "c4",
+      "status": "done"
+    }
+  ],
+  "expected": {
+    "verdict": "pass",
+    "totals": {
+      "input": 2,
+      "passed": 2,
+      "warned": 0,
+      "quarantined": 0,
+      "blocked": 0
+    }
+  }
+}

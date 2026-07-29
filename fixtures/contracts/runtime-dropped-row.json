@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "mode": "check",
+  "input": [
+    {
+      "id": "c3",
+      "status": "new"
+    },
+    {
+      "id": "c4",
+      "status": "done"
+    }
+  ],
+  "output": [
+    {
+      "customerId": "c3",
+      "state": "N"
+    }
+  ],
+  "expected": {
+    "verdict": "block",
+    "batchDiagnosticCodes": [
+      "dropped-output-row",
+      "batch-invariant-violation"
+    ],
+    "blocked": 2
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "task": {
+    "examples": [
+      {
+        "input": {
+          "id": "c1",
+          "status": "new"
+        },
+        "output": {
+          "customerId": "c1",
+          "state": "N"
+        }
+      },
+      {
+        "input": {
+          "id": "c2",
+          "status": "done"
+        },
+        "output": {
+          "customerId": "c2",
+          "state": "D"
+        }
+      }
+    ],
+    "newInput": {
+      "id": "c3",
+      "status": "new"
+    }
+  },
+  "acceptedKinds": [
+    "allowed_values",
+    "no_unknown_output_fields",
+    "no_unresolved_values",
+    "output_equals_source",
+    "output_path_present",
+    "path_type",
+    "required_path",
+    "row_count_preserved"
+  ],
+  "runtime": {
+    "inputRecords": [
+      {
+        "id": "c3",
+        "status": "new"
+      },
+      {
+        "id": "c4",
+        "status": "done"
+      }
+    ],
+    "outputRecords": [
+      {
+        "customerId": "c3",
+        "state": "N"
+      },
+      {
+        "customerId": "c4",
+        "state": "D"
+      }
+    ],
+    "failedRecords": []
+  },
+  "requiredMutationKinds": [
+    "remove-required-path",
+    "inject-disallowed-value",
+    "add-unknown-output-field",
+    "inject-unresolved-output",
+    "drop-output-row"
+  ],
+  "expectedUndetectedKind": "add-unreferenced-input-field"
+}

@@ -8,6 +8,7 @@ const outDir = path.join(root, "dist");
 
 const files = [
   "index.html",
+  "contract.html",
   "infer.html",
   "verify.html",
   "regex.html",
@@ -30,6 +31,7 @@ const files = [
 const directories = [];
 
 const scriptEntries = [
+  "src/local/contract.js",
   "src/local/app.js",
   "src/local/verify.js",
   "src/local/regex.js",

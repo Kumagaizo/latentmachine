@@ -6,6 +6,7 @@ const FORMAT_ENUM = ["auto", "json", "csv", "yaml", "toml", "xml", "env", "sql"]
 export const MAX_JSON_RPC_LINE_CHARACTERS = 1_000_000;
 export const MAX_JSON_RPC_BATCH_LENGTH = 4;
 const DIFF_PATH_LIST_LIMIT = 100;
+const CONTRACT_RECORD_LIST_LIMIT = 20;
 
 let runtimePromise;
 
@@ -122,6 +123,90 @@ export const TOOLS = [
       },
     }, ["data"]),
   },
+  {
+    name: "learn_transformation_contract",
+    description: [
+      "Learn a versioned Transformation Contract from input/output examples.",
+      "Returns an unapproved or review-required contract; this tool never claims human approval.",
+      "Local stdio processing keeps payloads on the user's machine.",
+    ].join(" "),
+    inputSchema: toolSchema({
+      examples: {
+        type: "string",
+        description: 'JSON array of example pairs: [{"input": {...}, "output": {...}}].',
+      },
+      include_contract: {
+        type: "boolean",
+        default: true,
+        description: "Include the complete contract required by later contract tools.",
+      },
+    }, ["examples"]),
+  },
+  {
+    name: "get_contract_challenges",
+    description: "Return unresolved review questions for a Transformation Contract. Does not answer or approve them.",
+    inputSchema: toolSchema({
+      contract: {
+        type: "string",
+        description: "Complete Transformation Contract JSON.",
+      },
+    }, ["contract"]),
+  },
+  {
+    name: "test_transformation_contract",
+    description: "Mutation-test a Transformation Contract against its evidence and disclose detected behavior plus visible gaps.",
+    inputSchema: toolSchema({
+      contract: {
+        type: "string",
+        description: "Complete Transformation Contract JSON.",
+      },
+      include_report: {
+        type: "boolean",
+        default: false,
+        description: "Include the full mutation report instead of its concise summary.",
+      },
+    }, ["contract"]),
+  },
+  {
+    name: "run_transformation_contract",
+    description: [
+      "Run an already-approved Transformation Contract deterministically.",
+      "Unapproved contracts are rejected; MCP cannot create local-human-review approval.",
+      "Local stdio processing keeps payloads on the user's machine.",
+    ].join(" "),
+    inputSchema: toolSchema({
+      contract: { type: "string", description: "Complete approved Transformation Contract JSON." },
+      input: { type: "string", description: "Input data in the contract's declared format." },
+      privacy_safe: { type: "boolean", default: false, description: "Redact raw record values from the returned report." },
+      include_report: { type: "boolean", default: false, description: "Include the complete deterministic run report." },
+      record_limit: { type: "integer", minimum: 0, maximum: 100, default: 20, description: "Maximum record summaries to return." },
+    }, ["contract", "input"]),
+  },
+  {
+    name: "check_transformation_contract",
+    description: [
+      "Check external output against an already-approved Transformation Contract.",
+      "Unapproved contracts are rejected; MCP cannot create local-human-review approval.",
+      "Local stdio processing keeps payloads on the user's machine.",
+    ].join(" "),
+    inputSchema: toolSchema({
+      contract: { type: "string", description: "Complete approved Transformation Contract JSON." },
+      input: { type: "string", description: "Input data in the contract's declared format." },
+      output: { type: "string", description: "External output data in the contract's declared format." },
+      privacy_safe: { type: "boolean", default: false, description: "Redact raw record values from the returned report." },
+      include_report: { type: "boolean", default: false, description: "Include the complete deterministic check report." },
+      record_limit: { type: "integer", minimum: 0, maximum: 100, default: 20, description: "Maximum record summaries to return." },
+    }, ["contract", "input", "output"]),
+  },
+  {
+    name: "compare_transformation_contracts",
+    description: "Compare two valid Transformation Contracts and classify behavioral, review, evidence, and metadata changes.",
+    inputSchema: toolSchema({
+      baseline: { type: "string", description: "Baseline Transformation Contract JSON." },
+      candidate: { type: "string", description: "Candidate Transformation Contract JSON." },
+      include_changes: { type: "boolean", default: true, description: "Include up to 100 path-level changes." },
+    }, ["baseline", "candidate"]),
+  },
 ];
 
 export const SERVER_INFO = {
@@ -172,6 +257,69 @@ function capList(items) {
     })),
     capped: items.length > DIFF_PATH_LIST_LIMIT,
     limit: DIFF_PATH_LIST_LIMIT,
+  };
+}
+
+function contractSummary(contract) {
+  const challenges = Array.isArray(contract?.challenges) ? contract.challenges : [];
+  return {
+    contractId: contract?.identity?.contractId || null,
+    coreFingerprint: contract?.identity?.coreFingerprint || null,
+    inferenceStatus: contract?.inference?.status || null,
+    approvalState: contract?.lifecycle?.approvalState || null,
+    revision: contract?.lifecycle?.revision || null,
+    blockingChallenges: challenges.filter(item => (
+      item.severity === "blocking" && ["open", "deferred"].includes(item.status)
+    )).length,
+    advisoryChallenges: challenges.filter(item => (
+      item.severity === "advisory" && ["open", "deferred"].includes(item.status)
+    )).length,
+    humanApproved: contract?.approval?.method === "local-human-review"
+      && contract?.lifecycle?.approvalState === "approved",
+  };
+}
+
+function runtimeResult(report, args) {
+  const requestedLimit = Number.isInteger(args.record_limit)
+    ? args.record_limit
+    : CONTRACT_RECORD_LIST_LIMIT;
+  const limit = Math.max(0, Math.min(100, requestedLimit));
+  const records = report.records.slice(0, limit).map(record => ({
+    rowId: record.rowId,
+    sourceIndex: record.sourceIndex,
+    status: record.status,
+    diagnostics: record.diagnostics,
+  }));
+  return {
+    summary: {
+      kind: report.kind,
+      contractId: report.contractId,
+      contractFingerprint: report.contractFingerprint,
+      verdict: report.verdict,
+      totals: report.totals,
+      errorCount: report.errors.length,
+      warningCount: report.warnings.length,
+      reviewRequired: report.errors.some(error => error.code === "approval-required"),
+    },
+    records,
+    omittedRecords: Math.max(0, report.records.length - records.length),
+    errors: report.errors.slice(0, 10),
+    warnings: report.warnings.slice(0, 10),
+    ...(args.include_report ? { report } : {}),
+  };
+}
+
+function mutationResult(report, includeReport) {
+  return {
+    summary: {
+      contractFingerprint: report.contractFingerprint,
+      mutationCount: report.mutations.length,
+      detectedCount: report.detected.length,
+      gapCount: report.undetected.length,
+      detected: report.detected,
+      gaps: report.undetected,
+    },
+    ...(includeReport ? { report } : {}),
   };
 }
 
@@ -228,6 +376,84 @@ async function callTool(name, args = {}) {
       removed: capList(diff.removed),
       note: "Path lists are capped at 100 entries per class. Fingerprints and counts cover all data.",
       nonCryptographic: true,
+    };
+  }
+
+  if (name === "learn_transformation_contract") {
+    const examples = parseJson(args.examples, "examples", runtime);
+    const contract = runtime.learnContract({ examples }, { evidenceSource: "mcp-local-stdio" });
+    return {
+      summary: contractSummary(contract),
+      review: {
+        required: contract.lifecycle.approvalState !== "approved",
+        humanApprovalCreated: false,
+        nextAction: "Review challenges and approve the exact fingerprint in Contract Studio or the CLI.",
+      },
+      ...(args.include_contract === false ? {} : { contract }),
+    };
+  }
+
+  if (name === "get_contract_challenges") {
+    const contract = runtime.generateTransformationChallenges(parseJson(args.contract, "contract", runtime));
+    const challenges = contract.challenges.filter(item => ["open", "deferred"].includes(item.status));
+    return {
+      summary: contractSummary(contract),
+      challenges,
+      humanApprovalCreated: false,
+    };
+  }
+
+  if (name === "test_transformation_contract") {
+    const contract = parseJson(args.contract, "contract", runtime);
+    const report = runtime.runTransformationMutationSuite(contract, {
+      inputRecords: contract.evidence?.examples?.map(example => example.input) || [],
+      outputRecords: contract.evidence?.examples?.map(example => example.output) || [],
+      failedRecords: [],
+    });
+    return mutationResult(report, !!args.include_report);
+  }
+
+  if (name === "run_transformation_contract") {
+    runtime.assertTextLimit(args.input, "input");
+    const report = runtime.runContract({
+      contract: parseJson(args.contract, "contract", runtime),
+      input: args.input,
+      options: { privacySafe: !!args.privacy_safe },
+    });
+    return runtimeResult(report, args);
+  }
+
+  if (name === "check_transformation_contract") {
+    runtime.assertTextLimit(args.input, "input");
+    runtime.assertTextLimit(args.output, "output");
+    const report = runtime.checkContract({
+      contract: parseJson(args.contract, "contract", runtime),
+      input: args.input,
+      output: args.output,
+      options: { privacySafe: !!args.privacy_safe },
+    });
+    return runtimeResult(report, args);
+  }
+
+  if (name === "compare_transformation_contracts") {
+    const comparison = runtime.compareContracts(
+      parseJson(args.baseline, "baseline", runtime),
+      parseJson(args.candidate, "candidate", runtime),
+    );
+    const changes = args.include_changes === false
+      ? []
+      : comparison.changes.slice(0, DIFF_PATH_LIST_LIMIT);
+    return {
+      summary: {
+        relation: comparison.relation,
+        classification: comparison.classification,
+        breaking: comparison.breaking,
+        requiresReapproval: comparison.requiresReapproval,
+        ...comparison.summary,
+      },
+      changes,
+      omittedChanges: Math.max(0, comparison.changes.length - changes.length),
+      validation: comparison.validation,
     };
   }
 

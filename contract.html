@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--@partial:head-commons-->
+    <title>Contract Studio | Transformation Contracts from Examples</title>
+    <meta name="description" content="Turn before-and-after examples into an inspectable, approved transformation contract. Learn, challenge, guard, run, and check data locally in your browser." />
+    <link rel="canonical" href="https://latentmachine.com/contract" />
+    <meta property="og:title" content="Contract Studio | Latentmachine" />
+    <meta property="og:description" content="Learn deterministic transformation contracts from examples, review their assumptions, and gate real data locally." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://latentmachine.com/contract" />
+    <meta name="twitter:title" content="Contract Studio | Latentmachine" />
+    <meta name="twitter:description" content="From examples to an inspectable, approved, deterministic transformation contract." />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Latentmachine Contract Studio",
+        "url": "https://latentmachine.com/contract",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web browser",
+        "description": "A local browser workflow for learning, reviewing, approving, running, and checking deterministic data transformation contracts.",
+        "featureList": [
+          "Learn transformation contracts from before-and-after examples",
+          "Review rule evidence and unresolved challenges",
+          "Select explicit runtime guardrails",
+          "Approve an exact deterministic contract fingerprint",
+          "Run contracts and check external output locally"
+        ],
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main class="page">
+      <a href="#main-content" class="skip-link">Skip to content</a>
+      <!--@partial:nav-->
+      <div id="main-content">
+        <div id="contract">
+          <div class="tool-loading" role="status" aria-label="Loading Contract Studio">
+            <span class="loading-mark"></span>
+          </div>
+          <noscript>
+            <div class="format-diagnostic is-danger">
+              <p>This tool runs entirely in your browser and needs JavaScript. Nothing is sent to a server, but nothing runs without it either.</p>
+            </div>
+          </noscript>
+        </div>
+      </div>
+      <!--@partial:footer-->
+    </main>
+    <script type="module" src="/src/local/chrome.js"></script>
+    <script type="module" src="/src/local/contract.js"></script>
+  </body>
+</html>

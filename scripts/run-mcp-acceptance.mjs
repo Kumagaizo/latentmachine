@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import handler, { handleFingerprint, handleJsonRpc, handleTransform, handleVerify, TOOLS } from "../api/mcp.js";
 import { SECURITY_LIMITS } from "../packages/verify/src/index.js";
+import { TOOLS as LOCAL_MCP_TOOLS } from "../packages/mcp/src/server.js";
+import { approveContract } from "../src/intelligence/contracts/index.js";
 
 async function callHandler(req) {
   const res = {
@@ -77,8 +79,13 @@ function parseToolText(response) {
 
 {
   const response = handleJsonRpc({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
-  assert.equal(response.result.tools.length, 5);
+  assert.equal(response.result.tools.length, 11);
   assert.deepEqual(response.result.tools.map((tool) => tool.name), TOOLS.map((tool) => tool.name));
+  assert.deepEqual(
+    TOOLS.map(tool => tool.name),
+    LOCAL_MCP_TOOLS.map(tool => tool.name),
+    "Hosted and local MCP transports must expose the same tool names.",
+  );
   console.log("OK MCP tools/list");
 }
 
@@ -88,7 +95,7 @@ function parseToolText(response) {
     headers: { "mcp-protocol-version": "2025-06-18" },
   });
   assert.equal(response.statusCode, 200);
-  assert.equal(response.body.result.tools.length, 5);
+  assert.equal(response.body.result.tools.length, 11);
   console.log("OK MCP HTTP string body");
 }
 
@@ -275,6 +282,159 @@ let inferredRule;
   assert.equal(result.changed.items.length, 100);
   assert.equal(result.changed.capped, true);
   console.log("OK MCP fingerprint cap");
+}
+
+let learnedContract;
+{
+  const response = handleJsonRpc({
+    jsonrpc: "2.0",
+    id: 70,
+    method: "tools/call",
+    params: {
+      name: "learn_transformation_contract",
+      arguments: {
+        examples: JSON.stringify([
+          {
+            input: { id: "evt_1", status: "created" },
+            output: { eventId: "evt_1", state: "NEW" },
+          },
+          {
+            input: { id: "evt_2", status: "paid" },
+            output: { eventId: "evt_2", state: "READY" },
+          },
+        ]),
+      },
+    },
+  });
+  const result = parseToolText(response);
+  assert.equal(result.summary.inferenceStatus, "safe");
+  assert.equal(result.summary.approvalState, "unreviewed");
+  assert.equal(result.summary.humanApproved, false);
+  assert.equal(result.review.required, true);
+  assert.equal(result.review.humanApprovalCreated, false);
+  assert.match(result.review.nextAction, /Contract Studio or the CLI/);
+  learnedContract = result.contract;
+  console.log("OK MCP contract learn preserves review boundary");
+}
+
+{
+  const response = handleJsonRpc({
+    jsonrpc: "2.0",
+    id: 71,
+    method: "tools/call",
+    params: {
+      name: "get_contract_challenges",
+      arguments: { contract: JSON.stringify(learnedContract) },
+    },
+  });
+  const result = parseToolText(response);
+  assert.equal(result.humanApprovalCreated, false);
+  assert.ok(Array.isArray(result.challenges));
+  console.log("OK MCP contract challenges");
+}
+
+{
+  const response = handleJsonRpc({
+    jsonrpc: "2.0",
+    id: 72,
+    method: "tools/call",
+    params: {
+      name: "run_transformation_contract",
+      arguments: {
+        contract: JSON.stringify(learnedContract),
+        input: '[{"id":"evt_3","status":"paid"}]',
+      },
+    },
+  });
+  const result = parseToolText(response);
+  assert.equal(result.summary.verdict, "invalid_contract");
+  assert.equal(result.summary.reviewRequired, true);
+  assert.equal("report" in result, false);
+  console.log("OK MCP contract run blocks unapproved artifact");
+}
+
+const approvedContract = approveContract(learnedContract, {
+  coreFingerprint: learnedContract.identity.coreFingerprint,
+  acknowledgedChallenges: learnedContract.challenges
+    .filter(item => item.severity === "advisory" && ["open", "deferred"].includes(item.status))
+    .map(item => item.id),
+});
+
+{
+  const response = handleJsonRpc({
+    jsonrpc: "2.0",
+    id: 73,
+    method: "tools/call",
+    params: {
+      name: "run_transformation_contract",
+      arguments: {
+        contract: JSON.stringify(approvedContract),
+        input: '[{"id":"evt_3","status":"paid"}]',
+      },
+    },
+  });
+  const result = parseToolText(response);
+  assert.equal(result.summary.verdict, "pass");
+  assert.equal(result.summary.reviewRequired, false);
+  assert.equal(result.omittedRecords, 0);
+  console.log("OK MCP approved contract run");
+}
+
+{
+  const response = handleJsonRpc({
+    jsonrpc: "2.0",
+    id: 74,
+    method: "tools/call",
+    params: {
+      name: "check_transformation_contract",
+      arguments: {
+        contract: JSON.stringify(approvedContract),
+        input: '[{"id":"evt_3","status":"paid"}]',
+        output: '[{"eventId":"evt_3","state":"WRONG"}]',
+      },
+    },
+  });
+  const result = parseToolText(response);
+  assert.equal(result.summary.verdict, "quarantine");
+  assert.equal(result.records[0].status, "quarantined");
+  assert.equal(JSON.stringify(result.records).includes("WRONG"), false);
+  assert.equal(JSON.stringify(result.records).includes("evt_3"), false);
+  console.log("OK MCP remote contract check defaults privacy-safe");
+}
+
+{
+  const response = handleJsonRpc({
+    jsonrpc: "2.0",
+    id: 75,
+    method: "tools/call",
+    params: {
+      name: "test_transformation_contract",
+      arguments: { contract: JSON.stringify(learnedContract) },
+    },
+  });
+  const result = parseToolText(response);
+  assert.ok(result.summary.mutationCount > 0);
+  assert.equal("report" in result, false);
+  console.log("OK MCP contract mutation summary");
+}
+
+{
+  const response = handleJsonRpc({
+    jsonrpc: "2.0",
+    id: 76,
+    method: "tools/call",
+    params: {
+      name: "compare_transformation_contracts",
+      arguments: {
+        baseline: JSON.stringify(learnedContract),
+        candidate: JSON.stringify(approvedContract),
+      },
+    },
+  });
+  const result = parseToolText(response);
+  assert.equal(result.summary.relation, "non_behavioral_change");
+  assert.equal(result.summary.requiresReapproval, false);
+  console.log("OK MCP contract comparison");
 }
 
 {

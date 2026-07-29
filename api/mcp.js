@@ -7,10 +7,19 @@ import { executeJsonTransform } from "../src/intelligence/json-transform/runtime
 import { runTransform } from "../src/intelligence/json-transform/translator.js";
 import { inferVerifyRule } from "../src/intelligence/json-transform/verify-inference.js";
 import { fingerprint, profileStructure, structuralDiff } from "../src/intelligence/trace/engine.js";
+import {
+  checkContract,
+  compareContracts,
+  generateTransformationChallenges,
+  learnContract,
+  runContract,
+  runTransformationMutationSuite,
+} from "../src/intelligence/contracts/index.js";
 import { SECURITY_LIMITS, assertArrayLimit, assertSerializedLimit, assertTextLimit } from "../packages/verify/src/limits.js";
 
 const FORMAT_ENUM = ["auto", "json", "csv", "yaml", "toml", "xml", "env", "sql"];
 const DIFF_PATH_LIST_LIMIT = 100;
+const CONTRACT_RECORD_LIST_LIMIT = 20;
 
 export const TOOLS = [
   {
@@ -124,6 +133,112 @@ export const TOOLS = [
         },
       },
       required: ["data"],
+    },
+  },
+  {
+    name: "learn_transformation_contract",
+    description:
+      "Learn a versioned Transformation Contract from input/output examples. " +
+      "Returns an unapproved or review-required contract and never claims human approval. " +
+      "Remote HTTP use sends the supplied examples to Latentmachine for stateless processing; use the local stdio server for local-only data.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        examples: {
+          type: "string",
+          maxLength: SECURITY_LIMITS.maxToolTextCharacters,
+          description: 'JSON array of example pairs: [{"input": {...}, "output": {...}}].',
+        },
+        include_contract: {
+          type: "boolean",
+          default: true,
+          description: "Include the complete contract required by later contract tools.",
+        },
+      },
+      required: ["examples"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "get_contract_challenges",
+    description:
+      "Return unresolved review questions for a Transformation Contract. Does not answer or approve them. " +
+      "Remote HTTP use sends the contract to Latentmachine for stateless processing.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        contract: { type: "string", maxLength: SECURITY_LIMITS.maxToolTextCharacters, description: "Complete Transformation Contract JSON." },
+      },
+      required: ["contract"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "test_transformation_contract",
+    description:
+      "Mutation-test a Transformation Contract against its evidence and disclose protected behavior plus visible gaps. " +
+      "Remote HTTP use sends the contract and its embedded evidence to Latentmachine for stateless processing.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        contract: { type: "string", maxLength: SECURITY_LIMITS.maxToolTextCharacters, description: "Complete Transformation Contract JSON." },
+        include_report: { type: "boolean", default: false, description: "Include the full mutation report." },
+      },
+      required: ["contract"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "run_transformation_contract",
+    description:
+      "Run an already-approved Transformation Contract deterministically. Unapproved contracts are rejected and MCP cannot create local-human-review approval. " +
+      "Remote HTTP use sends the contract and input to Latentmachine for stateless processing; use local stdio for local-only data.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        contract: { type: "string", maxLength: SECURITY_LIMITS.maxToolTextCharacters, description: "Complete approved Transformation Contract JSON." },
+        input: { type: "string", maxLength: SECURITY_LIMITS.maxToolTextCharacters, description: "Input data in the contract's declared format." },
+        privacy_safe: { type: "boolean", default: true, description: "Redact raw record values from the returned report." },
+        include_report: { type: "boolean", default: false, description: "Include the complete deterministic run report." },
+        record_limit: { type: "integer", minimum: 0, maximum: 100, default: 20, description: "Maximum record summaries to return." },
+      },
+      required: ["contract", "input"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "check_transformation_contract",
+    description:
+      "Check external output against an already-approved Transformation Contract. Unapproved contracts are rejected and MCP cannot create local-human-review approval. " +
+      "Remote HTTP use sends the contract, input, and output to Latentmachine for stateless processing; use local stdio for local-only data.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        contract: { type: "string", maxLength: SECURITY_LIMITS.maxToolTextCharacters, description: "Complete approved Transformation Contract JSON." },
+        input: { type: "string", maxLength: SECURITY_LIMITS.maxToolTextCharacters, description: "Input data in the contract's declared format." },
+        output: { type: "string", maxLength: SECURITY_LIMITS.maxToolTextCharacters, description: "External output data in the contract's declared format." },
+        privacy_safe: { type: "boolean", default: true, description: "Redact raw record values from the returned report." },
+        include_report: { type: "boolean", default: false, description: "Include the complete deterministic check report." },
+        record_limit: { type: "integer", minimum: 0, maximum: 100, default: 20, description: "Maximum record summaries to return." },
+      },
+      required: ["contract", "input", "output"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "compare_transformation_contracts",
+    description:
+      "Compare two Transformation Contracts and classify behavioral, review, evidence, and metadata changes. " +
+      "Remote HTTP use sends both contracts to Latentmachine for stateless processing.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        baseline: { type: "string", maxLength: SECURITY_LIMITS.maxToolTextCharacters, description: "Baseline Transformation Contract JSON." },
+        candidate: { type: "string", maxLength: SECURITY_LIMITS.maxToolTextCharacters, description: "Candidate Transformation Contract JSON." },
+        include_changes: { type: "boolean", default: true, description: "Include up to 100 path-level changes." },
+      },
+      required: ["baseline", "candidate"],
+      additionalProperties: false,
     },
   },
 ];
@@ -322,12 +437,158 @@ export function handleFingerprint({ data, compare_to, format = "auto" }) {
   };
 }
 
+function contractSummary(contract) {
+  const challenges = Array.isArray(contract?.challenges) ? contract.challenges : [];
+  return {
+    contractId: contract?.identity?.contractId || null,
+    coreFingerprint: contract?.identity?.coreFingerprint || null,
+    inferenceStatus: contract?.inference?.status || null,
+    approvalState: contract?.lifecycle?.approvalState || null,
+    revision: contract?.lifecycle?.revision || null,
+    blockingChallenges: challenges.filter(item => (
+      item.severity === "blocking" && ["open", "deferred"].includes(item.status)
+    )).length,
+    advisoryChallenges: challenges.filter(item => (
+      item.severity === "advisory" && ["open", "deferred"].includes(item.status)
+    )).length,
+    humanApproved: contract?.approval?.method === "local-human-review"
+      && contract?.lifecycle?.approvalState === "approved",
+  };
+}
+
+function conciseRuntimeResult(report, args) {
+  const requestedLimit = Number.isInteger(args.record_limit)
+    ? args.record_limit
+    : CONTRACT_RECORD_LIST_LIMIT;
+  const limit = Math.max(0, Math.min(100, requestedLimit));
+  const records = report.records.slice(0, limit).map(record => ({
+    rowId: record.rowId,
+    sourceIndex: record.sourceIndex,
+    status: record.status,
+    diagnostics: record.diagnostics,
+  }));
+  return {
+    summary: {
+      kind: report.kind,
+      contractId: report.contractId,
+      contractFingerprint: report.contractFingerprint,
+      verdict: report.verdict,
+      totals: report.totals,
+      errorCount: report.errors.length,
+      warningCount: report.warnings.length,
+      reviewRequired: report.errors.some(error => error.code === "approval-required"),
+    },
+    records,
+    omittedRecords: Math.max(0, report.records.length - records.length),
+    errors: report.errors.slice(0, 10),
+    warnings: report.warnings.slice(0, 10),
+    ...(args.include_report ? { report } : {}),
+  };
+}
+
+export function handleLearnContract({ examples, include_contract = true }) {
+  const parsed = parseMaybeJson(examples, "examples");
+  assertArrayLimit(parsed, "Examples", SECURITY_LIMITS.maxExamples);
+  assertSerializedLimit(parsed, "Examples");
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    throw new Error("Provide at least one { input, output } example.");
+  }
+  const contract = learnContract({ examples: parsed }, { evidenceSource: "mcp-remote-http" });
+  return {
+    summary: contractSummary(contract),
+    review: {
+      required: contract.lifecycle.approvalState !== "approved",
+      humanApprovalCreated: false,
+      nextAction: "Review challenges and approve the exact fingerprint in Contract Studio or the CLI.",
+    },
+    ...(include_contract === false ? {} : { contract }),
+  };
+}
+
+export function handleContractChallenges({ contract }) {
+  const challenged = generateTransformationChallenges(parseMaybeJson(contract, "contract"));
+  return {
+    summary: contractSummary(challenged),
+    challenges: challenged.challenges.filter(item => ["open", "deferred"].includes(item.status)),
+    humanApprovalCreated: false,
+  };
+}
+
+export function handleContractTest({ contract, include_report = false }) {
+  const parsed = parseMaybeJson(contract, "contract");
+  const report = runTransformationMutationSuite(parsed, {
+    inputRecords: parsed.evidence?.examples?.map(example => example.input) || [],
+    outputRecords: parsed.evidence?.examples?.map(example => example.output) || [],
+    failedRecords: [],
+  });
+  return {
+    summary: {
+      contractFingerprint: report.contractFingerprint,
+      mutationCount: report.mutations.length,
+      detectedCount: report.detected.length,
+      gapCount: report.undetected.length,
+      detected: report.detected,
+      gaps: report.undetected,
+    },
+    ...(include_report ? { report } : {}),
+  };
+}
+
+export function handleContractRun(args) {
+  assertTextLimit(args.input, "Input");
+  const report = runContract({
+    contract: parseMaybeJson(args.contract, "contract"),
+    input: args.input,
+    options: { privacySafe: args.privacy_safe !== false },
+  });
+  return conciseRuntimeResult(report, args);
+}
+
+export function handleContractCheck(args) {
+  assertTextLimit(args.input, "Input");
+  assertTextLimit(args.output, "Output");
+  const report = checkContract({
+    contract: parseMaybeJson(args.contract, "contract"),
+    input: args.input,
+    output: args.output,
+    options: { privacySafe: args.privacy_safe !== false },
+  });
+  return conciseRuntimeResult(report, args);
+}
+
+export function handleContractComparison({ baseline, candidate, include_changes = true }) {
+  const comparison = compareContracts(
+    parseMaybeJson(baseline, "baseline"),
+    parseMaybeJson(candidate, "candidate"),
+  );
+  const allChanges = Array.isArray(comparison.changes) ? comparison.changes : [];
+  const changes = include_changes ? allChanges.slice(0, DIFF_PATH_LIST_LIMIT) : [];
+  return {
+    summary: {
+      relation: comparison.relation,
+      classification: comparison.classification,
+      breaking: comparison.breaking,
+      requiresReapproval: comparison.requiresReapproval,
+      ...comparison.summary,
+    },
+    changes,
+    omittedChanges: Math.max(0, allChanges.length - changes.length),
+    validation: comparison.validation,
+  };
+}
+
 export const TOOL_HANDLERS = {
   verify_data_transformation: handleVerify,
   infer_transformation_rule: handleInfer,
   apply_transformation_rule: handleTransform,
   detect_data_format: handleDetectFormat,
   fingerprint_data: handleFingerprint,
+  learn_transformation_contract: handleLearnContract,
+  get_contract_challenges: handleContractChallenges,
+  test_transformation_contract: handleContractTest,
+  run_transformation_contract: handleContractRun,
+  check_transformation_contract: handleContractCheck,
+  compare_transformation_contracts: handleContractComparison,
 };
 
 function jsonRpcError(id, code, message) {

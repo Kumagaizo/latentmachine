@@ -33,6 +33,10 @@ copyDirectory(
   join(repoRoot, "src", "intelligence", "trace"),
   join(snapshotEngineRoot, "intelligence", "trace"),
 );
+copyDirectory(
+  join(repoRoot, "src", "intelligence", "contracts"),
+  join(snapshotEngineRoot, "intelligence", "contracts"),
+);
 for (const file of [
   "candidates.js",
   "core.js",
@@ -72,9 +76,10 @@ const rewriteMap = new Map([
   ["../../../src/intelligence/json-transform/verify-inference.js", "./_engine/intelligence/json-transform/verify-inference.js"],
   ["../../../src/intelligence/json-transform/translator.js", "./_engine/intelligence/json-transform/translator.js"],
   ["../../../src/intelligence/json-transform/runtime.js", "./_engine/intelligence/json-transform/runtime.js"],
+  ["../../../src/intelligence/contracts/index.js", "./_engine/intelligence/contracts/index.js"],
 ]);
 
-for (const file of ["verify.js", "infer.js", "transform.js", "formats.js", "fingerprint.js"]) {
+for (const file of ["verify.js", "infer.js", "transform.js", "formats.js", "fingerprint.js", "contracts.js"]) {
   const path = join(snapshotRoot, "src", file);
   let source = readFileSync(path, "utf8");
   for (const [from, to] of rewriteMap) {

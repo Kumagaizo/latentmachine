@@ -37,18 +37,22 @@
     "bench:exports": "node scripts/run-json-export-benchmarks.mjs",
     "bench:trace": "node scripts/run-trace-benchmarks.mjs",
     "bench:signal": "node scripts/run-signal-benchmarks.mjs",
+    "bench:contracts": "node scripts/run-contract-benchmarks.mjs",
     "generate:trace-fixtures": "node scripts/generate-trace-fixtures.mjs",
     "accept:file-import": "node scripts/run-file-import-acceptance.mjs",
     "accept:verify": "node scripts/run-verify-acceptance.mjs",
     "accept:trace": "node scripts/run-trace-acceptance.mjs",
     "accept:signal": "node scripts/run-signal-acceptance.mjs",
+    "accept:contracts": "node scripts/run-contract-acceptance.mjs",
+    "accept:contract-studio": "node scripts/run-contract-studio-acceptance.mjs",
     "accept:formats": "node scripts/run-data-format-acceptance.mjs",
     "accept:mcp": "node scripts/run-mcp-acceptance.mjs",
-    "test:package:verify": "node packages/verify/test/verify.test.js && node packages/verify/test/infer.test.js && node packages/verify/test/transform.test.js && node packages/verify/test/formats.test.js && node packages/verify/test/fingerprint.test.js",
+    "test:package:verify": "npm --workspace packages/verify test",
+    "test:package:verify:pack": "node packages/verify/test/pack-consumer.test.js",
     "accept:yaml": "node scripts/run-yaml-reliability.mjs",
     "accept:fixtures": "node scripts/run-fixture-corpus.mjs",
     "smoke:ui": "node scripts/run-ui-smoke.mjs",
     "preflight:deploy": "node scripts/run-deploy-preflight.mjs",
-    "prepublish:check": "npm run test:package:verify && npm --workspace packages/mcp run smoke && npm run preflight:deploy"
+    "prepublish:check": "npm run test:package:verify && npm run test:package:verify:pack && npm --workspace packages/mcp run smoke && npm run preflight:deploy"
   }
 }

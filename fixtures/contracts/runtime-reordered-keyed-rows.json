@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "mode": "check",
+  "input": [
+    {
+      "id": "c3",
+      "status": "new"
+    },
+    {
+      "id": "c4",
+      "status": "done"
+    }
+  ],
+  "output": [
+    {
+      "customerId": "c4",
+      "state": "D"
+    },
+    {
+      "customerId": "c3",
+      "state": "N"
+    }
+  ],
+  "expected": {
+    "verdict": "pass",
+    "totals": {
+      "input": 2,
+      "passed": 2,
+      "warned": 0,
+      "quarantined": 0,
+      "blocked": 0
+    }
+  }
+}

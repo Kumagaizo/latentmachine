@@ -30,6 +30,8 @@ const browserScriptEntries = [
   "src/local/verify.js",
   "src/local/regex.js",
   "src/local/jq.js",
+  "src/local/trace.js",
+  "src/local/trace-worker.js",
   "src/local/signal.js",
   "src/local/signal-worker.js",
   "src/local/landing-demo.js",
@@ -37,10 +39,11 @@ const browserScriptEntries = [
 ];
 
 const canonicalOrigin = "https://latentmachine.com";
+// M6 adds the complete local Contract Studio and deterministic contract runtime.
 const artifactBudgets = {
-  rawBytes: 2_650_000,
-  gzipBytes: 800_000,
-  brotliBytes: 700_000,
+  rawBytes: 2_900_000,
+  gzipBytes: 850_000,
+  brotliBytes: 720_000,
 };
 
 async function exists(relativePath) {
@@ -176,7 +179,25 @@ async function assertSourceBrowserGraph() {
     await browserJavaScriptGraph(entry, seen);
   }
 
-  const forbidden = [...seen]
+  const legacyForbidden = [...seen]
+    .map(file => path.relative(root, file))
+    .filter(file => {
+      const normalized = file.replaceAll(path.sep, "/");
+      return /(?:^|-)benchmarks\.js$/i.test(path.basename(file))
+        || /-benchmark\.js$/i.test(path.basename(file))
+        || /^src\/intelligence\/[^/]+\/contract\.js$/i.test(normalized)
+        || /^src\/intelligence\/contracts\//i.test(normalized)
+        || /^src\/intelligence\/json-transform\/translator-benchmarks\.js$/i.test(normalized);
+    });
+
+  assert.deepEqual(
+    legacyForbidden,
+    [],
+    `existing browser entries must not depend on benchmark or contract modules: ${legacyForbidden.join(", ")}`
+  );
+
+  const contractSeen = await browserJavaScriptGraph("src/local/contract.js", new Set());
+  const contractForbidden = [...contractSeen]
     .map(file => path.relative(root, file))
     .filter(file => {
       const normalized = file.replaceAll(path.sep, "/");
@@ -185,11 +206,14 @@ async function assertSourceBrowserGraph() {
         || /^src\/intelligence\/[^/]+\/contract\.js$/i.test(normalized)
         || /^src\/intelligence\/json-transform\/translator-benchmarks\.js$/i.test(normalized);
     });
-
   assert.deepEqual(
-    forbidden,
+    contractForbidden,
     [],
-    `browser entry graph must not depend on benchmark or contract modules: ${forbidden.join(", ")}`
+    `Contract Studio browser graph must not depend on benchmark modules: ${contractForbidden.join(", ")}`
+  );
+  assert.ok(
+    [...contractSeen].some(file => file.endsWith(path.join("contracts", "execution.js"))),
+    "Contract Studio browser graph must include deterministic contract execution",
   );
 }
 
@@ -392,7 +416,7 @@ async function assertDistChromePolish() {
   await assertFile("dist/assets/latentmachine-logo.png");
 
   const ogPngExists = await fileExists("dist/og.png");
-  const toolPages = new Set(["infer.html", "verify.html", "regex.html", "jq.html", "trace.html", "signal.html"]);
+  const toolPages = new Set(["contract.html", "infer.html", "verify.html", "regex.html", "jq.html", "trace.html", "signal.html"]);
   const htmlPageFiles = await htmlFiles(path.join(root, "dist"));
 
   for (const file of htmlPageFiles) {
@@ -459,7 +483,7 @@ try {
     await assertSourceVendor();
     checks.push("source vendored YAML files exist");
     await assertSourceBrowserGraph();
-    checks.push("browser source graph excludes benchmark and contract modules");
+    checks.push("browser source graphs isolate Contract Studio and exclude benchmark modules");
   }
 
   if (mode === "dist" || mode === "all") {

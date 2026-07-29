@@ -63,6 +63,7 @@ function xmlEscape(value) {
 function priorityFor(url, baseUrl) {
   const pathName = url.replace(baseUrl, "") || "/";
   if (pathName === "/") return "1.0";
+  if (pathName === "/contract") return "0.9";
   if (pathName === "/infer" || pathName === "/verify" || pathName === "/trace" || pathName === "/signal") return "0.8";
   if (pathName === "/latentlog") return "0.8";
   if (pathName.startsWith("/latentlog/")) return "0.7";

@@ -84,7 +84,7 @@
           <p><strong>Availability:</strong> implemented and prepared for npm publishing. Use the hosted MCP/HTTP endpoint below until <code>@latentmachine/verify</code> is available on npm.</p>
           <p>
             <code>@latentmachine/verify</code> is a zero-dependency, ESM-only Node.js package.
-            It exposes <code>verify</code>, <code>infer</code>, <code>transform</code>, <code>fingerprint</code>, <code>canonicalize</code>, <code>structuralDiff</code>, and <code>profileStructure</code>,
+            It exposes <code>verify</code>, <code>infer</code>, <code>transform</code>, the complete Transformation Contract v1 API, <code>fingerprint</code>, <code>canonicalize</code>, <code>structuralDiff</code>, and <code>profileStructure</code>,
             plus format utilities for JSON, CSV, YAML, TOML, XML, .env, and SQL INSERT input.
           </p>
 
@@ -155,6 +155,51 @@ const output = transform({
 
 console.log(output);
 // { name: "Clara Diaz" }</code></pre>
+
+          <h3>Learn and enforce a Transformation Contract</h3>
+          <p>
+            A contract binds examples, a deterministic program, runtime policy, and deliberate
+            approval to one behavioral fingerprint. Runtime use fails closed when approval is
+            missing or the contract is invalid.
+          </p>
+          <pre><code class="language-js">import {
+  approveContract,
+  checkContract,
+  learnContract,
+  runContract,
+} from "@latentmachine/verify";
+
+const learned = learnContract({
+  examples: [
+    {
+      input: { id: "evt_1", status: "created" },
+      output: { eventId: "evt_1", state: "NEW" },
+    },
+    {
+      input: { id: "evt_2", status: "paid" },
+      output: { eventId: "evt_2", state: "READY" },
+    },
+  ],
+});
+
+const approved = approveContract(learned, {
+  coreFingerprint: learned.identity.coreFingerprint,
+  acknowledgedChallenges: learned.challenges
+    .filter((challenge) => challenge.severity === "advisory")
+    .map((challenge) => challenge.id),
+});
+
+const input = [{ id: "evt_3", status: "paid" }];
+const run = runContract({ contract: approved, input });
+const check = checkContract({
+  contract: approved,
+  input,
+  output: run.records.map((record) => record.output),
+});</code></pre>
+          <p>
+            Contract APIs are also available from the
+            <code>@latentmachine/verify/contracts</code> export.
+          </p>
 
           <h3>Fingerprint data</h3>
           <p>
@@ -270,7 +315,20 @@ const csv = serializeWithFormat(data, "csv");
             <li><strong>apply_transformation_rule</strong>: apply a previously inferred rule to new data.</li>
             <li><strong>detect_data_format</strong>: detect JSON, CSV, YAML, TOML, XML, .env, SQL INSERT, or unknown data.</li>
             <li><strong>fingerprint_data</strong>: compute a deterministic structural fingerprint, or compare two datasets path by path.</li>
+            <li><strong>learn_transformation_contract</strong>: learn an explicitly unapproved or review-required contract from examples.</li>
+            <li><strong>get_contract_challenges</strong>: surface unresolved review questions without answering them.</li>
+            <li><strong>test_transformation_contract</strong>: mutation-test protected behavior and disclose visible gaps.</li>
+            <li><strong>run_transformation_contract</strong>: run an already-approved contract.</li>
+            <li><strong>check_transformation_contract</strong>: check external output against an already-approved contract.</li>
+            <li><strong>compare_transformation_contracts</strong>: classify behavioral, evidence, policy, review, and metadata changes.</li>
           </ul>
+
+          <p>
+            MCP can prepare a contract for review, but it cannot create
+            <code>local-human-review</code> approval. Run and check fail closed until an approved
+            artifact is supplied from Contract Studio or the CLI. Contract tools return concise,
+            capped summaries unless a full report is explicitly requested.
+          </p>
 
           <h3>Example conversation</h3>
           <pre><code>You: I asked ChatGPT to transform these customer records. Can you check
@@ -286,24 +344,52 @@ Claude: I checked 200 rows against the majority rule. 197 followed
           <hr class="divider" />
 
           <h2>CLI</h2>
-          <p><strong>Availability:</strong> implemented and prepared for npm publishing. The command below is the public release target and will work after <code>@latentmachine/verify</code> is published.</p>
+          <p><strong>Availability:</strong> implemented, pack-tested in a clean consumer project, and awaiting explicit npm release approval. The commands below will work after <code>@latentmachine/verify</code> is published.</p>
           <p>
-            Verify data transformations from the command line. Useful in shell scripts,
-            CI pipelines, and pre-commit hooks.
+            Learn, inspect, approve, run, and check contracts from the command line. The existing
+            verification and fingerprint commands remain available.
           </p>
 
-          <h3>Usage</h3>
+          <h3>Contract workflow</h3>
+          <pre><code class="language-bash">npx @latentmachine/verify contract learn examples.json --out contract.json
+npx @latentmachine/verify contract inspect contract.json
+npx @latentmachine/verify contract challenge contract.json --inputs candidates.json
+npx @latentmachine/verify contract test contract.json
+npx @latentmachine/verify contract approve contract.json \
+  --fingerprint &lt;exact-core-fingerprint&gt; \
+  --acknowledge-all-advisory \
+  --out approved.contract.json
+npx @latentmachine/verify contract run approved.contract.json \
+  --input input.json \
+  --out output.json \
+  --report run-report.json
+npx @latentmachine/verify contract check approved.contract.json \
+  --input input.json \
+  --output output.json
+npx @latentmachine/verify contract diff contract-v1.json contract-v2.json</code></pre>
+          <p>
+            Commands print structured JSON to stdout by default and diagnostics to stderr.
+            Use <code>--format human</code> for concise terminal output.
+          </p>
+          <ul>
+            <li><code>0</code>: pass or successful command.</li>
+            <li><code>1</code>: runtime, mutation-test, or contract-check violation.</li>
+            <li><code>2</code>: invalid input, contract, version, or usage.</li>
+            <li><code>3</code>: approval required or blocking review state.</li>
+          </ul>
+          <p>
+            The installed primary binary is <code>latentmachine</code>.
+            <code>latentmachine-verify</code> remains a compatibility alias during v0.x.
+          </p>
+
+          <h3>Existing commands</h3>
           <pre><code class="language-bash">npx @latentmachine/verify original.json transformed.json
 npx @latentmachine/verify fingerprint data.json
 npx @latentmachine/verify fingerprint before.json after.json</code></pre>
           <p>
-            Prints the verification result as JSON. Exits with code <code>0</code> if consistent,
-            code <code>1</code> if inconsistent. Pipe to <code>jq</code> for specific fields:
-          </p>
-          <pre><code class="language-bash">npx @latentmachine/verify original.json ai-output.json | jq '.verdict'
-# "consistent"</code></pre>
-          <p>
-            The <code>fingerprint</code> subcommand prints a deterministic, non-cryptographic identity hash and exits with code <code>1</code> when two compared files differ.
+            Verification results remain JSON and exit <code>0</code> when consistent or
+            <code>1</code> when inconsistent. Fingerprint comparison exits <code>1</code>
+            when the files differ.
           </p>
 
           <h3>In CI</h3>
@@ -379,6 +465,12 @@ npx @latentmachine/verify fingerprint before.json after.json</code></pre>
             No data is stored, logged, or persisted by the function. It is stateless and returns
             the result immediately, but the data does travel over the network. If that matters for
             your use case, use the local MCP server or the npm package instead.
+          </p>
+          <p>
+            Contract learning sends both examples and generated contract evidence through the
+            selected transport. Remote contract run/check defaults to privacy-safe response
+            shaping, which redacts raw values from returned diagnostics; it does not remove the
+            network transfer itself.
           </p>
 
           <hr class="divider" />

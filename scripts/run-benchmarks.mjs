@@ -21,3 +21,6 @@ import "./run-yaml-reliability.mjs";
 import "./run-fixture-corpus.mjs";
 import "./run-hardening-fixtures.mjs";
 import "./run-sample-presets.mjs";
+import "./run-contract-benchmarks.mjs";
+import "./run-contract-acceptance.mjs";
+import "./run-contract-studio-acceptance.mjs";

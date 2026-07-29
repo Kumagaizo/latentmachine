@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "mode": "run",
+  "input": [
+    {
+      "id": "c3",
+      "status": "new"
+    },
+    {
+      "id": "c4"
+    },
+    {
+      "id": "c5",
+      "status": "paused"
+    },
+    {
+      "id": "c6",
+      "status": "done"
+    }
+  ],
+  "expected": {
+    "verdict": "quarantine",
+    "totals": {
+      "input": 4,
+      "passed": 2,
+      "warned": 0,
+      "quarantined": 2,
+      "blocked": 0
+    },
+    "quarantinedRowIds": [
+      "key:\"c4\"",
+      "key:\"c5\""
+    ]
+  }
+}

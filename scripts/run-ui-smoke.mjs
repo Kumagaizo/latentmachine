@@ -22,6 +22,14 @@ const pages = [
     skipLink: true,
   },
   {
+    file: "contract.html",
+    mounts: ["contract"],
+    scripts: ["/src/local/chrome.js", "/src/local/contract.js"],
+    text: ["Loading Contract Studio"],
+    skipLink: true,
+    noscript: true,
+  },
+  {
     file: "infer.html",
     mounts: ["app"],
     scripts: ["/src/local/chrome.js", "/src/local/app.js"],
@@ -124,6 +132,7 @@ async function assertRuntimeModulesImport() {
     traceReports,
     signal,
     signalExplain,
+    contracts,
   ] = await Promise.all([
     import(pathToFileURL(path.join(dist, "src/intelligence/json-transform/translator.js")).href),
     import(pathToFileURL(path.join(dist, "src/intelligence/json-transform/exporters.js")).href),
@@ -134,6 +143,7 @@ async function assertRuntimeModulesImport() {
     import(pathToFileURL(path.join(dist, "src/intelligence/trace/reports.js")).href),
     import(pathToFileURL(path.join(dist, "src/intelligence/signal/engine.js")).href),
     import(pathToFileURL(path.join(dist, "src/intelligence/signal/explain.js")).href),
+    import(pathToFileURL(path.join(dist, "src/intelligence/contracts/index.js")).href),
   ]);
 
   assert.equal(typeof translator.runTransform, "function", "translator runtime must export runTransform");
@@ -145,6 +155,9 @@ async function assertRuntimeModulesImport() {
   assert.equal(typeof traceReports.serializeTraceReport, "function", "trace runtime must export reports");
   assert.equal(typeof signal.analyzeSignal, "function", "Signal runtime must export line analysis");
   assert.equal(typeof signalExplain.createEvidencePack, "function", "Signal runtime must export evidence packs");
+  assert.equal(typeof contracts.learnContract, "function", "Contract runtime must export learning");
+  assert.equal(typeof contracts.runContract, "function", "Contract runtime must export execution");
+  assert.equal(typeof contracts.checkContract, "function", "Contract runtime must export checking");
   await assertFile("src/local/trace-worker.js");
   await assertFile("src/local/signal-worker.js");
 }
@@ -160,6 +173,7 @@ async function assertRuntimeBehavior() {
     shareState,
     signal,
     signalExplain,
+    contracts,
   ] = await Promise.all([
     import(pathToFileURL(path.join(dist, "src/intelligence/json-transform/translator.js")).href),
     import(pathToFileURL(path.join(dist, "src/intelligence/json-transform/exporters.js")).href),
@@ -170,6 +184,7 @@ async function assertRuntimeBehavior() {
     import(pathToFileURL(path.join(dist, "src/local/share-state.js")).href),
     import(pathToFileURL(path.join(dist, "src/intelligence/signal/engine.js")).href),
     import(pathToFileURL(path.join(dist, "src/intelligence/signal/explain.js")).href),
+    import(pathToFileURL(path.join(dist, "src/intelligence/contracts/index.js")).href),
   ]);
 
   const transform = translator.runTransform({
@@ -247,6 +262,27 @@ async function assertRuntimeBehavior() {
   assert.equal(signalResult.events.some(event => event.type === "analysis.completed"), true, "built Signal runtime must emit stable trace events");
   const signalPack = signalExplain.createEvidencePack(signalResult, { includeAttention: true, reviewed: true });
   assert.match(signalPack.text, /L4 \[attention;/, "built Signal evidence pack must preserve source line references");
+
+  const learnedContract = contracts.learnContract({
+    examples: [
+      { input: { id: "C-1", state: "new" }, output: { customerId: "C-1", status: "N" } },
+      { input: { id: "C-2", state: "done" }, output: { customerId: "C-2", status: "D" } },
+    ],
+    newInput: { id: "C-3", state: "new" },
+  });
+  const guardedContract = contracts.acceptTransformationInvariants(
+    learnedContract,
+    learnedContract.extensions.latentmachine.invariantSuggestions.map(item => item.id),
+  );
+  const approvedContract = contracts.approveContract(guardedContract, {
+    coreFingerprint: guardedContract.identity.coreFingerprint,
+    note: "Built runtime smoke.",
+  });
+  const contractRun = contracts.runContract({
+    contract: approvedContract,
+    input: [{ id: "C-3", state: "new" }],
+  });
+  assert.equal(contractRun.verdict, "pass", "built Contract runtime should execute an approved contract");
 }
 
 async function assertTraceProductSurface() {
@@ -297,19 +333,57 @@ async function assertSignalProductSurface() {
   }
 }
 
+async function assertContractProductSurface() {
+  const contractUi = await readFile(path.join(dist, "src/local/contract.js"), "utf8");
+  const contractStyles = await readFile(path.join(dist, "src/local/styles.css"), "utf8");
+  for (const contract of [
+    "Transformation contracts learned from examples.",
+    "Turn examples into a transformation contract.",
+    "Observed, not yet approved.",
+    "data-answer-challenge",
+    "data-defer-challenge",
+    "data-apply-guardrails",
+    "Approve exact fingerprint",
+    "data-export-contract",
+    "data-import-contract",
+    "data-run-contract",
+    "data-export-quarantine",
+    "This link contains the examples and runtime drafts themselves",
+    "role=\"tablist\"",
+    "aria-live=\"polite\"",
+  ]) {
+    assert.ok(contractUi.includes(contract), `built Contract Studio must include ${contract}`);
+  }
+  for (const contract of [
+    ".contract-progress",
+    ".contract-layout",
+    ".contract-guardrail",
+    ".contract-runtime-result",
+    "@media (max-width:760px)",
+    "@media (prefers-reduced-motion:reduce)",
+  ]) {
+    assert.ok(contractStyles.includes(contract), `built Contract Studio CSS must include ${contract}`);
+  }
+  for (const forbidden of ["fetch(", "XMLHttpRequest", "WebSocket"]) {
+    assert.ok(!contractUi.includes(forbidden), `built Contract Studio must not include ${forbidden}`);
+  }
+}
+
 for (const page of pages) await assertPage(page);
 await assertRuntimeModulesImport();
 await assertRuntimeBehavior();
 await assertTraceProductSurface();
 await assertSignalProductSurface();
+await assertContractProductSurface();
 
 console.log(JSON.stringify({
-  passed: pages.length + 4,
+  passed: pages.length + 5,
   checks: [
     ...pages.map(page => `${page.file} shell and module scripts`),
     "built runtime modules import without benchmark barrels",
     "built runtime modules perform transform, jq, regex, Trace, and Signal smoke cases",
     "built Trace UI ships format, record-set, evidence, export, accessibility, and worker-progress contracts",
     "built Signal landing and UI ship navigation, visualization, local analysis, routing, source-ledger, evidence, export-review, and worker-progress contracts",
+    "built Contract Studio ships the five-stage local workflow, runtime review, export, share warning, accessibility, and responsive contracts",
   ],
 }, null, 2));

@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "mode": "check",
+  "input": [
+    {
+      "id": "c3",
+      "status": "new"
+    }
+  ],
+  "output": [
+    {
+      "customerId": "c3",
+      "state": "N",
+      "invented": true
+    }
+  ],
+  "expected": {
+    "verdict": "quarantine",
+    "diagnosticCodes": [
+      "unexpected-output-path",
+      "invariant-violation"
+    ]
+  }
+}

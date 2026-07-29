@@ -62,7 +62,14 @@ Open `http://127.0.0.1:4173`. The site uses plain HTML, CSS, and JavaScript; no 
 The packages are implemented in this monorepo but are not yet published to npm. From a workspace checkout:
 
 ```js
-import { infer, transform, verify } from "./packages/verify/src/index.js";
+import {
+  approveContract,
+  infer,
+  learnContract,
+  runContract,
+  transform,
+  verify,
+} from "./packages/verify/src/index.js";
 
 const examples = [
   { input: { first: "Ada", last: "Lovelace" }, output: { name: "Ada Lovelace" } },
@@ -85,6 +92,18 @@ const result = verify({
 });
 
 console.log(result.verdict);
+
+const contract = learnContract({ examples });
+const approved = approveContract(contract, {
+  coreFingerprint: contract.identity.coreFingerprint,
+  acknowledgedChallenges: contract.challenges
+    .filter((challenge) => challenge.severity === "advisory")
+    .map((challenge) => challenge.id),
+});
+console.log(runContract({
+  contract: approved,
+  input: [{ first: "Katherine", last: "Johnson" }],
+}).verdict);
 ```
 
 After the first npm release, the package will be installable as `@latentmachine/verify`; `@latentmachine/mcp` will expose the same engine to MCP clients.
@@ -103,6 +122,7 @@ Focused checks are available while iterating:
 
 ```sh
 npm run test:package:verify
+npm run test:package:verify:pack
 npm --workspace packages/mcp run smoke
 npm run bench:json
 npm run bench:translator

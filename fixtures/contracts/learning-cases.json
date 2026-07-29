@@ -1,0 +1,350 @@
+{
+  "version": 1,
+  "statusCases": [
+    {
+      "id": "learn-safe-rename",
+      "expectedStatus": "safe",
+      "expectedApprovalState": "unreviewed",
+      "expectedOperationKinds": [
+        "set"
+      ],
+      "task": {
+        "examples": [
+          {
+            "input": {
+              "first_name": "X"
+            },
+            "output": {
+              "firstName": "X"
+            }
+          },
+          {
+            "input": {
+              "first_name": "Mina"
+            },
+            "output": {
+              "firstName": "Mina"
+            }
+          }
+        ],
+        "newInput": {
+          "first_name": "Tim"
+        }
+      }
+    },
+    {
+      "id": "learn-ambiguous-normalization",
+      "expectedStatus": "ambiguous",
+      "expectedApprovalState": "review_required",
+      "expectedOperationKinds": [
+        "stringNormalize"
+      ],
+      "task": {
+        "examples": [
+          {
+            "input": {
+              "sku": " A1 "
+            },
+            "output": {
+              "sku": "A1"
+            }
+          },
+          {
+            "input": {
+              "sku": " B2  "
+            },
+            "output": {
+              "sku": "B2"
+            }
+          }
+        ],
+        "newInput": {
+          "sku": " C3 "
+        }
+      }
+    },
+    {
+      "id": "learn-contradictory-template",
+      "expectedStatus": "contradictory",
+      "expectedApprovalState": "review_required",
+      "expectedOperationKinds": [
+        "templateConflict"
+      ],
+      "task": {
+        "examples": [
+          {
+            "input": {
+              "first_name": "John",
+              "last_name": "Doe",
+              "age": 38
+            },
+            "output": {
+              "fullName": "John Doe is 38"
+            }
+          },
+          {
+            "input": {
+              "first_name": "Mina",
+              "last_name": "Cho",
+              "age": 38
+            },
+            "output": {
+              "fullName": "Mina Cho is 22"
+            }
+          }
+        ],
+        "newInput": {
+          "first_name": "Tim",
+          "last_name": "Berg",
+          "age": 17
+        }
+      }
+    },
+    {
+      "id": "learn-unsafe-unseen-value",
+      "expectedStatus": "unsafe",
+      "expectedApprovalState": "review_required",
+      "expectedOperationKinds": [
+        "valueMap"
+      ],
+      "task": {
+        "examples": [
+          {
+            "input": {
+              "status": "new"
+            },
+            "output": {
+              "status": "N"
+            }
+          },
+          {
+            "input": {
+              "status": "done"
+            },
+            "output": {
+              "status": "D"
+            }
+          }
+        ],
+        "newInput": {
+          "status": "blocked"
+        }
+      }
+    },
+    {
+      "id": "learn-insufficient-single-example",
+      "expectedStatus": "insufficient",
+      "expectedApprovalState": "review_required",
+      "expectedOperationKinds": [
+        "set"
+      ],
+      "task": {
+        "examples": [
+          {
+            "input": {
+              "a": "X",
+              "b": "X"
+            },
+            "output": {
+              "value": "X"
+            }
+          }
+        ],
+        "newInput": {
+          "a": "A",
+          "b": "B"
+        }
+      }
+    }
+  ],
+  "formatCases": [
+    {
+      "id": "learn-format-json",
+      "expectedInputFormat": "json",
+      "expectedOutputFormat": "json",
+      "expectedOperationKinds": [
+        "set"
+      ],
+      "task": {
+        "inputFormat": "json",
+        "outputFormat": "json",
+        "examples": [
+          {
+            "input": {
+              "first": "Ada"
+            },
+            "output": {
+              "name": "Ada"
+            }
+          },
+          {
+            "input": {
+              "first": "Grace"
+            },
+            "output": {
+              "name": "Grace"
+            }
+          }
+        ],
+        "newInput": {
+          "first": "Linus"
+        }
+      }
+    },
+    {
+      "id": "learn-format-csv",
+      "expectedInputFormat": "csv",
+      "expectedOutputFormat": "csv",
+      "expectedOperationKinds": [
+        "set"
+      ],
+      "task": {
+        "inputFormat": "csv",
+        "outputFormat": "csv",
+        "examples": [
+          {
+            "input": "first\nAda",
+            "output": "name\nAda"
+          },
+          {
+            "input": "first\nGrace",
+            "output": "name\nGrace"
+          }
+        ],
+        "newInput": "first\nLinus"
+      }
+    },
+    {
+      "id": "learn-format-yaml",
+      "expectedInputFormat": "yaml",
+      "expectedOutputFormat": "yaml",
+      "expectedOperationKinds": [
+        "set"
+      ],
+      "task": {
+        "inputFormat": "yaml",
+        "outputFormat": "yaml",
+        "examples": [
+          {
+            "input": "first: Ada",
+            "output": "name: Ada"
+          },
+          {
+            "input": "first: Grace",
+            "output": "name: Grace"
+          }
+        ],
+        "newInput": "first: Linus"
+      }
+    },
+    {
+      "id": "learn-format-toml",
+      "expectedInputFormat": "toml",
+      "expectedOutputFormat": "toml",
+      "expectedOperationKinds": [
+        "set"
+      ],
+      "task": {
+        "inputFormat": "toml",
+        "outputFormat": "toml",
+        "examples": [
+          {
+            "input": "first = \"Ada\"",
+            "output": "name = \"Ada\""
+          },
+          {
+            "input": "first = \"Grace\"",
+            "output": "name = \"Grace\""
+          }
+        ],
+        "newInput": "first = \"Linus\""
+      }
+    },
+    {
+      "id": "learn-format-xml",
+      "expectedInputFormat": "xml",
+      "expectedOutputFormat": "xml",
+      "expectedOperationKinds": [
+        "set"
+      ],
+      "task": {
+        "inputFormat": "xml",
+        "outputFormat": "xml",
+        "examples": [
+          {
+            "input": "<contact><first>Ada</first></contact>",
+            "output": "<person><name>Ada</name></person>"
+          },
+          {
+            "input": "<contact><first>Grace</first></contact>",
+            "output": "<person><name>Grace</name></person>"
+          }
+        ],
+        "newInput": "<contact><first>Linus</first></contact>"
+      }
+    },
+    {
+      "id": "learn-format-env",
+      "expectedInputFormat": "env",
+      "expectedOutputFormat": "env",
+      "expectedOperationKinds": [
+        "set"
+      ],
+      "task": {
+        "inputFormat": "env",
+        "outputFormat": "env",
+        "examples": [
+          {
+            "input": "FIRST=Ada",
+            "output": "NAME=Ada"
+          },
+          {
+            "input": "FIRST=Grace",
+            "output": "NAME=Grace"
+          }
+        ],
+        "newInput": "FIRST=Linus"
+      }
+    },
+    {
+      "id": "learn-format-sql-input",
+      "expectedInputFormat": "sql",
+      "expectedOutputFormat": "json",
+      "expectedOperationKinds": [
+        "arrayProject"
+      ],
+      "task": {
+        "inputFormat": "sql",
+        "outputFormat": "json",
+        "examples": [
+          {
+            "input": "INSERT INTO contacts (first) VALUES ('Ada'), ('Bo');",
+            "output": [
+              {
+                "name": "Ada"
+              },
+              {
+                "name": "Bo"
+              }
+            ]
+          },
+          {
+            "input": "INSERT INTO contacts (first) VALUES ('Grace'), ('Mina'), ('Linus');",
+            "output": [
+              {
+                "name": "Grace"
+              },
+              {
+                "name": "Mina"
+              },
+              {
+                "name": "Linus"
+              }
+            ]
+          }
+        ],
+        "newInput": "INSERT INTO contacts (first) VALUES ('Ken'), ('Lia');"
+      }
+    }
+  ]
+}

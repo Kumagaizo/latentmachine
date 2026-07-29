@@ -10,9 +10,11 @@
     "./verify": "./src/verify.js",
     "./infer": "./src/infer.js",
     "./transform": "./src/transform.js",
-    "./formats": "./src/formats.js"
+    "./formats": "./src/formats.js",
+    "./contracts": "./src/contracts.js"
   },
   "bin": {
+    "latentmachine": "./bin/latentmachine.js",
     "latentmachine-verify": "./bin/latentmachine.js"
   },
   "files": [
@@ -55,7 +57,7 @@
   },
   "homepage": "https://latentmachine.com/developers",
   "scripts": {
-    "test": "node test/verify.test.js && node test/infer.test.js && node test/transform.test.js && node test/formats.test.js",
+    "test": "node test/verify.test.js && node test/infer.test.js && node test/transform.test.js && node test/formats.test.js && node test/fingerprint.test.js && node test/contracts.test.js && node test/cli-contracts.test.js",
     "prepare:publish": "node scripts/prepare-publish.mjs",
     "prepublishOnly": "node scripts/guard-root-publish.mjs"
   }

@@ -1,0 +1,145 @@
+{
+  "kind": "latentmachine.transformation-contract",
+  "contractVersion": "1.0",
+  "engine": {
+    "name": "latentmachine",
+    "transformVersion": 3,
+    "artifactVersion": 1
+  },
+  "identity": {
+    "contractId": "lmct_b23af94a4c0d",
+    "coreFingerprint": "b23af94a4c0d5be0",
+    "programFingerprint": "af4cf897e4b5a081",
+    "evidenceFingerprint": "ab58c0673791a8d9"
+  },
+  "lifecycle": {
+    "approvalState": "unreviewed",
+    "revision": 1,
+    "supersedes": null
+  },
+  "title": "Contact name mapping",
+  "description": "Map a source contact's first name into the destination name field.",
+  "formats": {
+    "input": "json",
+    "output": "json"
+  },
+  "evidence": {
+    "examples": [
+      {
+        "id": "example-1",
+        "input": {
+          "first": "Ada"
+        },
+        "output": {
+          "name": "Ada"
+        }
+      },
+      {
+        "id": "example-2",
+        "input": {
+          "first": "Grace"
+        },
+        "output": {
+          "name": "Grace"
+        }
+      }
+    ],
+    "count": 2,
+    "coverage": {
+      "examplesMatched": 2
+    },
+    "contradictions": [],
+    "source": "user-provided"
+  },
+  "inference": {
+    "status": "safe",
+    "confidence": {
+      "label": "proven",
+      "risk": "low",
+      "checks": {
+        "passed": 5,
+        "total": 5
+      }
+    },
+    "candidatesConsidered": [
+      "set"
+    ],
+    "ambiguities": [],
+    "reasons": [
+      "2/2 examples matched exactly."
+    ]
+  },
+  "input": {
+    "schema": {
+      "type": "object",
+      "required": [
+        "first"
+      ],
+      "properties": {
+        "first": {
+          "type": "string"
+        }
+      }
+    },
+    "preconditions": [
+      {
+        "field": "$.first",
+        "type": "string",
+        "required": true,
+        "usedBy": "$.name"
+      }
+    ],
+    "unknownFieldPolicy": "allow"
+  },
+  "output": {
+    "schema": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "unknownFieldPolicy": "block",
+    "unresolvedValuePolicy": "block"
+  },
+  "program": {
+    "version": 3,
+    "ops": [
+      {
+        "op": "set",
+        "source": "$.first",
+        "target": "$.name"
+      }
+    ]
+  },
+  "invariants": [],
+  "challenges": [],
+  "runtimePolicy": {
+    "requireApproval": true,
+    "onRecordViolation": "quarantine",
+    "onBatchViolation": "block",
+    "warningThreshold": 0
+  },
+  "evidenceLinks": [
+    {
+      "operationIndex": 0,
+      "exampleIds": [
+        "example-1",
+        "example-2"
+      ]
+    }
+  ],
+  "approval": null,
+  "extensions": {
+    "fixtureExtension": {
+      "preserved": true
+    }
+  },
+  "metadata": {
+    "createdBy": "contract-v1-fixture"
+  }
+}

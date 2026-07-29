@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "mode": "run",
+  "input": [
+    {
+      "id": "c3",
+      "status": "paused"
+    }
+  ],
+  "expected": {
+    "verdict": "quarantine",
+    "diagnosticCodes": [
+      "unseen-value-map",
+      "unresolved-output-value",
+      "invariant-violation"
+    ],
+    "quarantinedRowIds": [
+      "key:\"c3\""
+    ]
+  }
+}
