@@ -1,6 +1,7 @@
 import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { injectHtmlPartials, loadHtmlPartials } from "./html-partials.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = path.join(root, "dist");
@@ -12,6 +13,7 @@ const files = [
   "regex.html",
   "jq.html",
   "trace.html",
+  "signal.html",
   "about.html",
   "case-study.html",
   "developers.html",
@@ -34,11 +36,13 @@ const scriptEntries = [
   "src/local/jq.js",
   "src/local/trace.js",
   "src/local/trace-worker.js",
+  "src/local/signal.js",
+  "src/local/signal-worker.js",
   "src/local/landing-demo.js",
   "src/local/chrome.js",
 ];
 
-const partials = new Map();
+const partials = await loadHtmlPartials(root);
 const importGraphCache = new Map();
 
 function assertInsideRoot(target) {
@@ -162,28 +166,8 @@ async function copyJavaScriptGraph(entry, seen = new Set()) {
   }
 }
 
-async function loadPartials() {
-  for (const name of ["head-commons", "nav", "footer"]) {
-    const source = path.join(root, "partials", `${name}.html`);
-    try {
-      partials.set(name, await readFile(source, "utf8"));
-    } catch {
-      throw new Error(`Missing partial: partials/${name}.html`);
-    }
-  }
-}
-
-function injectPartials(text, source) {
-  return text.replace(/<!--@partial:([a-z-]+)-->/g, (token, name) => {
-    if (!partials.has(name)) {
-      throw new Error(`${path.relative(root, source)} references missing partial token: ${token}`);
-    }
-    return partials.get(name);
-  });
-}
-
 async function renderHtml(text, source) {
-  const html = injectPartials(text, source);
+  const html = injectHtmlPartials(text, source, root, partials);
   const scripts = moduleScriptEntries(html);
   if (!scripts.length) return html;
 
@@ -261,7 +245,6 @@ function minifyCss(text) {
 
 await rm(assertInsideRoot(outDir), { recursive: true, force: true });
 await mkdir(outDir, { recursive: true });
-await loadPartials();
 
 for (const file of files) {
   const source = path.join(root, file);

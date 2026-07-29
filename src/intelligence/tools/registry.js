@@ -1,9 +1,10 @@
 import { jsonTransformTool } from "../json-transform/index.js";
 import { regexBuilderTool } from "../regex-builder/index.js";
+import { signalTool } from "../signal/index.js";
 import { traceTool } from "../trace/index.js";
 import { assertToolContract } from "../contracts.js";
 
-export const INTELLIGENCE_TOOLS = [jsonTransformTool, regexBuilderTool, traceTool];
+export const INTELLIGENCE_TOOLS = [jsonTransformTool, regexBuilderTool, traceTool, signalTool];
 
 for (const tool of INTELLIGENCE_TOOLS) assertToolContract(tool);
 

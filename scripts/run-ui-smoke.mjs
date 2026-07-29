@@ -11,7 +11,14 @@ const pages = [
     file: "index.html",
     mounts: ["landing-demo"],
     scripts: ["/src/local/chrome.js", "/src/local/landing-demo.js"],
-    text: ["Check a batch", "Verify demo", "Understand your data in seconds.", "Open Trace →"],
+    text: [
+      "Check a batch",
+      "Verify demo",
+      "Understand your data in seconds.",
+      "Open Trace →",
+      "Find the lines that break the pattern.",
+      "Open Signal →",
+    ],
     skipLink: true,
   },
   {
@@ -51,6 +58,14 @@ const pages = [
     mounts: ["trace"],
     scripts: ["/src/local/chrome.js", "/src/local/trace.js"],
     text: ["Loading Trace"],
+    skipLink: true,
+    noscript: true,
+  },
+  {
+    file: "signal.html",
+    mounts: ["signal"],
+    scripts: ["/src/local/chrome.js", "/src/local/signal.js"],
+    text: ["Loading Signal"],
     skipLink: true,
     noscript: true,
   },
@@ -107,6 +122,8 @@ async function assertRuntimeModulesImport() {
     traceAnalysis,
     traceCompare,
     traceReports,
+    signal,
+    signalExplain,
   ] = await Promise.all([
     import(pathToFileURL(path.join(dist, "src/intelligence/json-transform/translator.js")).href),
     import(pathToFileURL(path.join(dist, "src/intelligence/json-transform/exporters.js")).href),
@@ -115,6 +132,8 @@ async function assertRuntimeModulesImport() {
     import(pathToFileURL(path.join(dist, "src/intelligence/trace/analyze.js")).href),
     import(pathToFileURL(path.join(dist, "src/intelligence/trace/compare.js")).href),
     import(pathToFileURL(path.join(dist, "src/intelligence/trace/reports.js")).href),
+    import(pathToFileURL(path.join(dist, "src/intelligence/signal/engine.js")).href),
+    import(pathToFileURL(path.join(dist, "src/intelligence/signal/explain.js")).href),
   ]);
 
   assert.equal(typeof translator.runTransform, "function", "translator runtime must export runTransform");
@@ -124,7 +143,10 @@ async function assertRuntimeModulesImport() {
   assert.equal(typeof traceAnalysis.analyzeTrace, "function", "trace runtime must export analysis");
   assert.equal(typeof traceCompare.compareTrace, "function", "trace runtime must export comparison");
   assert.equal(typeof traceReports.serializeTraceReport, "function", "trace runtime must export reports");
+  assert.equal(typeof signal.analyzeSignal, "function", "Signal runtime must export line analysis");
+  assert.equal(typeof signalExplain.createEvidencePack, "function", "Signal runtime must export evidence packs");
   await assertFile("src/local/trace-worker.js");
+  await assertFile("src/local/signal-worker.js");
 }
 
 async function assertRuntimeBehavior() {
@@ -136,6 +158,8 @@ async function assertRuntimeBehavior() {
     traceAnalysis,
     traceCompare,
     shareState,
+    signal,
+    signalExplain,
   ] = await Promise.all([
     import(pathToFileURL(path.join(dist, "src/intelligence/json-transform/translator.js")).href),
     import(pathToFileURL(path.join(dist, "src/intelligence/json-transform/exporters.js")).href),
@@ -144,6 +168,8 @@ async function assertRuntimeBehavior() {
     import(pathToFileURL(path.join(dist, "src/intelligence/trace/analyze.js")).href),
     import(pathToFileURL(path.join(dist, "src/intelligence/trace/compare.js")).href),
     import(pathToFileURL(path.join(dist, "src/local/share-state.js")).href),
+    import(pathToFileURL(path.join(dist, "src/intelligence/signal/engine.js")).href),
+    import(pathToFileURL(path.join(dist, "src/intelligence/signal/explain.js")).href),
   ]);
 
   const transform = translator.runTransform({
@@ -204,6 +230,23 @@ async function assertRuntimeBehavior() {
   assert.deepEqual(await shareState.decodeShareState(encodedState), selectedState, "Trace share codec should restore full selected state");
   const shareUrl = await shareState.shareUrlForState(selectedState, { href: "https://latentmachine.com/trace" });
   assert.deepEqual(await shareState.sharedStateFromLocation({ hash: new URL(shareUrl).hash }), selectedState, "Trace share URL should restore full selected state");
+
+  const signalResult = signal.analyzeSignal({
+    name: "built-signal.log",
+    mode: "stream",
+    text: [
+      "2026-07-29T10:00:01Z INFO job 1001 completed in 21ms",
+      "2026-07-29T10:00:02Z INFO job 1002 completed in 22ms",
+      "2026-07-29T10:00:03Z INFO job 1003 completed in 23ms",
+      "2026-07-29T10:00:04Z FATAL job 1004 rollback after 801ms",
+      "2026-07-29T10:00:05Z INFO job 1005 completed in 25ms",
+    ].join("\n"),
+  });
+  assert.equal(signalResult.status, "ready", "built Signal runtime must analyze line-oriented text");
+  assert.equal(signalResult.findings[0]?.kind, "failure", "built Signal runtime must rank the planted fatal template");
+  assert.equal(signalResult.events.some(event => event.type === "analysis.completed"), true, "built Signal runtime must emit stable trace events");
+  const signalPack = signalExplain.createEvidencePack(signalResult, { includeAttention: true, reviewed: true });
+  assert.match(signalPack.text, /L4 \[attention;/, "built Signal evidence pack must preserve source line references");
 }
 
 async function assertTraceProductSurface() {
@@ -224,17 +267,49 @@ async function assertTraceProductSurface() {
   }
 }
 
+async function assertSignalProductSurface() {
+  const landing = await readFile(path.join(dist, "index.html"), "utf8");
+  const signalUi = await readFile(path.join(dist, "src/local/signal.js"), "utf8");
+  const signalWorker = await readFile(path.join(dist, "src/local/signal-worker.js"), "utf8");
+  const signalStyles = await readFile(path.join(dist, "src/local/styles.css"), "utf8");
+  for (const contract of [
+    '"name": "Signal"',
+    '"url": "https://latentmachine.com/signal"',
+    '<section class="feature-row feature-row--reverse">',
+    '<div class="demo-window signal-preview">',
+    '<a class="button is-primary" href="/signal">Open Signal →</a>',
+    '<a class="site-link" href="/signal">Signal</a>',
+    '<a href="/signal">Signal</a>',
+  ]) {
+    assert.ok(landing.includes(contract), `built landing page must include ${contract}`);
+  }
+  for (const contract of ["Find the lines that break the pattern.", "data-signal-input", "data-force-signal", "data-pin-segment", "data-open-signal-pack", "data-pack-reviewed", "Nothing is hidden until you choose a filter.", "Compression novelty", "Open in Trace"]) {
+    assert.ok(signalUi.includes(contract), `built Signal UI must include ${contract}`);
+  }
+  for (const contract of [".signal-preview", ".signal-preview-lines", ".signal-line", ".signal-minimap", ".signal-evidence-drawer", ".signal-pack-preview", "@media print"]) {
+    assert.ok(signalStyles.includes(contract), `built Signal CSS must include ${contract}`);
+  }
+  for (const forbidden of ["fetch(", "XMLHttpRequest", "WebSocket", "<canvas", "toDataURL("]) {
+    assert.ok(!signalUi.includes(forbidden) && !signalWorker.includes(forbidden), `built Signal analysis surfaces must not include ${forbidden}`);
+  }
+  for (const phase of ["segmenting lines", "linking evidence"]) {
+    assert.ok(signalWorker.includes(phase), `built Signal worker must expose ${phase} progress`);
+  }
+}
+
 for (const page of pages) await assertPage(page);
 await assertRuntimeModulesImport();
 await assertRuntimeBehavior();
 await assertTraceProductSurface();
+await assertSignalProductSurface();
 
 console.log(JSON.stringify({
-  passed: pages.length + 3,
+  passed: pages.length + 4,
   checks: [
     ...pages.map(page => `${page.file} shell and module scripts`),
     "built runtime modules import without benchmark barrels",
-    "built runtime modules perform transform, jq, regex, and Trace smoke cases",
+    "built runtime modules perform transform, jq, regex, Trace, and Signal smoke cases",
     "built Trace UI ships format, record-set, evidence, export, accessibility, and worker-progress contracts",
+    "built Signal landing and UI ship navigation, visualization, local analysis, routing, source-ledger, evidence, export-review, and worker-progress contracts",
   ],
 }, null, 2));

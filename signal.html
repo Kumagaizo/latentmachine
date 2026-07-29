@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--@partial:head-commons-->
+    <title>Signal | Find Pattern Breaks in Logs, Reports, and Specs</title>
+    <meta name="description" content="Inspect logs, reports, and technical specs for repeated structures, pattern breaks, concrete constraints, exceptions, failures, and warnings. Local, deterministic, and explained." />
+    <link rel="canonical" href="https://latentmachine.com/signal" />
+    <meta property="og:title" content="Signal | Find the Lines That Break the Pattern" />
+    <meta property="og:description" content="A local, deterministic attention aid for long line-oriented artifacts. Every observation links back to its source evidence." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://latentmachine.com/signal" />
+    <meta name="twitter:title" content="Signal | Find the Lines That Break the Pattern" />
+    <meta name="twitter:description" content="Inspect logs, reports, and specs for repetition, rare structures, concrete constraints, and exceptions." />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Latentmachine Signal",
+        "url": "https://latentmachine.com/signal",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web browser",
+        "description": "A local browser tool that reveals repeated structures, local pattern breaks, concrete constraints, exceptions, and severity markers in line-oriented text.",
+        "featureList": [
+          "Group exact and structurally similar lines",
+          "Detect rare local transitions and pattern breaks",
+          "Reveal concrete constraints, exceptions, failures, and warnings",
+          "Explain every observation with named score components",
+          "Create reviewed evidence packs with source line references",
+          "Run deterministically and locally without an LLM"
+        ],
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main class="page">
+      <a href="#main-content" class="skip-link">Skip to content</a>
+      <!--@partial:nav-->
+      <div id="main-content">
+        <div id="signal">
+          <div class="tool-loading" role="status" aria-label="Loading Signal">
+            <span class="loading-mark"></span>
+          </div>
+          <noscript>
+            <div class="format-diagnostic is-danger">
+              <p>This tool runs entirely in your browser and needs JavaScript. Nothing is sent to a server, but nothing runs without it either.</p>
+            </div>
+          </noscript>
+        </div>
+      </div>
+      <!--@partial:footer-->
+    </main>
+    <script type="module" src="/src/local/chrome.js"></script>
+    <script type="module" src="/src/local/signal.js"></script>
+  </body>
+</html>
+

@@ -1,13 +1,15 @@
 import { createServer } from "node:http";
 import { createReadStream } from "node:fs";
-import { stat } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { injectHtmlPartials, loadHtmlPartials } from "./html-partials.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const requestedDir = process.argv[2] || ".";
 const serveRoot = path.resolve(root, requestedDir);
 const port = Number(process.env.PORT || 4173);
+const partials = await loadHtmlPartials(root);
 
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -33,6 +35,11 @@ function isInsideServeRoot(file) {
   return file === serveRoot || file.startsWith(`${serveRoot}${path.sep}`);
 }
 
+async function renderHtml(file) {
+  const source = await readFile(file, "utf8");
+  return injectHtmlPartials(source, file, root, partials);
+}
+
 const server = createServer(async (request, response) => {
   for (const file of resolveRequest(request.url || "/")) {
     if (!isInsideServeRoot(file)) continue;
@@ -44,6 +51,10 @@ const server = createServer(async (request, response) => {
       response.writeHead(200, {
         "Content-Type": types[path.extname(file)] || "application/octet-stream",
       });
+      if (path.extname(file) === ".html") {
+        response.end(await renderHtml(file));
+        return;
+      }
       createReadStream(file).pipe(response);
       return;
     } catch {}

@@ -11,7 +11,7 @@ Thanks for taking the time to improve Latentmachine. Useful contributions includ
 
 ## Local setup
 
-Latentmachine requires Node.js 20 or newer.
+Latentmachine requires Node.js 24 for the root workspace. The separately packaged API and MCP adapters support Node.js 20 or newer.
 
 ```sh
 npm install

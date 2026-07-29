@@ -20,6 +20,7 @@ The current split keeps the inference engine, runtime primitives, scoring, schem
 - `src/intelligence/data-formats/`: JSON, XML, CSV, TOML, .env, SQL INSERT, and YAML adapters.
 - `src/intelligence/regex-builder/engine.js`: regex synthesis and verification engine.
 - `src/intelligence/regex-builder/benchmarks.js`: local fixtures for regex builder regression checks.
+- `src/intelligence/signal/`: deterministic line segmentation, structural template grouping, transition-grammar hypotheses, observable feature detection, bounded compression novelty, component scoring, explanations, and the Signal tool contract.
 - `src/intelligence/arc/engine.js`: pure reasoning engine, no React.
 - `src/intelligence/arc/benchmarks.js`: local fixtures for regression checks.
 - `src/intelligence/arc/contract.js`: strict tool contract implementation.
@@ -34,6 +35,7 @@ The current split keeps the inference engine, runtime primitives, scoring, schem
 - `src/local/verify.js`: Verify page state, event binding, and workflow orchestration.
 - `src/local/regex.js`: Regex Builder page state, event binding, and workflow orchestration.
 - `src/local/jq.js`: jq Builder page state, event binding, and workflow orchestration.
+- `src/local/signal.js`: Signal page state, evidence review, and evidence-pack export.
 - `src/local/render-helpers.js`: shared HTML rendering helpers for the vanilla UI.
 - `src/intelligence/tools/registry.js`: tool-page registry.
 - `scripts/run-benchmarks.mjs`: main product regression suite.
@@ -44,7 +46,7 @@ The current split keeps the inference engine, runtime primitives, scoring, schem
 
 `index.html` is the landing and orientation surface. `infer.html` is the structured data translator: a browser-based workbench for teaching deterministic JSON, XML, CSV, TOML, YAML, .env, and SQL INSERT transformations from examples, inspecting the inferred rule, correcting it, and exporting reusable code or a CLI. This is the product-facing main tool and the origin point for Latentmachine.
 
-Verify, Regex Builder, and jq Builder are dedicated static pages over the same intelligence layer. ARC Studio and Pattern Lab remain in the intelligence layer as research/development workbenches, not public first-screen product surfaces.
+Verify, Regex Builder, jq Builder, Trace, and Signal are dedicated static pages over the same intelligence layer. ARC Studio and Pattern Lab remain in the intelligence layer as research/development workbenches, not public first-screen product surfaces.
 
 ## Platform Skeleton
 
@@ -59,7 +61,7 @@ The baselayer now has lightweight versions of the ten platform concepts:
 7. Memory interface: solved examples, failed attempts, accepted outputs, and corrections.
 8. Human correction model: pending-review correction records.
 9. Shared primitives: perception, hypothesis generation, search, scoring, execution, tracing, benchmarking, correction memory.
-10. Static product shell: `index.html`, `infer.html`, `verify.html`, `regex.html`, and `jq.html`.
+10. Static product shell: `index.html`, `infer.html`, `verify.html`, `regex.html`, `jq.html`, `trace.html`, and `signal.html`.
 
 ## Current ARC Baseline
 
@@ -115,3 +117,16 @@ The shared benchmark layer now supports reusable assertions for exactness, expec
 ## Web Tool Direction
 
 Each dedicated subpage should be a thin product surface over a registered tool. The page owns UX, examples, and workflow. The intelligence module owns task validation, solving, explanation, benchmarking, and confidence.
+
+## Signal Attention Surface
+
+Signal extends the baselayer to line-oriented logs, reports, and technical documents without taking over Trace's structured-data responsibilities. Its evidence grammar is a novel composition of existing primitives:
+
+1. Perception creates stable source segments and normalized structural templates.
+2. Hypothesis generation learns recurring template-to-template transitions as a local artifact grammar.
+3. Scoring tests each line against global repetition, section structure, neighboring lines, observable language features, and bounded byte predictability.
+4. Tracing records privacy-safe method events with counts rather than source content.
+5. Correction memory is expressed through manual pins and an explicitly reviewed evidence-pack selection.
+6. Benchmarking gates heuristic weights, adversarial language cases, routing behavior, deterministic IDs, and the 20,000-line performance target.
+
+The measurements remain separate in the result artifact. Compression novelty cannot create a finding by itself, and Signal does not decide which source lines matter to the user's business.

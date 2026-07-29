@@ -1,5 +1,7 @@
 import "./run-regex-builder-benchmarks.mjs";
 import "./run-trace-benchmarks.mjs";
+import "./run-signal-benchmarks.mjs";
+import "./run-signal-acceptance.mjs";
 import "./run-jq-builder-acceptance.mjs";
 import "./run-verify-acceptance.mjs";
 import "./run-trace-acceptance.mjs";

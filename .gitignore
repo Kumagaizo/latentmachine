@@ -21,6 +21,7 @@ packages/verify/src/_engine/
 /notes/
 /private/
 /scratch/
+/specs/
 /SECURITY_AUDIT_REPORT.md
 /.agents/
 /.codex/

@@ -30,13 +30,15 @@ const browserScriptEntries = [
   "src/local/verify.js",
   "src/local/regex.js",
   "src/local/jq.js",
+  "src/local/signal.js",
+  "src/local/signal-worker.js",
   "src/local/landing-demo.js",
   "src/local/chrome.js",
 ];
 
 const canonicalOrigin = "https://latentmachine.com";
 const artifactBudgets = {
-  rawBytes: 2_500_000,
+  rawBytes: 2_650_000,
   gzipBytes: 800_000,
   brotliBytes: 700_000,
 };
@@ -71,6 +73,7 @@ async function assertGitignoreKeepsVendorDistTrackable() {
   const text = await readFile(path.join(root, ".gitignore"), "utf8");
   assert.match(text, /^\/dist\/$/m, ".gitignore should ignore only the root build output with /dist/");
   assert.doesNotMatch(text, /^dist\/$/m, ".gitignore must not use unanchored dist/ because it hides src/vendor/yaml/dist/");
+  assert.match(text, /^\/specs\/$/m, ".gitignore must keep internal design specifications private");
 }
 
 async function assertSourceVendor() {
@@ -389,7 +392,7 @@ async function assertDistChromePolish() {
   await assertFile("dist/assets/latentmachine-logo.png");
 
   const ogPngExists = await fileExists("dist/og.png");
-  const toolPages = new Set(["infer.html", "verify.html", "regex.html", "jq.html"]);
+  const toolPages = new Set(["infer.html", "verify.html", "regex.html", "jq.html", "trace.html", "signal.html"]);
   const htmlPageFiles = await htmlFiles(path.join(root, "dist"));
 
   for (const file of htmlPageFiles) {
@@ -450,7 +453,7 @@ try {
   await assertNoPackageDependency();
   checks.push("package metadata has no yaml dependency");
   await assertGitignoreKeepsVendorDistTrackable();
-  checks.push(".gitignore keeps vendored dist trackable");
+  checks.push(".gitignore keeps vendored dist trackable and internal specs private");
 
   if (mode === "source" || mode === "all") {
     await assertSourceVendor();

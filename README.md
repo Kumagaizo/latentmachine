@@ -1,10 +1,10 @@
 # Latentmachine
 
-**Deterministic tools for understanding, transforming, and verifying structured data.**
+**Deterministic tools for understanding, transforming, and verifying data.**
 
 [Try the browser tools](https://latentmachine.com/) · [Read the case study](https://latentmachine.com/case-study) · [Developer guide](https://latentmachine.com/developers)
 
-Latentmachine learns a transformation from before-and-after examples, turns it into an inspectable symbolic rule, and verifies that the rule behaves consistently. The engine is deterministic and runs locally: no model call, account, or server-side data processing is required for the core workflow.
+Latentmachine turns data evidence into inspectable, deterministic artifacts: transformation rules from examples, consistency checks across batches, structural profiles for datasets, and source-linked attention observations for long text. The engine runs locally: no model call, account, or server-side data processing is required for the core workflow.
 
 The repository is both a working product and a design case study. It contains the static browser experience, the inference and verification engine, an npm-ready API and CLI, an MCP server, and the benchmark suites that gate every build.
 
@@ -14,6 +14,7 @@ The repository is both a working product and a design case study. It contains th
 - **Infer** reusable transformations from JSON, CSV, YAML, TOML, XML, `.env`, or SQL INSERT examples.
 - **Build regex and jq expressions** from examples, with a verified preview before export.
 - **Trace structured data** with deterministic fingerprints, profiles, and path-level diffs.
+- **Signal pattern breaks and concrete evidence** in logs, reports, and technical specifications.
 - **Integrate the engine** through JavaScript, a CLI, MCP over stdio, or the HTTP MCP endpoint.
 
 ## Design principles
@@ -47,7 +48,7 @@ For a module-by-module tour, see [docs/intelligence-baselayer.md](docs/intellige
 
 ## Run locally
 
-Requirement: Node.js 20 or newer.
+Requirement: Node.js 24.
 
 ```sh
 npm install
@@ -105,6 +106,8 @@ npm run test:package:verify
 npm --workspace packages/mcp run smoke
 npm run bench:json
 npm run bench:translator
+npm run bench:signal
+npm run accept:signal
 npm run accept:mcp
 ```
 

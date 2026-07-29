@@ -1,0 +1,75 @@
+[
+  {
+    "id": "fatal-among-success",
+    "suite": "golden",
+    "text": "2026-07-29T10:00:01Z INFO job 90001 completed after 21ms\n2026-07-29T10:00:02Z INFO job 90002 completed after 22ms\n2026-07-29T10:00:03Z INFO job 90003 completed after 23ms\n2026-07-29T10:00:04Z INFO job 90004 completed after 24ms\n2026-07-29T10:00:05Z FATAL job 90005 rollback after 810ms\n2026-07-29T10:00:06Z INFO job 90006 completed after 26ms",
+    "expect": "fatal-top"
+  },
+  {
+    "id": "timestamp-id-normalization",
+    "suite": "golden",
+    "text": "2026-07-29T10:01:01Z task 550e8400-e29b-41d4-a716-446655440001 completed in 11ms\n2026-07-29T10:01:02Z task 550e8400-e29b-41d4-a716-446655440002 completed in 12ms\n2026-07-29T10:01:03Z task 550e8400-e29b-41d4-a716-446655440003 completed in 13ms\n2026-07-29T10:01:04Z task 550e8400-e29b-41d4-a716-446655440004 completed in 14ms",
+    "expect": "one-template"
+  },
+  {
+    "id": "migration-rejections",
+    "suite": "golden",
+    "text": "row 1001 migrated account acct_1001\nrow 1002 migrated account acct_1002\nrow 1003 migrated account acct_1003\nrow 1004 rejected account acct_1004: invalid region_code\nrow 1005 migrated account acct_1005\nrow 1006 rejected account acct_1006: missing created_at",
+    "expect": "two-failures"
+  },
+  {
+    "id": "contract-exception",
+    "suite": "golden",
+    "text": "# Event contract\n\n`event_id` means the immutable event identifier.\n`event_id` must be a UUID.\nPayload size must be <= 256 KB.\nEvents must not contain payment card data.\n\nHowever, replay events may override `occurred_at` when `replay_reason` is present.",
+    "expect": "exception-link"
+  },
+  {
+    "id": "repeated-prohibition",
+    "suite": "adversarial",
+    "text": "Export policy\nRecords must not leave the approved region.\nExample A is compliant.\nRecords must not leave the approved region.\nExample B is compliant.\nRecords must not leave the approved region.",
+    "expect": "prohibitions-attention"
+  },
+  {
+    "id": "random-identifiers",
+    "suite": "adversarial",
+    "text": "request 550e8400-e29b-41d4-a716-446655440001 completed\nrequest 550e8400-e29b-41d4-a716-446655440002 completed\nrequest 550e8400-e29b-41d4-a716-446655440003 completed\nrequest 550e8400-e29b-41d4-a716-446655440004 completed\nrequest 550e8400-e29b-41d4-a716-446655440005 completed",
+    "expect": "identifiers-not-attention"
+  },
+  {
+    "id": "negated-errors",
+    "suite": "adversarial",
+    "text": "validation completed: no errors detected\nvalidation completed: 0 errors\nvalidation completed: no errors detected\nvalidation completed: 0 errors\nvalidation completed successfully without errors",
+    "expect": "no-failure-role"
+  },
+  {
+    "id": "repeated-severe-failure",
+    "suite": "adversarial",
+    "text": "FATAL rollback required for customer_events\nFATAL rollback required for customer_events\nFATAL rollback required for customer_events\nFATAL rollback required for customer_events\nFATAL rollback required for customer_events",
+    "expect": "failures-stay-visible"
+  },
+  {
+    "id": "mostly-unique-prose",
+    "suite": "golden",
+    "text": "# Working notes\n\nThe ingestion team owns the initial stage.\nSeveral systems provide historical records.\nAnalysts inspect the reconciled output each week.\nBackground context remains beside the generated report.\nThe document describes the workflow without prescribing a change.",
+    "expect": "no-invented-attention"
+  },
+  {
+    "id": "structured-csv-route",
+    "suite": "routing",
+    "text": "id,name,status\n1,Ana,active\n2,Bo,active\n3,Cy,inactive\n4,Dee,active",
+    "expect": "trace-route"
+  },
+  {
+    "id": "unicode-lines",
+    "suite": "adversarial",
+    "text": "INFO Übertragung abgeschlossen für café_01\nINFO Übertragung abgeschlossen für café_02\nINFO Übertragung abgeschlossen für café_03\nWARN Übertragung übersprungen für café_04\nINFO Übertragung abgeschlossen für café_05",
+    "expect": "unicode-warning"
+  },
+  {
+    "id": "separated-exception",
+    "suite": "adversarial",
+    "text": "Records must remain in the approved region.\nThis applies to nightly exports.\nThe transport layer uses encryption.\nOperators review each export.\nHowever, legal holds may override the retention window.",
+    "expect": "distant-exception-link"
+  }
+]
+

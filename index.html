@@ -24,6 +24,7 @@
           "Verify whether AI-transformed rows follow one deterministic rule",
           "Infer data transformation rules from before-and-after examples",
           "Profile structured datasets and surface evidence-linked findings",
+          "Inspect logs, reports, and specifications for repeated structures and explained pattern breaks",
           "Support JSON, XML, CSV, TOML, YAML, .env, and SQL INSERT data",
           "Export transformed results and reusable code",
           "Run client-side in the browser"
@@ -89,6 +90,16 @@
               "name": "Trace",
               "url": "https://latentmachine.com/trace",
               "description": "Profile structured data, find missing or unusual values, and compare datasets with evidence linked to the original records."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 6,
+            "item": {
+              "@type": "SoftwareApplication",
+              "name": "Signal",
+              "url": "https://latentmachine.com/signal",
+              "description": "Inspect logs, reports, and specifications for repeated structures, local pattern breaks, concrete constraints, exceptions, failures, and warnings."
             }
           }
         ]
@@ -414,6 +425,42 @@ emit owned JavaScript transform</code>
                   <span class="demo-status">Worth a look</span>
                   <code>Evidence linked to field and record</code>
                   <small>local · no upload</small>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="feature-row feature-row--reverse">
+            <div class="feature-copy">
+              <p class="section-label">Signal · Experimental</p>
+              <h2>Find the lines that break the pattern.</h2>
+              <p>Paste a long log, migration report, or technical specification. Signal groups recurring structures, reveals local pattern breaks and concrete constraints, and explains every observation against its source line.</p>
+              <div class="feature-actions">
+                <a class="button is-primary" href="/signal">Open Signal →</a>
+                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="signal-eli5">ELI5 ↓</button>
+              </div>
+              <p class="feature-eli5-text" id="signal-eli5" aria-hidden="true">Imagine a 5,000-line pipeline log where almost every line says a job completed. Signal learns that recurring shape, notices when the local sequence changes, and points to the rollback line with a plain explanation. In a specification it can point out “must not,” thresholds, and exceptions instead. It does not decide what matters or remove the rest. It helps you decide where to look.</p>
+            </div>
+            <div class="feature-visual" aria-hidden="true">
+              <div class="demo-window signal-preview">
+                <div class="demo-bar">
+                  <span>Signal</span>
+                  <span>pipeline-run.log · stream</span>
+                </div>
+                <div class="signal-preview-summary">
+                  <span><strong>24</strong> lines</span>
+                  <span><strong>3</strong> templates</span>
+                  <span><strong>1</strong> attention</span>
+                </div>
+                <div class="signal-preview-lines">
+                  <div><i></i><code>INFO job &lt;id&gt; completed in &lt;duration&gt;</code><small>12×</small></div>
+                  <div><i></i><code>INFO job &lt;id&gt; completed in &lt;duration&gt;</code><small>12×</small></div>
+                  <div class="is-attention"><i></i><code>FATAL rollback customer_events</code><small>new transition</small></div>
+                  <div><i></i><code>INFO cleanup completed</code><small>context</small></div>
+                </div>
+                <div class="signal-preview-evidence">
+                  <span>Why line 19 received attention</span>
+                  <code>rare after a repeated completion · contains “rollback”</code>
                 </div>
               </div>
             </div>

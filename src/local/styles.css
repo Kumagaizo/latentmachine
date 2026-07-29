@@ -8,11 +8,12 @@
   Inputs and controls: .editor, .editor-bar, .format-chip, .action-bar, .button, .icon-button, .empty-state, .tool-loading, .loading-mark, .pair-arrow, .file-import, .file-import-note, .format-note, .format-diagnostic
   Results and diagnosis: .result-card, .result-head, .rule-section, .rule-lines, .rule-spec, .diagnosis-row, .diagnosis-summary, .status-pill, .status-badge, .test-section, .test-card, .suggestion-action
   State modifiers: .is-safe, .is-warn, .is-danger, .is-neutral, .is-result, .is-muted-actions, .is-pending, .is-writing, .is-revealed, .is-visible
-  Landing-only classes: .landing, .landing-hero, .hero-copy, .hero-sub, .hero-actions, .hero-visual, .feature-row, .feature-row--reverse, .feature-copy, .feature-actions, .feature-eli5-toggle, .feature-eli5-text, .feature-visual, .demo-window, .demo-bar, .demo-core, .demo-footer, .demo-grid, .demo-panel, .demo-rule, .demo-status, .demo-rows, .demo-row, .demo-row-index, .demo-strip, .demo-chip-row, .demo-chip, .demo-tree, .trace-preview, .trace-preview-metrics, .trace-preview-metric, .trace-preview-body, .trace-preview-findings, .trace-preview-finding, .trace-preview-chart, .trace-preview-chart-head, .trace-preview-bars, .trace-preview-foot, .honesty-strip, .honesty-strip--dev, .article-intro, .band--alt
+  Landing-only classes: .landing, .landing-hero, .hero-copy, .hero-sub, .hero-actions, .hero-visual, .feature-row, .feature-row--reverse, .feature-copy, .feature-actions, .feature-eli5-toggle, .feature-eli5-text, .feature-visual, .demo-window, .demo-bar, .demo-core, .demo-footer, .demo-grid, .demo-panel, .demo-rule, .demo-status, .demo-rows, .demo-row, .demo-row-index, .demo-strip, .demo-chip-row, .demo-chip, .demo-tree, .trace-preview, .trace-preview-metrics, .trace-preview-metric, .trace-preview-body, .trace-preview-findings, .trace-preview-finding, .trace-preview-chart, .trace-preview-chart-head, .trace-preview-bars, .trace-preview-foot, .signal-preview, .signal-preview-summary, .signal-preview-lines, .signal-preview-evidence, .honesty-strip, .honesty-strip--dev, .article-intro, .band--alt
   Verify-only classes: .verify-result, .verify-diagnosis, .verify-flagged-list, .verify-inputs, .verify-presets, .verify-verdict, .verify-row-preview, .verify-review-controls, .verify-review-nav, .verify-difference, .verify-difference-pills, .verify-scope
   Regex-only classes: .example-rows, .example-row, .example-toggle, .capture-surface, .regex-output, .flavor-tabs, .match-preview
   jq-only classes: .jq-page, .jq-samples, .jq-mode-row, .jq-mode-guide, .jq-mode-card, .jq-mode-description, .jq-selection-bar, .jq-share-row, .json-tree, .json-node, .node-selected, .jq-output, .jq-export-panel, .jq-export-grid, .query-tabs, .result-preview
   Trace-only classes: .trace-page, .trace-product-header, .trace-mode, .trace-workbench, .trace-presets, .trace-input-grid, .trace-source, .trace-format-select, .trace-source-foot, .trace-drop-hint, .trace-settings, .trace-key-fields, .trace-runbar, .trace-result-shell, .trace-result-bar, .trace-tabs, .trace-result-actions, .trace-export-menu, .trace-result, .trace-source-summary, .trace-copy-id, .trace-overview, .trace-overview-hero, .trace-metrics, .trace-metric, .trace-section, .trace-section-head, .trace-insight-grid, .trace-insight, .trace-insight-heading, .trace-path, .trace-record-action, .trace-evidence, .trace-all-observations, .trace-portrait-grid, .trace-profile-card, .trace-spark, .trace-bars, .trace-search, .trace-filter-tools, .trace-column-picker, .trace-active-filter, .trace-field-layout, .trace-table-wrap, .trace-table, .trace-role, .trace-change, .trace-ignore-field, .trace-field-detail, .trace-detail-close, .trace-detail-actions, .trace-detail-metrics, .trace-detail-chart, .trace-examples, .trace-record-samples, .trace-record-detail, .trace-pagination, .trace-row-actions, .trace-structure-tools, .trace-structure, .trace-structure-row
+  Signal-only classes: .signal-page, .signal-product-header, .signal-presets, .signal-input-card, .signal-input-head, .signal-input-foot, .signal-settings, .signal-runbar, .signal-route-notice, .signal-route-actions, .signal-result-shell, .signal-result-head, .signal-overview, .signal-overview-copy, .signal-metrics, .signal-limitations, .signal-workspace, .signal-ledger, .signal-ledger-tools, .signal-filters, .signal-ledger-status, .signal-ledger-body, .signal-minimap, .signal-lines, .signal-line, .signal-pin, .signal-line-main, .signal-line-number, .signal-line-rail, .signal-line-content, .signal-line-meta, .signal-role, .signal-cluster, .signal-pagination, .signal-evidence-drawer, .signal-drawer-roles, .signal-confidence, .signal-score-components, .signal-related, .signal-uncertainty, .signal-pack, .signal-pack-grid, .signal-pack-options, .signal-pack-counts, .signal-review-check, .signal-pack-actions, .signal-pack-preview
 */
 
 @font-face {
@@ -5890,6 +5891,1137 @@ a.section-label:hover {
   .trace-insight,
   .trace-profile-card,
   .trace-table-wrap { break-inside: avoid; }
+}
+
+/* Signal landing preview + product workspace */
+
+.signal-preview {
+  min-height: 21rem;
+}
+
+.signal-preview-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: 1px solid var(--editor-border);
+}
+
+.signal-preview-summary span {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.7rem;
+  border-right: 1px solid var(--editor-border);
+  color: var(--editor-muted);
+  font-size: 0.62rem;
+}
+
+.signal-preview-summary span:last-child {
+  border-right: 0;
+}
+
+.signal-preview-summary strong {
+  color: var(--editor-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.signal-preview-lines {
+  display: grid;
+  padding: 0.45rem 0;
+}
+
+.signal-preview-lines > div {
+  display: grid;
+  grid-template-columns: 3px minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+}
+
+.signal-preview-lines i {
+  width: 3px;
+  height: 1.1rem;
+  border-radius: 2px;
+  background: var(--editor-muted);
+  opacity: 0.35;
+}
+
+.signal-preview-lines code {
+  overflow: hidden;
+  color: var(--editor-text);
+  font: 0.61rem var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.signal-preview-lines small {
+  color: var(--editor-muted);
+  font-size: 0.56rem;
+}
+
+.signal-preview-lines .is-attention {
+  background: var(--danger-bg);
+}
+
+.signal-preview-lines .is-attention i {
+  background: var(--danger);
+  opacity: 1;
+}
+
+.signal-preview-evidence {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0 0.75rem 0.75rem;
+  border: 1px solid var(--editor-border);
+  border-radius: 6px;
+  background: var(--editor-bar-bg);
+  padding: 0.7rem;
+}
+
+.signal-preview-evidence span {
+  color: var(--editor-muted);
+  font-size: 0.58rem;
+}
+
+.signal-preview-evidence code {
+  color: var(--editor-text);
+  font: 0.58rem/1.5 var(--font-mono);
+}
+
+.signal-page {
+  --signal-attention: var(--danger);
+  --signal-notable: var(--warn);
+  --signal-context: var(--text-tertiary);
+  display: grid;
+  gap: 1rem;
+}
+
+.signal-product-header {
+  padding: 0.5rem 0 0.25rem;
+}
+
+.signal-presets {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.signal-presets > span {
+  margin-right: 0.2rem;
+  color: var(--text-tertiary);
+  font-size: 0.68rem;
+}
+
+.signal-presets button {
+  min-height: 1.9rem;
+  padding: 0 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+}
+
+.signal-presets button:hover,
+.signal-presets button:focus-visible {
+  border-color: var(--border-focus);
+  color: var(--text-primary);
+}
+
+.signal-input-card {
+  overflow: hidden;
+  border: 1px solid var(--editor-border);
+  border-radius: 9px;
+  background: var(--editor-bg);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.signal-input-card.is-dragging {
+  border-color: var(--safe);
+  box-shadow: 0 0 0 3px var(--safe-bg);
+}
+
+.signal-input-head,
+.signal-input-foot,
+.signal-runbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.signal-input-head {
+  min-height: 3.15rem;
+  border-bottom: 1px solid var(--editor-border);
+  background: var(--editor-bar-bg);
+  padding: 0.55rem 0.9rem;
+}
+
+.signal-input-head > div,
+.signal-input-head label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+}
+
+.signal-input-head span,
+.signal-input-foot > span,
+.signal-input-head label span {
+  color: var(--editor-muted);
+  font-size: 0.66rem;
+}
+
+.signal-input-head strong {
+  color: var(--editor-text);
+  font: 0.7rem var(--font-mono);
+}
+
+.signal-input-head select {
+  min-height: 1.85rem;
+  border: 1px solid var(--editor-border);
+  border-radius: 5px;
+  background: var(--editor-bg);
+  color: var(--editor-text);
+  padding: 0 0.45rem;
+  font: 0.68rem var(--font-ui);
+}
+
+.signal-input-card > textarea {
+  display: block;
+  width: 100%;
+  min-height: 17rem;
+  max-height: 34rem;
+  margin: 0;
+  resize: vertical;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--editor-text);
+  padding: 1rem;
+  font: 0.72rem/1.65 var(--font-mono);
+  tab-size: 2;
+}
+
+.signal-input-foot {
+  min-height: 2.7rem;
+  border-top: 1px solid var(--editor-border);
+  padding: 0.35rem 0.65rem 0.35rem 0.9rem;
+}
+
+.signal-input-foot > div {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.signal-input-foot .button {
+  border-color: transparent;
+  color: var(--editor-muted);
+}
+
+.signal-settings {
+  border-top: 1px solid var(--editor-border);
+  color: var(--editor-muted);
+  padding: 0 0.9rem;
+  font-size: 0.68rem;
+}
+
+.signal-settings summary {
+  width: fit-content;
+  padding: 0.65rem 0;
+  cursor: pointer;
+}
+
+.signal-settings > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.15rem;
+  padding-bottom: 0.65rem;
+}
+
+.signal-settings label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.signal-settings input[type="number"] {
+  width: 3.8rem;
+  min-height: 1.8rem;
+  border: 1px solid var(--editor-border);
+  border-radius: 4px;
+  background: var(--editor-bar-bg);
+  color: var(--editor-text);
+  padding: 0 0.35rem;
+}
+
+.signal-settings > p {
+  max-width: 70ch;
+  padding: 0 0 0.7rem;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+
+.signal-runbar {
+  justify-content: flex-start;
+  min-height: 3.7rem;
+  border-top: 1px solid var(--editor-border);
+  background: var(--editor-bar-bg);
+  padding: 0.65rem 0.9rem;
+}
+
+.signal-runbar > span {
+  color: var(--editor-muted);
+  font-size: 0.68rem;
+}
+
+.signal-route-notice {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.signal-route-notice h2 {
+  margin: 0.3rem 0;
+  font-size: 1.15rem;
+}
+
+.signal-route-notice p:not(.section-label) {
+  max-width: 58ch;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.signal-route-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.35rem;
+}
+
+.signal-result-shell {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.signal-result-head {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 3.25rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  padding: 0.55rem 0.8rem;
+  backdrop-filter: blur(8px);
+}
+
+.signal-result-head > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.signal-result-head span {
+  color: var(--text-tertiary);
+  font: 0.63rem var(--font-mono);
+}
+
+.signal-result-head strong {
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.signal-overview {
+  display: grid;
+  gap: 1rem;
+  padding: 1.2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.signal-overview-copy h2 {
+  margin: 0.25rem 0;
+  font-size: 1.2rem;
+}
+
+.signal-overview-copy > p:last-child {
+  max-width: 65ch;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.signal-overview-copy strong {
+  font-weight: 600;
+}
+
+.signal-metrics {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+.signal-metrics > div {
+  min-width: 0;
+  padding: 0.7rem;
+  border-right: 1px solid var(--border);
+}
+
+.signal-metrics > div:last-child {
+  border-right: 0;
+}
+
+.signal-metrics span,
+.signal-metrics strong {
+  display: block;
+}
+
+.signal-metrics span {
+  min-height: 2em;
+  color: var(--text-tertiary);
+  font-size: 0.58rem;
+  line-height: 1.25;
+}
+
+.signal-metrics strong {
+  margin-top: 0.2rem;
+  font-size: 0.95rem;
+  font-weight: 560;
+}
+
+.signal-limitations {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.signal-limitations p {
+  color: var(--text-tertiary);
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+.signal-limitations a {
+  color: var(--safe);
+}
+
+.signal-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(19rem, 0.7fr);
+  min-height: 36rem;
+}
+
+.signal-ledger {
+  min-width: 0;
+  border-right: 1px solid var(--border);
+}
+
+.signal-ledger-tools {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.signal-ledger-tools h2 {
+  margin-top: 0.2rem;
+  font-size: 0.85rem;
+}
+
+.signal-filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.signal-filters label {
+  display: grid;
+  gap: 0.2rem;
+  color: var(--text-tertiary);
+  font-size: 0.58rem;
+}
+
+.signal-filters select,
+.signal-filters input {
+  min-height: 2rem;
+  max-width: 9.5rem;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+  padding: 0 0.45rem;
+  font: 0.64rem var(--font-ui);
+}
+
+.signal-filters input {
+  width: 9.5rem;
+}
+
+.signal-ledger-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-tertiary);
+  font-size: 0.6rem;
+}
+
+.signal-ledger-body {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+}
+
+.signal-minimap {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0.35rem 3px;
+  border-right: 1px solid var(--border);
+  background: var(--surface-soft);
+}
+
+.signal-minimap button {
+  flex: 1 1 2px;
+  min-height: 2px;
+  border: 0;
+  border-radius: 1px;
+  background: var(--signal-context);
+  opacity: 0.26;
+  padding: 0;
+}
+
+.signal-minimap button.is-notable {
+  background: var(--signal-notable);
+  opacity: 0.72;
+}
+
+.signal-minimap button.is-attention {
+  background: var(--signal-attention);
+  opacity: 0.85;
+}
+
+.signal-minimap button.is-pinned {
+  outline: 1px solid var(--text-primary);
+  opacity: 1;
+}
+
+.signal-lines {
+  min-width: 0;
+}
+
+.signal-line {
+  display: grid;
+  grid-template-columns: 1.8rem minmax(0, 1fr);
+  min-width: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.signal-line:last-child {
+  border-bottom: 0;
+}
+
+.signal-line.is-blank {
+  display: block;
+  min-height: 1.25rem;
+  padding-left: 2.4rem;
+  color: var(--text-tertiary);
+  font: 0.54rem var(--font-mono);
+  opacity: 0.45;
+}
+
+.signal-line:hover,
+.signal-line.is-selected {
+  background: var(--surface-soft);
+}
+
+.signal-line.is-selected {
+  box-shadow: inset 2px 0 0 var(--safe);
+}
+
+.signal-pin {
+  min-width: 0;
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-tertiary);
+  padding: 0;
+  font-size: 0.66rem;
+}
+
+.signal-pin:hover,
+.signal-pin.is-pinned {
+  color: var(--safe);
+}
+
+.signal-line-main {
+  display: grid;
+  grid-template-columns: 2.6rem 4px minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: start;
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0.68rem 0.75rem 0.68rem 0.45rem;
+  text-align: left;
+}
+
+.signal-line-number {
+  color: var(--text-tertiary);
+  font: 0.58rem/1.55 var(--font-mono);
+  text-align: right;
+}
+
+.signal-line-rail {
+  width: 3px;
+  height: 1.1rem;
+  margin-top: 0.05rem;
+  border-radius: 2px;
+  background: linear-gradient(to top, var(--signal-context) var(--signal-score), var(--border) 0);
+}
+
+.signal-line.is-attention .signal-line-rail {
+  background: linear-gradient(to top, var(--signal-attention) var(--signal-score), var(--border) 0);
+}
+
+.signal-line.is-notable .signal-line-rail {
+  background: linear-gradient(to top, var(--signal-notable) var(--signal-score), var(--border) 0);
+}
+
+.signal-line-content {
+  display: grid;
+  min-width: 0;
+  gap: 0.45rem;
+}
+
+.signal-line-content > code {
+  overflow-wrap: anywhere;
+  color: var(--text-primary);
+  font: 0.66rem/1.55 var(--font-mono);
+  white-space: pre-wrap;
+}
+
+.signal-line-meta,
+.signal-drawer-roles {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.signal-role {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.15rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-tertiary);
+  padding: 0 0.4rem;
+  font: 0.52rem var(--font-ui);
+}
+
+.signal-role.is-failure,
+.signal-role.is-pattern-break {
+  border-color: color-mix(in srgb, var(--danger) 28%, var(--border));
+  color: var(--danger);
+}
+
+.signal-role.is-warning,
+.signal-role.is-exception {
+  border-color: color-mix(in srgb, var(--warn) 30%, var(--border));
+  color: var(--warn);
+}
+
+.signal-role.is-constraint,
+.signal-role.is-decision,
+.signal-role.is-definition {
+  border-color: color-mix(in srgb, var(--safe) 28%, var(--border));
+  color: var(--safe);
+}
+
+.signal-cluster {
+  color: var(--text-tertiary);
+  font: 0.5rem var(--font-mono);
+}
+
+.signal-no-lines {
+  display: grid;
+  justify-items: start;
+  gap: 0.6rem;
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.signal-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 3rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-tertiary);
+  font-size: 0.64rem;
+}
+
+.signal-pagination button {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: inherit;
+}
+
+.signal-evidence-drawer {
+  position: sticky;
+  top: 3.25rem;
+  align-self: start;
+  display: grid;
+  gap: 1rem;
+  max-height: calc(100vh - 4rem);
+  overflow: auto;
+  padding: 1rem;
+  background: var(--surface-soft);
+}
+
+.signal-evidence-drawer > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.signal-evidence-drawer h2 {
+  margin-top: 0.2rem;
+  font-size: 1rem;
+  text-transform: capitalize;
+}
+
+.signal-drawer-pin {
+  min-height: 1.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 0.55rem;
+  font-size: 0.58rem;
+}
+
+.signal-evidence-drawer > pre {
+  max-height: 12rem;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-primary);
+  padding: 0.75rem;
+  font: 0.64rem/1.55 var(--font-mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.signal-confidence {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.15rem 0.75rem;
+  padding: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.signal-confidence span {
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  text-transform: capitalize;
+}
+
+.signal-confidence strong {
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.signal-confidence small {
+  grid-column: 1 / -1;
+  color: var(--text-tertiary);
+  font-size: 0.56rem;
+  line-height: 1.4;
+}
+
+.signal-evidence-drawer section {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.signal-evidence-drawer h3 {
+  font-size: 0.7rem;
+  font-weight: 560;
+}
+
+.signal-evidence-drawer ul {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0;
+  list-style: none;
+}
+
+.signal-evidence-drawer li {
+  color: var(--text-secondary);
+  font-size: 0.62rem;
+  line-height: 1.5;
+}
+
+.signal-evidence-drawer li > span {
+  display: block;
+  color: var(--text-tertiary);
+  font-size: 0.5rem;
+  text-transform: uppercase;
+}
+
+.signal-score-components {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.signal-score-components > div {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(2rem, 1fr) 1.6rem;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-tertiary);
+  font-size: 0.54rem;
+}
+
+.signal-score-components i {
+  height: 3px;
+  background: linear-gradient(to right, var(--safe) var(--component), var(--border) 0);
+}
+
+.signal-score-components .is-penalty i {
+  background: linear-gradient(to right, var(--danger) var(--component), var(--border) 0);
+}
+
+.signal-score-components strong {
+  font-weight: 500;
+  text-align: right;
+}
+
+.signal-evidence-drawer details {
+  border-top: 1px solid var(--border);
+  padding-top: 0.7rem;
+  color: var(--text-tertiary);
+  font-size: 0.6rem;
+}
+
+.signal-evidence-drawer summary {
+  margin-bottom: 0.45rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.signal-evidence-drawer details code {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--text-primary);
+  font: 0.58rem/1.5 var(--font-mono);
+}
+
+.signal-evidence-drawer details p {
+  margin-top: 0.35rem;
+  line-height: 1.45;
+}
+
+.signal-related {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.signal-related button {
+  display: grid;
+  gap: 0.15rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--safe);
+  padding: 0.5rem;
+  font-size: 0.58rem;
+  text-align: left;
+}
+
+.signal-related span {
+  overflow: hidden;
+  color: var(--text-tertiary);
+  font: 0.54rem var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.signal-uncertainty {
+  border-top: 1px solid var(--border);
+  padding-top: 0.8rem;
+}
+
+.signal-uncertainty > p {
+  color: var(--text-tertiary);
+  font-size: 0.58rem;
+  line-height: 1.45;
+}
+
+.signal-pack {
+  display: grid;
+  gap: 1rem;
+  padding: 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.signal-pack > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.signal-pack h2 {
+  margin: 0.2rem 0;
+  font-size: 1.2rem;
+}
+
+.signal-pack header p:not(.section-label) {
+  max-width: 60ch;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.signal-pack-close {
+  align-self: start;
+  border: 0;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 1.4rem;
+}
+
+.signal-pack-grid {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.7fr) minmax(0, 1.3fr);
+  gap: 1rem;
+}
+
+.signal-pack-options {
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+}
+
+.signal-pack-options > label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+}
+
+.signal-pack-options select {
+  min-height: 1.9rem;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+  padding: 0 0.4rem;
+}
+
+.signal-pack-counts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.35rem 0.5rem;
+  margin: 0.3rem 0;
+  padding: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.signal-pack-counts strong {
+  font: 0.72rem var(--font-mono);
+  font-weight: 600;
+}
+
+.signal-pack-counts span {
+  color: var(--text-tertiary);
+  font-size: 0.62rem;
+}
+
+.signal-review-check {
+  align-items: flex-start !important;
+  padding: 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--warn) 25%, var(--border));
+  border-radius: 6px;
+  background: var(--warn-bg);
+  line-height: 1.5;
+}
+
+.signal-pack-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.signal-pack-preview {
+  min-height: 22rem;
+  max-height: 34rem;
+  overflow: auto;
+  border: 1px solid var(--editor-border);
+  border-radius: 7px;
+  background: var(--editor-bg);
+  color: var(--editor-text);
+  padding: 1rem;
+  font: 0.62rem/1.65 var(--font-mono);
+  white-space: pre-wrap;
+}
+
+@media (max-width: 900px) {
+  .signal-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .signal-metrics > div:nth-child(3) {
+    border-right: 0;
+  }
+
+  .signal-metrics > div:nth-child(-n + 3) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .signal-workspace,
+  .signal-pack-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .signal-ledger {
+    border-right: 0;
+  }
+
+  .signal-evidence-drawer {
+    position: static;
+    max-height: none;
+    border-top: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 680px) {
+  .signal-route-notice,
+  .signal-ledger-tools {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .signal-route-actions,
+  .signal-filters {
+    justify-content: flex-start;
+  }
+
+  .signal-result-head {
+    position: static;
+  }
+
+  .signal-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .signal-metrics > div:nth-child(3) {
+    border-right: 1px solid var(--border);
+  }
+
+  .signal-metrics > div:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .signal-metrics > div:nth-child(-n + 4) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .signal-input-head,
+  .signal-input-foot,
+  .signal-runbar,
+  .signal-result-head,
+  .signal-ledger-status {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .signal-line {
+    grid-template-columns: 1.55rem minmax(0, 1fr);
+  }
+
+  .signal-line-main {
+    grid-template-columns: 2rem 3px minmax(0, 1fr);
+    padding-right: 0.45rem;
+  }
+
+  .signal-cluster {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-page *,
+  .signal-page *::before,
+  .signal-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  .signal-input-card,
+  .signal-presets,
+  .signal-result-head,
+  .signal-ledger-tools,
+  .signal-ledger-status,
+  .signal-minimap,
+  .signal-pin,
+  .signal-pagination,
+  .signal-evidence-drawer,
+  .signal-pack-options {
+    display: none !important;
+  }
+
+  .signal-result-shell,
+  .signal-pack {
+    border: 0;
+    box-shadow: none;
+  }
+
+  .signal-workspace,
+  .signal-pack-grid {
+    display: block;
+  }
+
+  .signal-ledger {
+    border: 0;
+  }
+
+  .signal-line {
+    grid-template-columns: 1fr;
+    break-inside: avoid;
+  }
 }
 
 @media print {

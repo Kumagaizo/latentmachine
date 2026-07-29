@@ -1,6 +1,6 @@
 export const REQUIRED_TOOL_METHODS = ["metadata", "validate", "createSession", "run", "explain", "benchmark"];
 
-export const TOOL_LIFECYCLE_STATES = ["draft", "experimental", "validated", "production", "deprecated"];
+export const TOOL_LIFECYCLE_STATES = ["draft", "experimental", "validated", "stable", "production", "deprecated"];
 
 export const BENCHMARK_SUITE_TYPES = ["unit", "composition", "adversarial", "drawing", "regression", "real-world", "golden"];
 export const BENCHMARK_ASSERTION_TYPES = [
