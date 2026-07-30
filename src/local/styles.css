@@ -47,12 +47,16 @@
   --text-tertiary: #9aa0a6;
   --ink: #202020;
   --ink-soft: #303030;
-  --safe: #188038;
-  --safe-bg: rgba(24, 128, 56, 0.06);
-  --warn: #8a6200;
-  --warn-bg: rgba(138, 98, 0, 0.06);
-  --danger: #b3261e;
-  --danger-bg: rgba(179, 38, 30, 0.06);
+  /* Bright palette anchors; companion ink tones keep small text AA-readable. */
+  --safe-accent: #5ad962;
+  --warn-accent: #ffd15d;
+  --danger-accent: #ee4e47;
+  --safe: #287a31;
+  --safe-bg: rgba(90, 217, 98, 0.13);
+  --warn: #765500;
+  --warn-bg: rgba(255, 209, 93, 0.16);
+  --danger: #b73530;
+  --danger-bg: rgba(238, 78, 71, 0.12);
   --editor-bg: var(--ink);
   --editor-bar-bg: var(--ink-soft);
   --editor-border: rgba(255, 255, 255, 0.08);
@@ -94,12 +98,12 @@
     --editor-border: var(--border);
     --editor-text: var(--text-primary);
     --editor-muted: var(--text-secondary);
-    --safe: #5dd07f;
-    --safe-bg: rgba(93, 208, 127, 0.1);
-    --warn: #e0b34a;
-    --warn-bg: rgba(224, 179, 74, 0.1);
-    --danger: #f2756b;
-    --danger-bg: rgba(242, 117, 107, 0.1);
+    --safe: #6fe077;
+    --safe-bg: rgba(90, 217, 98, 0.14);
+    --warn: #ffd15d;
+    --warn-bg: rgba(255, 209, 93, 0.14);
+    --danger: #ff746e;
+    --danger-bg: rgba(238, 78, 71, 0.15);
     --scrollbar-thumb: rgba(255, 255, 255, 0.18);
     --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
@@ -126,12 +130,12 @@
   --editor-border: var(--border);
   --editor-text: var(--text-primary);
   --editor-muted: var(--text-secondary);
-  --safe: #5dd07f;
-  --safe-bg: rgba(93, 208, 127, 0.1);
-  --warn: #e0b34a;
-  --warn-bg: rgba(224, 179, 74, 0.1);
-  --danger: #f2756b;
-  --danger-bg: rgba(242, 117, 107, 0.1);
+  --safe: #6fe077;
+  --safe-bg: rgba(90, 217, 98, 0.14);
+  --warn: #ffd15d;
+  --warn-bg: rgba(255, 209, 93, 0.14);
+  --danger: #ff746e;
+  --danger-bg: rgba(238, 78, 71, 0.15);
   --scrollbar-thumb: rgba(255, 255, 255, 0.18);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
@@ -586,15 +590,15 @@ a {
 }
 
 .status-pill.is-safe {
-  border-color: rgba(24, 128, 56, 0.18);
+  border-color: color-mix(in srgb, var(--safe-accent) 28%, transparent);
 }
 
 .status-pill.is-warn {
-  border-color: rgba(138, 98, 0, 0.2);
+  border-color: color-mix(in srgb, var(--warn-accent) 34%, transparent);
 }
 
 .status-pill.is-danger {
-  border-color: rgba(179, 38, 30, 0.18);
+  border-color: color-mix(in srgb, var(--danger-accent) 28%, transparent);
 }
 
 .status-pill.is-safe .inspection-head strong {
@@ -602,7 +606,7 @@ a {
 }
 
 .status-pill.is-safe .inspection-grid strong::before {
-  background: rgba(24, 128, 56, 0.62);
+  background: var(--safe-accent);
 }
 
 .status-pill.is-warn .inspection-head strong {
@@ -610,7 +614,7 @@ a {
 }
 
 .status-pill.is-warn .inspection-grid strong::before {
-  background: rgba(138, 98, 0, 0.56);
+  background: var(--warn-accent);
 }
 
 .status-pill.is-danger .inspection-head strong {
@@ -618,7 +622,7 @@ a {
 }
 
 .status-pill.is-danger .inspection-grid strong::before {
-  background: rgba(179, 38, 30, 0.56);
+  background: var(--danger-accent);
 }
 
 .preset-section {
@@ -1027,11 +1031,11 @@ a {
 }
 
 .example-card.is-correction {
-  border-color: rgba(24, 128, 56, 0.24);
+  border-color: color-mix(in srgb, var(--safe-accent) 34%, transparent);
 }
 
 .example-card.has-conflict {
-  border-color: rgba(179, 38, 30, 0.28);
+  border-color: color-mix(in srgb, var(--danger-accent) 38%, transparent);
 }
 
 .example-card-head span {
@@ -1050,11 +1054,11 @@ a {
 }
 
 .example-match.is-safe {
-  background: var(--safe);
+  background: var(--safe-accent);
 }
 
 .example-match.is-danger {
-  background: var(--danger);
+  background: var(--danger-accent);
 }
 
 .example-note {
@@ -1210,12 +1214,12 @@ a {
 }
 
 .file-import-note.is-safe {
-  border-color: rgba(104, 211, 145, 0.2);
+  border-color: color-mix(in srgb, var(--safe-accent) 28%, transparent);
   color: var(--safe);
 }
 
 .file-import-note.is-danger {
-  border-color: rgba(255, 111, 111, 0.2);
+  border-color: color-mix(in srgb, var(--danger-accent) 28%, transparent);
   color: var(--danger);
 }
 
@@ -1488,7 +1492,7 @@ select.format-chip option,
 
 .format-note,
 .reliability-note {
-  border-top: 1px solid rgba(138, 98, 0, 0.12);
+  border-top: 1px solid color-mix(in srgb, var(--warn-accent) 22%, transparent);
   background: var(--warn-bg);
   color: var(--warn);
   padding: 8px 16px;
@@ -1497,7 +1501,7 @@ select.format-chip option,
 }
 
 .format-diagnostic {
-  border-top: 1px solid rgba(184, 51, 51, 0.16);
+  border-top: 1px solid color-mix(in srgb, var(--danger-accent) 26%, transparent);
   padding: 10px 16px 12px;
   font-size: 0.72rem;
   line-height: 1.45;
@@ -1508,7 +1512,7 @@ select.format-chip option,
 }
 
 .format-diagnostic.is-danger {
-  background: rgba(184, 51, 51, 0.07);
+  background: color-mix(in srgb, var(--danger-accent) 9%, transparent);
   color: var(--danger);
 }
 
@@ -1876,13 +1880,13 @@ select.format-chip option,
 }
 
 .spec-issue.is-warn {
-  border-color: rgba(138, 98, 0, 0.16);
+  border-color: color-mix(in srgb, var(--warn-accent) 28%, transparent);
   background: var(--warn-bg);
   color: var(--warn);
 }
 
 .spec-issue.is-danger {
-  border-color: rgba(179, 38, 30, 0.16);
+  border-color: color-mix(in srgb, var(--danger-accent) 26%, transparent);
   background: var(--danger-bg);
   color: var(--danger);
 }
@@ -2001,25 +2005,25 @@ select.format-chip option,
 }
 
 .reasoning-hint.is-safe::before {
-  background: var(--safe);
+  background: var(--safe-accent);
 }
 
 .reasoning-hint.is-warn {
-  border-color: rgba(138, 98, 0, 0.14);
+  border-color: color-mix(in srgb, var(--warn-accent) 26%, transparent);
   background: var(--warn-bg);
 }
 
 .reasoning-hint.is-warn::before {
-  background: var(--warn);
+  background: var(--warn-accent);
 }
 
 .reasoning-hint.is-danger {
-  border-color: rgba(179, 38, 30, 0.14);
+  border-color: color-mix(in srgb, var(--danger-accent) 24%, transparent);
   background: var(--danger-bg);
 }
 
 .reasoning-hint.is-danger::before {
-  background: var(--danger);
+  background: var(--danger-accent);
 }
 
 .reasoning-hint strong {
@@ -2073,7 +2077,7 @@ select.format-chip option,
 .learning-notice {
   display: grid;
   gap: 3px;
-  border-color: rgba(24, 128, 56, 0.14);
+  border-color: color-mix(in srgb, var(--safe-accent) 24%, transparent);
   background: var(--safe-bg);
   padding: 10px 14px;
   color: var(--text-secondary);
@@ -2265,12 +2269,12 @@ select.format-chip option,
 }
 
 .cli-export-summary.is-safe {
-  border-color: rgba(24, 128, 56, 0.14);
+  border-color: color-mix(in srgb, var(--safe-accent) 24%, transparent);
   background: var(--safe-bg);
 }
 
 .cli-export-summary.is-warn {
-  border-color: rgba(138, 98, 0, 0.14);
+  border-color: color-mix(in srgb, var(--warn-accent) 26%, transparent);
   background: var(--warn-bg);
 }
 
@@ -2821,7 +2825,7 @@ select.format-chip option,
   align-self: center;
   min-width: 0;
   min-height: 0;
-  border-color: rgba(24, 128, 56, 0.14);
+  border-color: color-mix(in srgb, var(--safe-accent) 24%, transparent);
   padding: 4px 8px;
   font-size: 0.62rem;
 }
@@ -2854,7 +2858,7 @@ select.format-chip option,
   max-width: 100%;
   min-width: 132px;
   min-height: 28px;
-  border: 1px solid rgba(24, 128, 56, 0.18);
+  border: 1px solid color-mix(in srgb, var(--safe-accent) 28%, transparent);
   border-radius: 999px;
   background: var(--safe-bg);
   color: var(--safe);
@@ -2869,7 +2873,7 @@ select.format-chip option,
 }
 
 .landing .demo-status.is-danger {
-  border-color: rgba(179, 38, 30, 0.18);
+  border-color: color-mix(in srgb, var(--danger-accent) 28%, transparent);
   background: var(--danger-bg);
   color: var(--danger);
 }
@@ -2982,13 +2986,13 @@ select.format-chip option,
 }
 
 .landing .demo-chip.is-safe {
-  border-color: rgba(24, 128, 56, 0.18);
+  border-color: color-mix(in srgb, var(--safe-accent) 28%, transparent);
   background: var(--safe-bg);
   color: var(--safe);
 }
 
 .landing .demo-chip.is-danger {
-  border-color: rgba(179, 38, 30, 0.18);
+  border-color: color-mix(in srgb, var(--danger-accent) 28%, transparent);
   background: var(--danger-bg);
   color: var(--danger);
 }
@@ -3009,7 +3013,7 @@ select.format-chip option,
   align-items: center;
   justify-self: start;
   min-height: 28px;
-  border: 1px solid rgba(24, 128, 56, 0.18);
+  border: 1px solid color-mix(in srgb, var(--safe-accent) 28%, transparent);
   border-radius: 999px;
   background: var(--safe-bg);
   color: var(--safe);
@@ -3260,7 +3264,7 @@ select.format-chip option,
   height: 24%;
   min-height: 3px;
   border-radius: 2px 2px 0 0;
-  background: var(--safe);
+  background: var(--safe-accent);
   opacity: 0.58;
 }
 
@@ -3275,7 +3279,7 @@ select.format-chip option,
 .landing .trace-preview-bars i:nth-child(10) { height: 92%; }
 
 .landing .trace-preview-bars i.is-notable {
-  background: var(--danger);
+  background: var(--danger-accent);
   opacity: 0.82;
 }
 
@@ -3727,7 +3731,7 @@ button.json-node:focus-visible {
   position: relative;
   border-color: var(--border-focus);
   background: var(--warn-bg);
-  box-shadow: inset 3px 0 0 var(--warn), 0 0 0 1px rgba(125, 86, 0, 0.08);
+  box-shadow: inset 3px 0 0 var(--warn-accent), 0 0 0 1px color-mix(in srgb, var(--warn-accent) 18%, transparent);
   color: var(--text-primary);
 }
 
@@ -4175,17 +4179,17 @@ a.section-label:hover {
 }
 
 .verify-timeline-step.is-safe > span {
-  background: rgba(42, 122, 75, 0.12);
+  background: var(--safe-bg);
   color: var(--safe);
 }
 
 .verify-timeline-step.is-warn > span {
-  background: rgba(138, 98, 0, 0.12);
+  background: var(--warn-bg);
   color: var(--warn);
 }
 
 .verify-timeline-step.is-danger > span {
-  background: rgba(179, 38, 30, 0.1);
+  background: var(--danger-bg);
   color: var(--danger);
 }
 
@@ -4268,8 +4272,8 @@ a.section-label:hover {
 }
 
 .format-diagnostic.is-safe {
-  border-top-color: rgba(42, 122, 75, 0.16);
-  background: rgba(42, 122, 75, 0.07);
+  border-top-color: color-mix(in srgb, var(--safe-accent) 26%, transparent);
+  background: var(--safe-bg);
   color: var(--safe);
 }
 
@@ -4305,9 +4309,9 @@ a.section-label:hover {
 .verify-difference {
   display: grid;
   gap: 8px;
-  border: 1px solid rgba(176, 0, 32, 0.12);
+  border: 1px solid color-mix(in srgb, var(--danger-accent) 22%, transparent);
   border-radius: 8px;
-  background: rgba(176, 0, 32, 0.04);
+  background: color-mix(in srgb, var(--danger-accent) 6%, transparent);
   padding: 10px;
 }
 
@@ -4348,13 +4352,13 @@ a.section-label:hover {
 }
 
 .verify-failure-group.is-danger {
-  border-color: rgba(179, 38, 30, 0.16);
-  background: rgba(179, 38, 30, 0.045);
+  border-color: color-mix(in srgb, var(--danger-accent) 26%, transparent);
+  background: color-mix(in srgb, var(--danger-accent) 7%, transparent);
 }
 
 .verify-failure-group.is-warn {
-  border-color: rgba(138, 98, 0, 0.16);
-  background: rgba(138, 98, 0, 0.05);
+  border-color: color-mix(in srgb, var(--warn-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--warn-accent) 8%, transparent);
 }
 
 .verify-failure-group span,
@@ -4416,11 +4420,11 @@ a.section-label:hover {
 }
 
 .verify-diff-row.is-danger {
-  background: rgba(179, 38, 30, 0.025);
+  background: color-mix(in srgb, var(--danger-accent) 4%, transparent);
 }
 
 .verify-diff-row.is-warn {
-  background: rgba(138, 98, 0, 0.025);
+  background: color-mix(in srgb, var(--warn-accent) 5%, transparent);
 }
 
 .verify-diff-row code {
@@ -4521,11 +4525,11 @@ a.section-label:hover {
 
 @keyframes correction-flash {
   0% {
-    border-color: rgba(24, 128, 56, 0.58);
-    box-shadow: 0 0 0 1px rgba(24, 128, 56, 0.18), var(--shadow);
+    border-color: color-mix(in srgb, var(--safe-accent) 62%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--safe-accent) 28%, transparent), var(--shadow);
   }
   45% {
-    border-color: rgba(24, 128, 56, 0.28);
+    border-color: color-mix(in srgb, var(--safe-accent) 38%, transparent);
   }
   100% {
     border-color: var(--border);
@@ -5422,7 +5426,7 @@ a.section-label:hover {
   bottom: -1px;
   left: 0;
   height: 2px;
-  background: var(--safe);
+  background: var(--safe-accent);
   content: "";
 }
 
@@ -5719,7 +5723,7 @@ a.section-label:hover {
   overflow: visible;
 }
 
-.trace-spark rect { fill: var(--safe); opacity: 0.62; }
+.trace-spark rect { fill: var(--safe-accent); opacity: 0.72; }
 
 .trace-bars {
   display: grid;
@@ -5736,7 +5740,7 @@ a.section-label:hover {
 }
 
 .trace-bars span { overflow: hidden; color: var(--text-secondary); text-overflow: ellipsis; white-space: nowrap; }
-.trace-bars i { height: 4px; background: linear-gradient(to right, var(--safe) calc(var(--bar) * 100%), var(--border) 0); }
+.trace-bars i { height: 4px; background: linear-gradient(to right, var(--safe-accent) calc(var(--bar) * 100%), var(--border) 0); }
 .trace-bars strong { color: var(--text-tertiary); font-weight: 400; }
 
 .trace-search {
@@ -6102,7 +6106,7 @@ a.section-label:hover {
 }
 
 .signal-preview-lines .is-attention i {
-  background: var(--danger);
+  background: var(--danger-accent);
   opacity: 1;
 }
 
@@ -6849,11 +6853,11 @@ a.section-label:hover {
 
 .signal-score-components i {
   height: 3px;
-  background: linear-gradient(to right, var(--safe) var(--component), var(--border) 0);
+  background: linear-gradient(to right, var(--safe-accent) var(--component), var(--border) 0);
 }
 
 .signal-score-components .is-penalty i {
-  background: linear-gradient(to right, var(--danger) var(--component), var(--border) 0);
+  background: linear-gradient(to right, var(--danger-accent) var(--component), var(--border) 0);
 }
 
 .signal-score-components strong {
@@ -7249,7 +7253,7 @@ a.section-label:hover {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: var(--safe);
+  background: var(--safe-accent);
 }
 
 .contract-local-status strong {
