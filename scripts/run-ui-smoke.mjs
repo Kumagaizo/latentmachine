@@ -12,12 +12,11 @@ const pages = [
     mounts: ["landing-demo"],
     scripts: ["/src/local/chrome.js", "/src/local/landing-demo.js"],
     text: [
-      "Check a batch",
+      "Verify a batch",
       "Verify demo",
-      "Understand your data in seconds.",
-      "Open Trace →",
-      "Find the lines that break the pattern.",
-      "Open Signal →",
+      "From uncertain output to a rule you can own.",
+      "Turn validated examples into a deterministic rule.",
+      "Supporting tools for inspecting and expressing transformations.",
     ],
     skipLink: true,
   },
@@ -330,10 +329,10 @@ async function assertSignalProductSurface() {
   for (const contract of [
     '"name": "Signal"',
     '"url": "https://latentmachine.com/signal"',
-    '<section class="feature-row feature-row--reverse">',
+    '<section class="utilities-panel" id="labs"',
+    '<section class="feature-row utility-feature">',
     '<div class="demo-window signal-preview">',
-    '<a class="button is-primary" href="/signal">Open Signal →</a>',
-    '<a class="site-link" href="/signal">Signal</a>',
+    '<a class="button" href="/signal">Open Signal &rarr;</a>',
     '<a href="/signal">Signal</a>',
   ]) {
     assert.ok(landing.includes(contract), `built landing page must include ${contract}`);

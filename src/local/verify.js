@@ -1070,8 +1070,9 @@ function render() {
   verify.innerHTML = `<section class="app-shell">
     <header class="tool-header">
       <p class="section-label">Verify</p>
-      <h1>Did the AI Get Every Row Right?</h1>
-      <p class="tool-subhead">Paste the original records and what the AI returned. Latentmachine checks whether every row follows one deterministic rule.</p>
+      <h1>Check an AI transformation across every record.</h1>
+      <p class="tool-subhead">Upload or paste the original and transformed datasets. Latentmachine identifies the dominant pattern, tests every record against it, and surfaces the exceptions with inspectable evidence.</p>
+      <p class="tool-journey">Verify discovers what happened. <a href="/infer">Turn the validated transformation into a rule &rarr;</a></p>
     </header>
 
     <div class="verify-presets">

@@ -1111,8 +1111,9 @@ function render(focusTarget = state.focusAfterRender) {
   app.innerHTML = `<section class="app-shell">
     <header class="tool-header">
       <p class="section-label">Infer</p>
-      <h1>Infer Data Transformation Rules from Examples</h1>
-      <p class="tool-subhead">Give an example of the data you have and the data you want. Inspect the rule before you use it.</p>
+      <h1>Turn validated examples into a deterministic rule.</h1>
+      <p class="tool-subhead">Provide representative input and output examples. Latentmachine infers a reusable transformation, verifies it against those examples, and exports code you can inspect and own.</p>
+      <p class="tool-journey">Infer makes the correct behavior reusable. <a href="/verify">Verify this transformation across a full batch &rarr;</a></p>
     </header>
     ${mainFlow(evaluation, stateChanged)}
     ${inspectionStatusHtml(inspectionData, { cardChanged: inspectionChanged || stateChanged, textChanged: inspectionChanged })}
