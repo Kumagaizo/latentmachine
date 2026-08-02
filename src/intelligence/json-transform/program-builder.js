@@ -2,6 +2,7 @@ import { explainOp } from "./explain.js";
 import { entries, getPath, parsePath, uniqueBy } from "./core.js";
 import { COST_PRIOR_STEP } from "./costs.js";
 import { inferArrayGroupBy, inferTargetCandidates } from "./candidates.js";
+import { instrumentProgramMemorisation, MEMORISATION_MINIMUM_ROWS, MEMORISATION_RATIO_THRESHOLD } from "./memorisation.js";
 import { executeJsonTransform, runtimeWarnings } from "./runtime.js";
 import { deepEqual, opSources } from "./shared.js";
 
@@ -40,6 +41,13 @@ function isDominatedConditionalLookup(selected, alternative) {
   return selected?.op?.op === "conditional"
     && alternative?.op?.op === "valueMap"
     && selected.op.source === alternative.op.source;
+}
+
+function isDominatedMemorisedLookup(selected, alternative, rowCount) {
+  if (rowCount < MEMORISATION_MINIMUM_ROWS) return false;
+  if (selected?.op?.op !== "valueMap" || alternative?.op?.op !== "valueMap") return false;
+  const alternativeRatio = Object.keys(alternative.op.map || {}).length / rowCount;
+  return alternativeRatio >= MEMORISATION_RATIO_THRESHOLD;
 }
 
 function templateAsConcat(op) {
@@ -139,10 +147,10 @@ export function buildProgram(examples, newInput = undefined, version = 3) {
   }));
   const selected = targetCandidates.map(row => selectCandidate(row.candidates, newInput)).filter(Boolean);
   const selectedByTarget = new Map(selected.map(item => [item.target, item]));
-  const program = {
+  const program = instrumentProgramMemorisation({
     version,
     ops: selected.map(item => item.op),
-  };
+  }, examples);
   const predictions = examples.map(example => executeJsonTransform(program, example.input));
   const exact = predictions.every((prediction, index) => deepEqual(prediction, examples[index].output));
   const unexplained = targetCandidates.filter(row => !row.candidates.length).map(row => row.target.path);
@@ -153,6 +161,7 @@ export function buildProgram(examples, newInput = undefined, version = 3) {
         candidate !== selectedCandidate
         && !deepEqual(candidate.op, selectedCandidate?.op)
         && !isDominatedConditionalLookup(selectedCandidate, candidate)
+        && !isDominatedMemorisedLookup(selectedCandidate, candidate, examples.length)
       ));
       if (!selectedCandidate || !alternative || Math.abs(alternative.cost - selectedCandidate.cost) > AMBIGUITY_TRIAGE.closeCostGap) return null;
       const strength = ambiguityStrength(selectedCandidate, alternative, newInput);

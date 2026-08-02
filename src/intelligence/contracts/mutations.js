@@ -9,6 +9,7 @@ import { deepEqual, stableStringify } from "../json-transform/shared.js";
 import { fingerprintTransformationMutation } from "./identity.js";
 import { evaluateTransformationInvariants } from "./invariants.js";
 import { validateTransformationContract } from "./schema.js";
+import { unwrapTransformationContract } from "./contract-input.js";
 
 function cloneJson(value) {
   return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
@@ -18,6 +19,20 @@ function compareText(left, right) {
   const a = String(left);
   const b = String(right);
   return a < b ? -1 : a > b ? 1 : 0;
+}
+
+function mutationCoverage(contract, mutations) {
+  const operationTargets = [...new Set((contract.program?.ops || []).map(operation => operation.target).filter(Boolean))].sort(compareText);
+  const targetedPaths = [...new Set(mutations.map(mutation => mutation.parameters?.path).filter(Boolean))].sort(compareText);
+  const coveredTargets = operationTargets.filter(target => targetedPaths.includes(target));
+  return {
+    operationTargetCount: operationTargets.length,
+    coveredTargetCount: coveredTargets.length,
+    targetCoverage: operationTargets.length ? Number((coveredTargets.length / operationTargets.length).toFixed(4)) : 1,
+    coveredTargets,
+    uncoveredTargets: operationTargets.filter(target => !coveredTargets.includes(target)),
+    mutationKinds: [...new Set(mutations.map(mutation => mutation.kind))].sort(compareText),
+  };
 }
 
 function mutationId(contract, seed) {
@@ -155,6 +170,7 @@ function firstOutputPath(contract) {
 }
 
 export function generateTransformationMutations(contract) {
+  contract = unwrapTransformationContract(contract);
   const validation = validateTransformationContract(contract);
   if (!validation.ok) {
     throw new Error(`Cannot generate mutations for an invalid contract: ${validation.errors[0]?.message || "validation failed"}`);
@@ -271,6 +287,7 @@ function applyMutation(contract, base, mutation) {
 }
 
 export function runTransformationMutationSuite(contract, context = {}) {
+  contract = unwrapTransformationContract(contract);
   const validation = validateTransformationContract(contract);
   if (!validation.ok) {
     return {
@@ -310,5 +327,6 @@ export function runTransformationMutationSuite(contract, context = {}) {
     mutations,
     detected: mutations.filter(item => item.detected).map(item => item.id),
     undetected: mutations.filter(item => !item.detected).map(item => item.id),
+    coverage: mutationCoverage(contract, mutations),
   };
 }

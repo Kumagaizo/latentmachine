@@ -2,10 +2,12 @@ import { executeJsonTransform } from "../../../src/intelligence/json-transform/r
 import { SECURITY_LIMITS, assertArrayLimit, assertSerializedLimit } from "./limits.js";
 
 function resolveRuleArtifact(rule) {
-  if (rule?.program) return rule;
-  if (rule?.rule?.program) return rule.rule;
-  if (rule?.result?.rule?.program) return rule.result.rule;
-  throw new Error("Invalid rule. Provide a rule artifact from infer() or verify().");
+  const artifact = rule?.program ? rule : rule?.rule?.program ? rule.rule : rule?.result?.rule?.program ? rule.result.rule : null;
+  if (artifact?.executable === false) {
+    throw new Error("This is a compact diagnostic rule without lookup bodies. Infer an executable rule before applying it.");
+  }
+  if (artifact) return artifact;
+  throw new Error("Invalid rule. Provide an executable rule artifact from infer() or verify().");
 }
 
 /**

@@ -35,7 +35,7 @@ export const TOOLS = [
     description: [
       "Check whether a batch of AI-transformed data rows all follow one deterministic rule.",
       "Paste the original records and the AI-generated output.",
-      "Returns which rows are consistent and which broke the pattern.",
+      "Returns a capped diagnostic summary; high-cardinality lookup bodies are never inlined.",
       "Uses a deterministic symbolic engine, not an LLM.",
     ].join(" "),
     inputSchema: toolSchema({
@@ -52,6 +52,13 @@ export const TOOLS = [
         enum: FORMAT_ENUM,
         default: "auto",
         description: "Data format. Auto-detected if omitted.",
+      },
+      flagged_row_limit: {
+        type: "integer",
+        minimum: 0,
+        maximum: 100,
+        default: 50,
+        description: "Maximum flagged row details to return; total counts always cover the full batch.",
       },
     }, ["original", "transformed"]),
   },
@@ -74,7 +81,7 @@ export const TOOLS = [
     name: "apply_transformation_rule",
     description: [
       "Apply a previously inferred transformation rule to new input data.",
-      "Requires a rule artifact from infer_transformation_rule or verify_data_transformation.",
+      "Requires an executable rule artifact from infer_transformation_rule.",
       "Executes deterministically: same input, same rule, same output.",
     ].join(" "),
     inputSchema: toolSchema({
@@ -318,6 +325,7 @@ function mutationResult(report, includeReport) {
       gapCount: report.undetected.length,
       detected: report.detected,
       gaps: report.undetected,
+      coverage: report.coverage,
     },
     ...(includeReport ? { report } : {}),
   };
@@ -327,11 +335,11 @@ async function callTool(name, args = {}) {
   const runtime = await loadRuntime();
 
   if (name === "verify_data_transformation") {
-    return runtime.verify({
+    return runtime.compactVerificationResult(runtime.verify({
       original: args.original,
       transformed: args.transformed,
       format: args.format || "auto",
-    });
+    }), { flaggedRowLimit: args.flagged_row_limit });
   }
 
   if (name === "infer_transformation_rule") {
@@ -404,7 +412,7 @@ async function callTool(name, args = {}) {
   }
 
   if (name === "test_transformation_contract") {
-    const contract = parseJson(args.contract, "contract", runtime);
+    const contract = runtime.unwrapTransformationContract(parseJson(args.contract, "contract", runtime));
     const report = runtime.runTransformationMutationSuite(contract, {
       inputRecords: contract.evidence?.examples?.map(example => example.input) || [],
       outputRecords: contract.evidence?.examples?.map(example => example.output) || [],

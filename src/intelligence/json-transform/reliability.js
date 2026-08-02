@@ -1,3 +1,5 @@
+import { MEMORISATION_MINIMUM_ROWS, MEMORISATION_RATIO_THRESHOLD } from "./memorisation.js";
+
 const CONFIDENCE_NOTE = "Evidence from exact fit, examples, ambiguity, schema drift, and guardrails. Not a probability.";
 const CONTRADICTION_WARNING_TYPES = new Set([
   "same-input-conflict",
@@ -9,7 +11,7 @@ function evidenceReason(kind, detail, caps = null) {
   return caps ? { kind, detail, caps } : { kind, detail };
 }
 
-export function reliabilityEvidenceFor({ built, warnings, tests, schemaDrift }) {
+export function reliabilityEvidenceFor({ built, warnings, tests, schemaDrift, memorisation }) {
   return {
     exactFit: built.exact,
     examplesProvided: tests.length,
@@ -24,6 +26,7 @@ export function reliabilityEvidenceFor({ built, warnings, tests, schemaDrift }) 
       field: warning.source || warning.op?.source || warning.op?.target || null,
       message: warning.message,
     })),
+    memorisation,
   };
 }
 
@@ -32,6 +35,7 @@ export function assessConfidence(evidence = {}) {
   const guardrails = evidence.guardrails || [];
   const unexplainedPaths = evidence.unexplainedPaths || [];
   const ambiguities = evidence.meaningfulAmbiguities || [];
+  const memorisedTargets = evidence.memorisation?.memorisedTargets || [];
   const noBlocking = blockingSchema.length === 0 && guardrails.length === 0;
   const checkRows = [
     { passed: !!evidence.exactFit, reason: "examples reproduce exactly" },
@@ -39,6 +43,7 @@ export function assessConfidence(evidence = {}) {
     { passed: unexplainedPaths.length === 0, reason: "all output paths explained" },
     { passed: ambiguities.length === 0, reason: "no meaningful ambiguity" },
     { passed: (evidence.examplesProvided || 0) >= 2, reason: "at least two examples" },
+    { passed: memorisedTargets.length === 0, reason: "no high-cardinality lookup was fitted" },
   ];
   const checks = {
     passed: checkRows.filter(row => row.passed).length,
@@ -48,8 +53,16 @@ export function assessConfidence(evidence = {}) {
 
   if (!evidence.exactFit) {
     reasons.push(evidenceReason("not-exact", `${evidence.examplesMatched || 0}/${evidence.examplesProvided || 0} examples matched.`, "blocked"));
-  } else {
+  } else if (!memorisedTargets.length) {
     reasons.push(evidenceReason("exact-fit", `${evidence.examplesMatched || 0}/${evidence.examplesProvided || 0} examples matched exactly.`));
+  }
+
+  if (memorisedTargets.length) {
+    reasons.push(evidenceReason(
+      "memorised-lookup",
+      `${memorisedTargets.length} of ${(evidence.memorisation?.verifiedTargets || []).length + memorisedTargets.length} fields were fitted with high-cardinality lookup tables: ${memorisedTargets.join(", ")}.`,
+      "unverified",
+    ));
   }
 
   for (const item of blockingSchema) {
@@ -67,7 +80,7 @@ export function assessConfidence(evidence = {}) {
   if ((evidence.examplesProvided || 0) < 2 && evidence.exactFit) {
     reasons.push(evidenceReason("single-example", "Only one example supports this rule.", "needs-proof"));
   }
-  if (reasons.length === 1 && evidence.exactFit && noBlocking && !unexplainedPaths.length && !ambiguities.length && (evidence.examplesProvided || 0) >= 2) {
+  if (reasons.length === 1 && evidence.exactFit && noBlocking && !unexplainedPaths.length && !ambiguities.length && !memorisedTargets.length && (evidence.examplesProvided || 0) >= 2) {
     reasons.push(evidenceReason("proven", "No unresolved paths, meaningful ambiguities, or blocking guardrails."));
   }
 
@@ -75,6 +88,7 @@ export function assessConfidence(evidence = {}) {
   if (!evidence.exactFit) label = "blocked";
   else if (!noBlocking) label = "unsafe";
   else if (unexplainedPaths.length || ambiguities.length) label = "needs-proof";
+  else if (memorisedTargets.length) label = "unverified";
   else if ((evidence.examplesProvided || 0) < 2) label = "supported";
 
   const risk = label === "blocked" || label === "unsafe" ? "high" : label === "proven" ? "low" : "medium";
@@ -100,7 +114,7 @@ export function riskTypes({ status, warnings, ambiguous }) {
   return [...risks];
 }
 
-export function diagnosisStatus({ built, warnings, examples }) {
+export function diagnosisStatus({ built, warnings, examples, memorisation }) {
   if (warnings.some(warning => CONTRADICTION_WARNING_TYPES.has(warning.type))) return "contradictory";
   if (!built.exact || built.unexplained.length) return "unsafe";
   if (warnings.length) return "unsafe";
@@ -110,6 +124,7 @@ export function diagnosisStatus({ built, warnings, examples }) {
   if (unprovenGroupBy) return "insufficient";
   if (examples.length < 2 && built.ambiguous.length) return "insufficient";
   if (built.ambiguous.length) return "ambiguous";
+  if (memorisation?.memorisedTargets?.length) return "unverified";
   return "safe";
 }
 
@@ -226,10 +241,20 @@ function suggestedExamplesFor({ status, built, warnings }) {
   if (status === "insufficient" && !suggestions.length) {
     suggestions.push({ type: "insufficient", reason: "Add a second example with different values to prove the rule generalizes." });
   }
+  for (const item of built.program?.ops || []) {
+    if (!item.memorisation || item.memorisation.rowCount < MEMORISATION_MINIMUM_ROWS || item.memorisation.ratio < MEMORISATION_RATIO_THRESHOLD) continue;
+    suggestions.push({
+      type: "memorised-lookup",
+      reason: `${item.target} was fitted from ${item.memorisation.tableEntries} lookup entries across ${item.memorisation.rowCount} rows. Provide examples that establish a reusable rule or explicitly constrain the allowed mapping.`,
+      target: item.target,
+      field: item.source,
+      fields: [item.source, item.target].filter(Boolean),
+    });
+  }
   return suggestions;
 }
 
-export function buildDiagnosis({ status, built, warnings, tests, alternatives, examples, schemaDrift }) {
+export function buildDiagnosis({ status, built, warnings, tests, alternatives, examples, schemaDrift, memorisation }) {
   const contradictions = warnings
     .filter(warning => CONTRADICTION_WARNING_TYPES.has(warning.type))
     .map(warning => ({
@@ -255,6 +280,7 @@ export function buildDiagnosis({ status, built, warnings, tests, alternatives, e
     unexplained: built.unexplained,
     guardrails,
     schemaDrift,
+    memorisation,
     suggestedExamples: suggestedExamplesFor({ status, built, warnings }),
     candidates: alternatives,
   };

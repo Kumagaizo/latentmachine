@@ -136,10 +136,10 @@ export const VERIFY_ACCEPTANCE_CASES = [
   },
   {
     id: "accept-row-order-ambiguity",
-    label: "Row order ambiguity is blocked",
+    label: "Row order memorisation is unverifiable",
     expectedFlagged: 0,
     expectedFlaggedRows: [],
-    expectedRuleStatus: "ambiguous",
+    expectedRuleStatus: "unverified",
     original: numberedRows(8, id => ({
       id,
       name: `Customer ${id}`,

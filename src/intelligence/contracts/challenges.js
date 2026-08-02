@@ -3,6 +3,7 @@ import { executeJsonTransform } from "../json-transform/runtime.js";
 import { deepEqual, opSources } from "../json-transform/shared.js";
 import { fingerprintTransformationChallenge } from "./identity.js";
 import { validateTransformationContract } from "./schema.js";
+import { unwrapTransformationContract } from "./contract-input.js";
 
 const BLOCKING_SEVERITY = "blocking";
 
@@ -225,6 +226,7 @@ export function withTransformationChallengeTrace(contract, events = []) {
 }
 
 export function generateTransformationChallenges(contract) {
+  contract = unwrapTransformationContract(contract);
   const initialValidation = validateTransformationContract(contract);
   if (!initialValidation.ok) {
     throw new Error(`Cannot generate challenges for an invalid contract: ${initialValidation.errors[0]?.message || "validation failed"}`);

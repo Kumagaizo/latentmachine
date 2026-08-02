@@ -30,6 +30,8 @@ console.log(result.verdict);
 console.log(result.flaggedRows);
 ```
 
+`result.verdict` is `consistent`, `inconsistent`, or `unverifiable`. The third state means the examples were fitted by a high-cardinality lookup rather than a reusable rule; affected fields and lookup ratios are available in `result.memorisation` and `result.summary`. Memorised rules never receive `confidence.label: "proven"`.
+
 ## Infer and apply a rule
 
 ```js
@@ -146,6 +148,8 @@ latentmachine contract diff contract-v1.json contract-v2.json
 ```
 
 JSON is written to stdout by default. Use `--format human` for concise terminal output. Diagnostics go to stderr.
+
+The verification command exits with code `1` for both `inconsistent` and `unverifiable`. Use `--allow-unverifiable` only when a CI workflow intentionally accepts the latter. JSON verification output caps flagged-row details and omits lookup table bodies.
 
 Contract command exit codes:
 

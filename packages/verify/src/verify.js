@@ -1,5 +1,6 @@
 import { detectFormat, parseWithFormat } from "../../../src/intelligence/data-formats/index.js";
 import { inferVerifyRule } from "../../../src/intelligence/json-transform/verify-inference.js";
+import { memorisationSummary } from "../../../src/intelligence/json-transform/memorisation.js";
 import { SECURITY_LIMITS, assertArrayLimit, assertSerializedLimit, assertTextLimit } from "./limits.js";
 
 function normalizeRows(parsed) {
@@ -18,10 +19,10 @@ function parseRows(value, format) {
  * Infer the dominant transformation in two aligned datasets and report rows
  * that do not follow it.
  *
- * @param {{ original: unknown, transformed: unknown, format?: string }} options
+ * @param {{ original: unknown, transformed: unknown, format?: string, legacyVerdict?: boolean }} options
  * @returns {object} A verdict, row counts, flagged rows, and the inferred rule.
  */
-export function verify({ original, transformed, format = "auto" } = {}) {
+export function verify({ original, transformed, format = "auto", legacyVerdict = false } = {}) {
   const originalRows = normalizeRows(parseRows(original, format));
   const transformedRows = normalizeRows(parseRows(transformed, format));
   assertArrayLimit(originalRows, "Original rows", SECURITY_LIMITS.maxRows);
@@ -40,9 +41,19 @@ export function verify({ original, transformed, format = "auto" } = {}) {
   }
 
   const result = inferVerifyRule(originalRows, transformedRows);
+  const memorisation = result.result?.rule?.memorisation || result.result?.memorisation || null;
+  const hasMemorisedTargets = (memorisation?.memorisedTargets || []).length > 0;
+  const actualVerdict = result.flagged.length > 0
+    ? "inconsistent"
+    : hasMemorisedTargets ? "unverifiable" : "consistent";
+  const verdict = legacyVerdict && actualVerdict === "unverifiable" ? "consistent" : actualVerdict;
+  if (legacyVerdict && actualVerdict === "unverifiable") {
+    console.warn(`legacyVerdict is deprecated: mapped unverifiable to consistent for ${(memorisation.memorisedTargets || []).join(", ")}.`);
+  }
 
   return {
-    verdict: result.flagged.length === 0 ? "consistent" : "inconsistent",
+    verdict,
+    ...(legacyVerdict && actualVerdict !== verdict ? { actualVerdict } : {}),
     totalRows: originalRows.length,
     matchedRows: result.matched,
     flaggedRows: result.flagged.map((flag) => ({
@@ -53,6 +64,13 @@ export function verify({ original, transformed, format = "auto" } = {}) {
     })),
     rule: result.result?.rule || null,
     ruleStatus: result.result?.status || "unknown",
+    confidence: result.result?.confidence || null,
+    memorisation,
+    summary: actualVerdict === "unverifiable"
+      ? memorisationSummary(memorisation)
+      : actualVerdict === "consistent"
+        ? `${originalRows.length} rows followed one reusable deterministic rule.`
+        : `${result.flagged.length} of ${originalRows.length} rows contradicted the inferred rule.`,
     detectedFormats: {
       original: typeof original === "string" ? detectFormat(original) : "json",
       transformed: typeof transformed === "string" ? detectFormat(transformed) : "json",

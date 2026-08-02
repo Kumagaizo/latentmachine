@@ -2,6 +2,7 @@ import {
   TRANSFORMATION_APPROVAL_METHODS,
   validateTransformationContract,
 } from "./schema.js";
+import { unwrapTransformationContract } from "./contract-input.js";
 
 function cloneJson(value) {
   return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
@@ -40,6 +41,12 @@ function appendLifecycleTrace(contract, event) {
 }
 
 function approvalArguments(contractOrInput, acknowledgement) {
+  if (contractOrInput?.contract?.kind) {
+    return {
+      contract: unwrapTransformationContract(contractOrInput),
+      acknowledgement: acknowledgement ?? contractOrInput.acknowledgement,
+    };
+  }
   if (
     acknowledgement === undefined
     && contractOrInput
@@ -240,4 +247,3 @@ export function revokeContract(contractOrInput, optionsInput) {
 export const approveTransformationContract = approveContract;
 export const supersedeTransformationContract = supersedeContract;
 export const revokeTransformationContract = revokeContract;
-

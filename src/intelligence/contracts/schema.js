@@ -8,6 +8,7 @@ export const TRANSFORMATION_CONTRACT_SUPPORTED_MINOR = 0;
 
 export const TRANSFORMATION_INFERENCE_STATUSES = Object.freeze([
   "safe",
+  "unverified",
   "ambiguous",
   "contradictory",
   "unsafe",

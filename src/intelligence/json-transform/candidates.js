@@ -95,7 +95,9 @@ function inferStringNormalize(examples, targetPath, targetValues, sourceEntries)
 
 function inferNumericTransform(examples, targetPath, targetValues, sourceEntries) {
   if (!targetValues.every(value => typeof value === "number")) return [];
-  const numericSources = sourceEntries.filter(entry => ["number", "string"].includes(entry.type));
+  const numericSources = sourceEntries
+    .filter(entry => ["number", "string"].includes(entry.type))
+    .filter(entry => examples.every(example => Number.isFinite(Number(getPath(example.input, entry.path)))));
   const candidates = [];
   for (const source of numericSources) {
     const pairs = examples.map((example, index) => ({ from: Number(getPath(example.input, source.path)), to: targetValues[index] }));

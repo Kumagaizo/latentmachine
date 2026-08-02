@@ -4,6 +4,7 @@ import { costOf } from "./costs.js";
 import { buildDiagnosis, diagnosisStatus, reliabilityEvidenceFor, reliabilityFor, riskTypes, assessConfidence } from "./reliability.js";
 import { parseJson } from "./operations.js";
 import { buildProgram } from "./program-builder.js";
+import { memorisationForProgram } from "./memorisation.js";
 import { evidenceForProgram, explanationForProgram, preconditionsForProgram, programTitle, summarizeProgram } from "./program-view.js";
 import { executeJsonTransform, runtimeWarnings } from "./runtime.js";
 import { schemaDriftForProgram, schemaPathKey } from "./schema.js";
@@ -80,6 +81,7 @@ export function runJsonTransform(input = {}) {
 
   const newInput = input.newInput !== undefined ? parseJson(input.newInput, "New input") : examples.at(-1).input;
   const built = buildProgram(examples, newInput, JSON_TRANSFORM_VERSION);
+  const memorisation = memorisationForProgram(built.program);
   const totalCandidates = built.targetCandidates.reduce((sum, row) => sum + row.candidates.length, 0);
   traces.push(makeTrace("hypothesize", `${totalCandidates} candidate rules generated for ${built.targetCandidates.length} output target paths.`));
   traces.push(makeTrace("score", built.exact ? "Simplest exact program selected." : "No exact program found for all examples.", {
@@ -113,15 +115,15 @@ export function runJsonTransform(input = {}) {
     expected: example.output,
     predicted: built.predictions[index],
   }));
-  const status = diagnosisStatus({ built, warnings, examples });
+  const status = diagnosisStatus({ built, warnings, examples, memorisation });
   const risks = riskTypes({ status, warnings, ambiguous: built.ambiguous });
   const preconditions = preconditionsForProgram(built.program, examples);
   const evidence = evidenceForProgram(built.program, examples, JSON_TRANSFORM_VERSION);
   const explanation = explanationForProgram({ program: built.program, built, perception, preconditions });
-  const diagnosis = buildDiagnosis({ status, built, warnings, tests, alternatives, examples, schemaDrift });
+  const diagnosis = buildDiagnosis({ status, built, warnings, tests, alternatives, examples, schemaDrift, memorisation });
   const ruleId = built.program.ops.map(op => op.op).join("+") || "empty";
   const createdAt = new Date(started).toISOString();
-  const reliabilityEvidence = reliabilityEvidenceFor({ built, warnings, tests, schemaDrift });
+  const reliabilityEvidence = reliabilityEvidenceFor({ built, warnings, tests, schemaDrift, memorisation });
   const shapedConfidence = { ...assessConfidence(reliabilityEvidence), risks };
   const reliability = reliabilityFor({ status, confidence: shapedConfidence, evidence: reliabilityEvidence, risks });
 
@@ -134,6 +136,7 @@ export function runJsonTransform(input = {}) {
       title: programTitle(built.program.ops),
       summary: summarizeProgram(built.program.ops) || "No output targets were present.",
       status,
+      memorisation,
       confidence: shapedConfidence,
       reliability,
       preconditions,
@@ -149,6 +152,7 @@ export function runJsonTransform(input = {}) {
     traces,
     confidence: shapedConfidence,
     reliability,
+    memorisation,
     preconditions,
     warnings,
     evidence,

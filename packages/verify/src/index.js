@@ -3,6 +3,7 @@
  * execution, structured-format parsing, and structural fingerprints.
  */
 export { verify } from "./verify.js";
+export { compactRuleArtifact, compactVerificationResult } from "./reporting.js";
 export { infer } from "./infer.js";
 export { transform } from "./transform.js";
 export * from "./contracts.js";

@@ -31,7 +31,7 @@ If installed globally:
 
 ## Tools
 
-- `verify_data_transformation`: checks whether transformed rows follow one deterministic rule.
+- `verify_data_transformation`: returns `consistent`, `inconsistent`, or field-attributed `unverifiable`; row details are capped and lookup table bodies are omitted.
 - `infer_transformation_rule`: infers a symbolic rule from input/output examples.
 - `apply_transformation_rule`: applies a previously inferred rule to new input.
 - `detect_data_format`: detects JSON, CSV, YAML, TOML, XML, `.env`, SQL INSERT, or unknown data.
@@ -64,6 +64,8 @@ MCP can prepare a contract for review, surface challenges, mutation-test it, and
 Approve the exact core fingerprint in Contract Studio or with the CLI. Automated approval must use the distinct `automated-policy` method outside MCP.
 
 Contract tools return concise summaries by default. Runtime record summaries are capped at 20 unless `record_limit` is set, and full reports require `include_report: true`.
+
+`get_contract_challenges` and `test_transformation_contract` accept either a bare contract or the complete `{ summary, review, contract }` result returned by `learn_transformation_contract`. Verification responses contain a compact, non-executable rule; call `infer_transformation_rule` when the next step is `apply_transformation_rule`.
 
 ## Privacy
 

@@ -47,7 +47,7 @@
             "name": "Can I use Latentmachine in a CI pipeline?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes, after the public npm release. The CLI exits with code 0 if consistent and code 1 if inconsistent."
+              "text": "Yes, after the public npm release. The CLI exits with code 0 only for a consistent verdict. Inconsistent and unverifiable verdicts exit with code 1 unless unverifiable results are explicitly allowed."
             }
           }
         ]
@@ -237,11 +237,14 @@ const csv = serializeWithFormat(data, "csv");
           <h3>Return values</h3>
           <p><code>verify()</code> returns:</p>
           <ul>
-            <li><code>verdict</code>: <code>"consistent"</code> or <code>"inconsistent"</code>.</li>
+            <li><code>verdict</code>: <code>"consistent"</code>, <code>"inconsistent"</code>, or <code>"unverifiable"</code> when a high-cardinality lookup fits the examples without establishing a reusable rule.</li>
             <li><code>totalRows</code>: number of rows checked.</li>
             <li><code>matchedRows</code>: rows that followed the majority rule.</li>
             <li><code>flaggedRows</code>: <code>{ index, input, expected, actual }</code> for rows that broke the pattern.</li>
-            <li><code>ruleStatus</code>: <code>safe</code>, <code>ambiguous</code>, <code>contradictory</code>, <code>unsafe</code>, or <code>insufficient</code>.</li>
+            <li><code>ruleStatus</code>: <code>safe</code>, <code>unverified</code>, <code>ambiguous</code>, <code>contradictory</code>, <code>unsafe</code>, or <code>insufficient</code>.</li>
+            <li><code>confidence</code>: the evidence label, checks, and reasons; memorised lookups never receive <code>proven</code>.</li>
+            <li><code>memorisation</code>: lookup ratios, affected targets, and the threshold and evidence floor in force.</li>
+            <li><code>summary</code>: a human-readable, field-attributed verdict explanation.</li>
           </ul>
           <p><code>infer()</code> returns:</p>
           <ul>

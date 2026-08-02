@@ -132,13 +132,14 @@ function formatDirection(run = state.run) {
 function runTone(run = state.run) {
   if (!run) return state.original.trim() && state.transformed.trim() ? "warn" : "muted";
   if (run.error) return "danger";
-  return run.verdict === "safe" ? "safe" : "danger";
+  return run.verdict === "safe" ? "safe" : run.verdict === "unverified" ? "warn" : "danger";
 }
 
 function runStatusText(run = state.run) {
   if (state.busy) return "Checking";
   if (!run) return state.original.trim() && state.transformed.trim() ? "Ready to check" : "Paste original records and AI output";
   if (run.error) return "Blocked by input";
+  if (run.verdict === "unverified") return "Unverifiable";
   if (run.result?.status !== "safe" && !run.flagged?.length) return "Blocked";
   return run.verdict === "safe" ? "Consistent" : "Inconsistent";
 }
@@ -229,6 +230,7 @@ function proofSummary(run = state.run) {
 function auditSummaryText(run = state.run) {
   const proof = proofSummary(run);
   if (!run || run.error) return "No verification run is available.";
+  if (run.verdict === "unverified") return memorisationText(run);
   if (run.result?.status !== "safe") {
     return `Verified ${plural(proof.totalRows, "row")}. The batch did not prove one safe rule (${run.result?.status || "blocked"}). ${proof.evidenceBasis}`;
   }
@@ -241,8 +243,17 @@ function auditSummaryText(run = state.run) {
 function verdictTextForRun(run) {
   if (!run || run.error) return "No verification run is available.";
   if (run.verdict === "safe") return "Consistent: every transformed row followed the inferred rule.";
+  if (run.verdict === "unverified") return `Unverifiable: ${memorisationText(run)}`;
   if (run.result?.status !== "safe" && !run.flagged?.length) return `Blocked: the batch did not prove one safe rule (${run.result?.status || "blocked"}).`;
   return `Inconsistent: ${plural(run.flagged.length, "row")} did not follow the inferred rule.`;
+}
+
+function memorisationText(run) {
+  const memo = run?.result?.rule?.memorisation || {};
+  const lookups = (memo.lookups || []).filter(item => (memo.memorisedTargets || []).includes(item.target));
+  const total = (memo.verifiedTargets || []).length + (memo.memorisedTargets || []).length;
+  const fields = lookups.map(item => `${item.target} (${item.tableEntries} of ${item.rowCount} rows)`).join(", ");
+  return `${total} fields checked. ${(memo.verifiedTargets || []).length} verified against a reusable rule. ${lookups.length} fitted as memorised lookups: ${fields}. Drift in these fields would not be detected.`;
 }
 
 function isTypingTarget(target) {
@@ -743,6 +754,8 @@ function cockpitHtml() {
     : state.run && !state.run.error
       ? state.run.verdict === "safe"
         ? "Every aligned transformed row follows the inferred rule."
+        : state.run.verdict === "unverified"
+          ? memorisationText(state.run)
         : state.run.result?.status !== "safe" && !state.run.flagged?.length
           ? "The batch needs stronger evidence before Verify can trust one rule."
           : "Review the flagged rows, then copy the audit summary or download the report."
@@ -834,6 +847,26 @@ function inconsistentResultHtml(run) {
   </section>`;
 }
 
+function unverifiedResultHtml(run) {
+  return `<section class="result-card verify-result">
+    <aside class="status-pill is-warn verify-verdict" aria-live="polite">
+      <div class="inspection-head"><span>Verdict</span><strong>Unverifiable - the fitted rule memorises row values</strong></div>
+      ${cockpitGridHtml(run)}
+      <p>${esc(memorisationText(run))}</p>
+    </aside>
+    ${resultMetricCards(run)}
+    ${auditTimelineHtml(run)}
+    ${evidenceSummaryHtml(run)}
+    <div class="rule-section">
+      <div class="section-label">Partially verified rule</div>
+      <p>${esc(ruleSummary(run.result))}</p>
+      ${ruleSpecificationHtml(run.result)}
+    </div>
+    ${suggestedExamplesHtml(run.result)}
+    ${verifyScopeExplainer()}
+  </section>`;
+}
+
 function diagnosticHtml(message) {
   return `<div class="format-diagnostic is-danger"><p>${esc(message)}</p></div>`;
 }
@@ -871,7 +904,9 @@ async function runVerify() {
       outputFormat: transformed.format,
       transformedFormat: transformed.format,
       activeSample: state.activeSample || "",
-      verdict: inference.result.status === "safe" && inference.flagged.length === 0 ? "safe" : "danger",
+      verdict: inference.flagged.length
+        ? "danger"
+        : inference.result.status === "unverified" ? "unverified" : inference.result.status === "safe" ? "safe" : "danger",
       matched: inference.matched,
       trainedOn: inference.trainedOn || null,
       omitted: Number.isInteger(inference.omitted) ? inference.omitted : null,
@@ -1063,7 +1098,9 @@ function resultHtml() {
   if (state.run.error) {
     return `<section class="result-card verify-result">${diagnosticHtml(state.run.error)}</section>`;
   }
-  return state.run.verdict === "safe" ? consistentResultHtml(state.run) : inconsistentResultHtml(state.run);
+  if (state.run.verdict === "safe") return consistentResultHtml(state.run);
+  if (state.run.verdict === "unverified") return unverifiedResultHtml(state.run);
+  return inconsistentResultHtml(state.run);
 }
 
 function render() {

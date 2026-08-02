@@ -14,8 +14,11 @@ import {
   learnContract,
   runContract,
   runTransformationMutationSuite,
+  unwrapTransformationContract,
 } from "../src/intelligence/contracts/index.js";
 import { SECURITY_LIMITS, assertArrayLimit, assertSerializedLimit, assertTextLimit } from "../packages/verify/src/limits.js";
+import { compactVerificationResult } from "../packages/verify/src/reporting.js";
+import { memorisationSummary } from "../src/intelligence/json-transform/memorisation.js";
 
 const FORMAT_ENUM = ["auto", "json", "csv", "yaml", "toml", "xml", "env", "sql"];
 const DIFF_PATH_LIST_LIMIT = 100;
@@ -86,7 +89,7 @@ export const TOOLS = [
     name: "verify_data_transformation",
     description:
       "Check whether a batch of AI-transformed data rows all follow one deterministic rule. " +
-      "Takes the original records and transformed output, infers the majority rule, and flags every row that broke the pattern. " +
+      "Takes the original records and transformed output, infers the majority rule, and returns a capped diagnostic summary. " +
       "Uses a deterministic symbolic engine, not an LLM.",
     inputSchema: {
       type: "object",
@@ -105,6 +108,13 @@ export const TOOLS = [
           type: "string",
           enum: FORMAT_ENUM,
           description: "Optional source format. Defaults to auto.",
+        },
+        flagged_row_limit: {
+          type: "integer",
+          minimum: 0,
+          maximum: 100,
+          default: 50,
+          description: "Maximum flagged row details to return; total counts always cover the full batch.",
         },
       },
       required: ["original", "transformed"],
@@ -132,7 +142,7 @@ export const TOOLS = [
     name: "apply_transformation_rule",
     description:
       "Apply a previously inferred transformation rule to new input data. " +
-      "Requires a rule object from infer_transformation_rule or verify_data_transformation. " +
+      "Requires an executable rule object from infer_transformation_rule. " +
       "Executes deterministically: same input plus same rule gives the same output.",
     inputSchema: {
       type: "object",
@@ -374,13 +384,15 @@ function parseMaybeJson(value, label) {
 }
 
 function resolveRuleArtifact(rule) {
-  if (rule?.program) return rule;
-  if (rule?.rule?.program) return rule.rule;
-  if (rule?.result?.rule?.program) return rule.result.rule;
-  throw new Error("Invalid rule. Provide a rule artifact from infer or verify.");
+  const artifact = rule?.program ? rule : rule?.rule?.program ? rule.rule : rule?.result?.rule?.program ? rule.result.rule : null;
+  if (artifact?.executable === false) {
+    throw new Error("This is a compact diagnostic rule without lookup bodies. Use infer_transformation_rule before applying it.");
+  }
+  if (artifact) return artifact;
+  throw new Error("Invalid rule. Provide an executable rule artifact from infer_transformation_rule.");
 }
 
-export function handleVerify({ original, transformed, format = "auto" }) {
+export function handleVerify({ original, transformed, format = "auto", flagged_row_limit = 50 }) {
   const originalRows = normalizeRows(parseMaybeStructured(original, format));
   const transformedRows = normalizeRows(parseMaybeStructured(transformed, format));
   assertArrayLimit(originalRows, "Original rows", SECURITY_LIMITS.maxRows);
@@ -399,9 +411,14 @@ export function handleVerify({ original, transformed, format = "auto" }) {
   }
 
   const result = inferVerifyRule(originalRows, transformedRows);
+  const memorisation = result.result?.rule?.memorisation || null;
+  const hasMemorisedTargets = (memorisation?.memorisedTargets || []).length > 0;
+  const verdict = result.flagged.length
+    ? "inconsistent"
+    : hasMemorisedTargets ? "unverifiable" : "consistent";
 
-  return {
-    verdict: result.flagged.length === 0 ? "consistent" : "inconsistent",
+  return compactVerificationResult({
+    verdict,
     totalRows: originalRows.length,
     matchedRows: result.matched,
     flaggedRows: result.flagged.map((flag) => ({
@@ -413,7 +430,14 @@ export function handleVerify({ original, transformed, format = "auto" }) {
     rule: result.result?.rule || null,
     ruleStatus: result.result?.status || "unknown",
     ruleSteps: result.result?.rule?.program?.ops?.length || 0,
-  };
+    confidence: result.result?.confidence || null,
+    memorisation,
+    summary: verdict === "unverifiable"
+      ? memorisationSummary(memorisation)
+      : verdict === "consistent"
+        ? `${originalRows.length} rows followed one reusable deterministic rule.`
+        : `${result.flagged.length} of ${originalRows.length} rows contradicted the inferred rule.`,
+  }, { flaggedRowLimit: flagged_row_limit });
 }
 
 export function handleInfer({ examples }) {
@@ -575,7 +599,7 @@ export function handleContractChallenges({ contract }) {
 }
 
 export function handleContractTest({ contract, include_report = false }) {
-  const parsed = parseMaybeJson(contract, "contract");
+  const parsed = unwrapTransformationContract(parseMaybeJson(contract, "contract"));
   const report = runTransformationMutationSuite(parsed, {
     inputRecords: parsed.evidence?.examples?.map(example => example.input) || [],
     outputRecords: parsed.evidence?.examples?.map(example => example.output) || [],
@@ -589,6 +613,7 @@ export function handleContractTest({ contract, include_report = false }) {
       gapCount: report.undetected.length,
       detected: report.detected,
       gaps: report.undetected,
+      coverage: report.coverage,
     },
     ...(include_report ? { report } : {}),
   };

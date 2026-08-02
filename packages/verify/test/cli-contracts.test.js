@@ -52,6 +52,11 @@ try {
   ]));
   writeFileSync(join(root, "original.json"), JSON.stringify(examples.map(item => item.input)));
   writeFileSync(join(root, "transformed.json"), JSON.stringify(examples.map(item => item.output)));
+  const memorisedOriginal = Array.from({ length: 8 }, (_, index) => ({ id: index + 1 }));
+  const arbitraryLabels = ["quartz", "maple", "indigo", "harbor", "cobalt", "willow", "ember", "saffron"];
+  const memorisedTransformed = memorisedOriginal.map((row, index) => ({ label: arbitraryLabels[index] }));
+  writeFileSync(join(root, "memorised-original.json"), JSON.stringify(memorisedOriginal));
+  writeFileSync(join(root, "memorised-transformed.json"), JSON.stringify(memorisedTransformed));
 
   const learned = invoke(root, [
     "contract", "learn", "examples.json", "--out", "contract.json",
@@ -128,6 +133,17 @@ try {
   const legacy = invoke(root, ["original.json", "transformed.json"]);
   assert.equal(legacy.exitCode, CLI_EXIT.success);
   assert.equal(JSON.parse(legacy.stdout).verdict, "consistent");
+
+  const unverifiable = invoke(root, ["memorised-original.json", "memorised-transformed.json"]);
+  assert.equal(unverifiable.exitCode, CLI_EXIT.violation);
+  assert.equal(JSON.parse(unverifiable.stdout).verdict, "unverifiable");
+  assert.equal(JSON.parse(unverifiable.stdout).rule.executable, false);
+
+  const allowedUnverifiable = invoke(root, [
+    "memorised-original.json", "memorised-transformed.json", "--allow-unverifiable",
+  ]);
+  assert.equal(allowedUnverifiable.exitCode, CLI_EXIT.success);
+  assert.equal(JSON.parse(allowedUnverifiable.stdout).verdict, "unverifiable");
 
   const usage = invoke(root, ["contract", "unknown"]);
   assert.equal(usage.exitCode, CLI_EXIT.invalid);

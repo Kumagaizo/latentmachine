@@ -38,6 +38,17 @@ assert.throws(
 assert.throws(
   () => transform({
     rule: {
+      executable: false,
+      program: { ops: [{ op: "valueMap", source: "$.status", target: "$.label", entryCount: 2 }] },
+    },
+    input: { status: "active" },
+  }),
+  /compact diagnostic rule/,
+);
+
+assert.throws(
+  () => transform({
+    rule: {
       program: {
         ops: [{ op: "constant", target: "$.__proto__.polluted", value: true }],
       },

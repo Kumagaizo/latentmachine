@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { SECURITY_LIMITS, verify } from "../src/index.js";
+import { compactVerificationResult, SECURITY_LIMITS, verify } from "../src/index.js";
 
 {
   const result = verify({
@@ -15,6 +15,88 @@ import { SECURITY_LIMITS, verify } from "../src/index.js";
   assert.equal(result.verdict, "consistent");
   assert.equal(result.totalRows, 2);
   assert.equal(result.flaggedRows.length, 0);
+}
+
+{
+  const original = Array.from({ length: 60 }, (_, index) => ({
+    id: index + 1,
+    plan: ["free", "pro", "team"][index % 3],
+  }));
+  const transformed = original.map(row => ({
+    id: row.id,
+    planLabel: { free: "Starter", pro: "Growth", team: "Scale" }[row.plan],
+  }));
+  const result = verify({ original, transformed });
+  assert.equal(result.verdict, "consistent");
+  assert.equal(result.ruleStatus, "safe");
+  assert.deepEqual(result.memorisation.memorisedTargets, []);
+  assert.equal(result.memorisation.lookups[0].ratio, 0.05);
+}
+
+{
+  const original = Array.from({ length: 40 }, (_, index) => ({
+    id: `customer-${index + 1}`,
+    created_at: `2026-01-${String((index % 28) + 1).padStart(2, "0")}T12:00:00.000Z`,
+  }));
+  const transformed = original.map(row => ({ joinDate: row.created_at.slice(0, 10) }));
+  transformed[1].joinDate = "01/02/2026";
+  const result = verify({ original, transformed });
+  assert.equal(result.verdict, "unverifiable");
+  assert.equal(result.flaggedRows.length, 0);
+  assert.equal(result.ruleStatus, "unverified");
+  assert.equal(result.confidence.label, "unverified");
+  assert.ok(result.memorisation.memorisedTargets.includes("$.joinDate"));
+  assert.ok(result.confidence.reasons.some(reason => reason.kind === "memorised-lookup"));
+  assert.ok(result.confidence.reasons.every(reason => reason.kind !== "exact-fit"));
+
+  const compact = compactVerificationResult(result);
+  assert.ok(JSON.stringify(compact).length < JSON.stringify(result).length / 2);
+  assert.equal("map" in compact.rule.program.ops.find(op => op.op === "valueMap"), false);
+  assert.equal(compact.rule.executable, false);
+
+  const warnings = [];
+  const originalWarn = console.warn;
+  console.warn = message => warnings.push(message);
+  try {
+    const legacy = verify({ original, transformed, legacyVerdict: true });
+    assert.equal(legacy.verdict, "consistent");
+    assert.equal(legacy.actualVerdict, "unverifiable");
+  } finally {
+    console.warn = originalWarn;
+  }
+  assert.equal(warnings.length, 1);
+}
+
+{
+  const original = Array.from({ length: 20 }, (_, index) => ({
+    id: `customer-${index + 1}`,
+    cents: 1000 + index * 137,
+    email: `person${index}@example.com`,
+  }));
+  const transformed = original.map(row => ({
+    amount: row.cents / 100,
+    email: row.email,
+  }));
+  delete transformed[7].email;
+  const result = verify({ original, transformed });
+  assert.equal(result.verdict, "inconsistent");
+  assert.ok(result.flaggedRows.some(row => row.index === 7));
+}
+
+{
+  const fake = {
+    verdict: "inconsistent",
+    flaggedRows: Array.from({ length: 75 }, (_, index) => ({ index })),
+    rule: null,
+  };
+  const compact = compactVerificationResult(fake);
+  assert.equal(compact.flaggedRows.length, 50);
+  assert.equal(compact.flaggedRowCount, 75);
+  assert.equal(compact.omittedFlaggedRows, 25);
+
+  const bounded = compactVerificationResult(fake, { flaggedRowLimit: 10_000 });
+  assert.equal(bounded.flaggedRowLimit, 100);
+  assert.equal(bounded.flaggedRows.length, 75);
 }
 
 {

@@ -14,6 +14,8 @@ export {
   withTransformationContractIdentity,
 } from "./identity.js";
 
+export { unwrapTransformationContract } from "./contract-input.js";
+
 export {
   acceptTransformationInvariants,
   evaluateTransformationInvariants,

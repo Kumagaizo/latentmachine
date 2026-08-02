@@ -3,8 +3,10 @@ import {
   approveContract,
   checkContract,
   compareContracts,
+  generateTransformationChallenges,
   learnContract,
   runContract,
+  runTransformationMutationSuite,
   validateTransformationContract,
 } from "../src/index.js";
 
@@ -23,7 +25,15 @@ const learned = learnContract({ examples }, { evidenceSource: "package-test" });
 assert.equal(validateTransformationContract(learned).ok, true);
 assert.equal(learned.inference.status, "safe");
 
-const approved = approveContract(learned, {
+const learnedWrapper = { summary: {}, review: {}, contract: learned };
+assert.equal(generateTransformationChallenges(learnedWrapper).kind, learned.kind);
+assert.ok(runTransformationMutationSuite(learnedWrapper, {
+  inputRecords: examples.map(example => example.input),
+  outputRecords: examples.map(example => example.output),
+  failedRecords: [],
+}).mutations.length > 0);
+
+const approved = approveContract(learnedWrapper, {
   coreFingerprint: learned.identity.coreFingerprint,
   acknowledgedChallenges: learned.challenges
     .filter(item => item.severity === "advisory" && ["open", "deferred"].includes(item.status))

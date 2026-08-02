@@ -143,7 +143,7 @@ try {
     method: "tools/call",
     params: {
       name: "get_contract_challenges",
-      arguments: { contract: JSON.stringify(learned.contract) },
+      arguments: { contract: JSON.stringify(learned) },
     },
   });
   const challenges = JSON.parse(challengesResponse.result.content[0].text);
@@ -165,7 +165,7 @@ try {
   assert.equal(unapprovedRun.summary.reviewRequired, true);
 
   const { approveContract } = await import("../../verify/src/index.js");
-  const approved = approveContract(learned.contract, {
+  const approved = approveContract(learned, {
     coreFingerprint: learned.contract.identity.coreFingerprint,
     acknowledgedChallenges: learned.contract.challenges
       .filter(item => item.severity === "advisory" && ["open", "deferred"].includes(item.status))
@@ -209,11 +209,12 @@ try {
     method: "tools/call",
     params: {
       name: "test_transformation_contract",
-      arguments: { contract: JSON.stringify(learned.contract) },
+      arguments: { contract: JSON.stringify(learned) },
     },
   });
   const mutation = JSON.parse(testResponse.result.content[0].text);
   assert.ok(mutation.summary.mutationCount > 0);
+  assert.ok(mutation.summary.coverage.operationTargetCount > 0);
   assert.equal("report" in mutation, false);
 
   const comparisonResponse = await request({

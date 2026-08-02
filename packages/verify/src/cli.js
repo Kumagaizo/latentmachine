@@ -4,6 +4,7 @@ import {
   approveContract,
   checkContract,
   compareContracts,
+  compactVerificationResult,
   fingerprint,
   generateTransformationChallenges,
   learnContract,
@@ -39,6 +40,7 @@ const VALUE_OPTIONS = new Set([
 ]);
 const BOOLEAN_OPTIONS = new Set([
   "--acknowledge-all-advisory",
+  "--allow-unverifiable",
   "--help",
   "--privacy-safe",
 ]);
@@ -54,6 +56,7 @@ class CliError extends Error {
 function helpText() {
   return `Usage:
   latentmachine <original-data-file> <transformed-data-file> [--format human]
+      [--allow-unverifiable]
   latentmachine fingerprint <data-file> [--format auto]
   latentmachine fingerprint <data-file-a> <data-file-b> [--format auto]
 
@@ -260,12 +263,15 @@ function runLegacyVerify(args, io, cwd) {
   });
   const mode = option(parsed, "--format", "json");
   if (!["json", "human"].includes(mode)) throw new CliError("--format must be json or human.");
-  emit(io, mode, result, [
+  emit(io, mode, compactVerificationResult(result), [
     `Verdict      ${result.verdict}`,
     `Rows         ${result.totalRows}`,
     `Flagged      ${result.flaggedRows.length}`,
+    result.verdict === "unverifiable" ? `Reason       ${result.summary}` : "",
   ]);
-  return result.verdict === "consistent" ? CLI_EXIT.success : CLI_EXIT.violation;
+  return result.verdict === "consistent" || (result.verdict === "unverifiable" && hasOption(parsed, "--allow-unverifiable"))
+    ? CLI_EXIT.success
+    : CLI_EXIT.violation;
 }
 
 function runContractLearn(args, io, cwd) {
