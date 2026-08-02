@@ -59,7 +59,9 @@ function productionRows(count) {
 
 {
   const fixture = productionRows(1600);
+  const before = JSON.stringify(fixture.transformed[1544]);
   fixture.transformed[1544].mrr = fixture.original[1544].mrr_cents;
+  assert.notEqual(JSON.stringify(fixture.transformed[1544]), before, "large-batch unit mutation must change the expected output");
   const result = verify(fixture);
   assert.equal(result.verdict, "inconsistent");
   assert.ok(result.flaggedRows.some(row => row.index === 1544));
@@ -78,7 +80,9 @@ const driftCases = [
 
 for (const [name, mutate] of driftCases) {
   const fixture = productionRows(12);
+  const before = JSON.stringify(fixture.transformed);
   mutate(fixture.transformed, fixture.original);
+  assert.notEqual(JSON.stringify(fixture.transformed), before, `${name} mutation must change the expected output`);
   const result = verify(fixture);
   assert.notEqual(result.verdict, "consistent", `${name} drift must not be reported consistent`);
   if (result.verdict === "unverifiable") {

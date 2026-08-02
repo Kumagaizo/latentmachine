@@ -122,6 +122,7 @@ export function explainOp(op = {}) {
   if (op.op === "coerce") return `Read ${code(op.source)} as ${op.to} and write it to ${target}.`;
   if (op.op === "stringCase") return `${transformName(op.mode)} from ${code(op.source)} and write it to ${target}.`;
   if (op.op === "stringNormalize") return `${transformName(op.mode)} from ${code(op.source)} and write it to ${target}.`;
+  if (op.op === "stringReplace") return `Replace every ${quote(op.search)} in ${code(op.source)} with ${quote(op.replacement)}, then write it to ${target}.`;
   if (op.op === "arrayStringTransform") return `${transformName(op.mode)} for each string in ${code(op.source)} and write the array to ${target}.`;
   if (op.op === "dateFormat") return `Format the date in ${code(op.source)} as ${op.mode} and write it to ${target}.`;
   if (op.op === "booleanNot") return `Invert ${code(op.source)} and write the result to ${target}.`;
@@ -146,7 +147,7 @@ export function explainOp(op = {}) {
   }
   if (op.op === "numericFormula") {
     const direction = op.direction === "decrease" ? "subtract" : "add";
-    return `Divide ${code(op.base)} by ${op.baseDivisor}, ${direction} the ${code(op.rate)} percentage, ${op.round} to ${op.decimals} decimals, and write the result to ${target}.`;
+    return `Divide ${code(op.base)} by ${op.baseDivisor}, ${direction} the ${code(op.rate)} percentage, round with ${op.rounding || op.round} to ${op.decimals} decimals, and write the result to ${target}.`;
   }
   if (op.op === "quantityTransform") return `Multiply ${code(op.source)} by ${op.factor} for ${op.unit || "the target unit"} and write the result to ${target}.`;
   if (op.op === "concat") {
@@ -285,6 +286,9 @@ function opAssumptions(op = {}) {
   }
   if (op.op === "stringNormalize" && op.mode === "emailLocalPart") {
     return [assumption(op.source, `Assumes ${code(op.source)} contains "@".`, { target, kind: "text" })];
+  }
+  if (op.op === "stringReplace") {
+    return [assumption(op.source, `Assumes ${code(op.source)} uses ${quote(op.search)} as the delimiter to replace.`, { target, kind: "text" })];
   }
   if (op.op === "stringNormalize" && op.mode === "phone") {
     return [assumption(op.source, `Assumes ${code(op.source)} contains a phone number in the same country-code pattern as the examples.`, { target, kind: "phone" })];

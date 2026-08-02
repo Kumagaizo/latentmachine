@@ -11,11 +11,14 @@
 ### Added
 
 - Infer reusable `arraySum`, primitive-array `arrayIndex`, and percentage-based `numericFormula` operations with explicit rounding semantics.
+- Infer proven global literal-delimiter replacements for identifier-like fields with `stringReplace`; repeated-delimiter evidence is required before the global rule is selected.
 - Bound hypothesis generation to 200 deterministic, output-diverse examples while continuing to validate every supplied row.
 - Report full per-field support plus repeated-source consistency and conflict counts for lookup-backed fields.
 
 ### Fixed
 
+- Preserve percentage-formula evaluation order and explicit `half-up`, `half-even`, `half-away`, `floor`, `ceil`, `trunc`, or `none` rounding semantics. Full-batch validation resolves associations that the bounded inference sample cannot distinguish, preventing false financial drift at exact half ties.
+- Make drift regressions self-validating so a no-op mutation fails the fixture instead of being recorded as detection ground truth.
 - Remove the single-run memorisation drift hint: memorisation reflects rule expressiveness and is not evidence of drift without a comparable baseline.
 - Prevent superlinear wide-schema inference and cap leave-one-out reinference to small batches.
 - Scope optional output fields to their source-presence domain, so absent optional values no longer produce false row-level flags.

@@ -3,6 +3,7 @@ import { entries, getPath, omitPaths, parsePath, uniqueBy } from "./core.js";
 import { COST_PRIOR_STEP } from "./costs.js";
 import { inferArrayGroupBy, inferTargetCandidates } from "./candidates.js";
 import { instrumentProgramMemorisation, memorisationForProgram, MEMORISATION_MINIMUM_ROWS, MEMORISATION_RATIO_THRESHOLD } from "./memorisation.js";
+import { applyNumericFormula, NUMERIC_FORMULA_ROUNDING } from "./operations.js";
 import { executeJsonTransform, runtimeWarnings } from "./runtime.js";
 import { deepEqual, opSources, stableStringify } from "./shared.js";
 
@@ -239,6 +240,35 @@ function candidateWithInference(candidate, inferenceExamples, supportedExamples)
   };
 }
 
+function resolveNumericFormulaCandidate(candidate, examples) {
+  if (candidate?.op?.op !== "numericFormula") return candidate;
+  const current = candidate.op;
+  const variants = [];
+  for (const evaluationOrder of [current.evaluationOrder, "integer-rate", "base-first"].filter((value, index, values) => value && values.indexOf(value) === index)) {
+    for (const rounding of [current.rounding, ...NUMERIC_FORMULA_ROUNDING].filter((value, index, values) => value && values.indexOf(value) === index)) {
+      const op = { ...current, evaluationOrder, rounding };
+      const matchCount = examples.filter(example => (
+        applyNumericFormula(getPath(example.input, op.base), getPath(example.input, op.rate), op)
+        === getPath(example.output, op.target)
+      )).length;
+      variants.push({ op, matchCount });
+    }
+  }
+  const bestMatchCount = Math.max(...variants.map(item => item.matchCount));
+  const best = variants.filter(item => item.matchCount === bestMatchCount);
+  const selected = best[0];
+  const roundingValues = new Set(best.map(item => item.op.rounding));
+  const evaluationValues = new Set(best.map(item => item.op.evaluationOrder));
+  return {
+    ...candidate,
+    op: {
+      ...selected.op,
+      roundingEvidence: roundingValues.size === 1 ? "determined" : "underdetermined",
+      evaluationEvidence: evaluationValues.size === 1 ? "determined" : "underdetermined",
+    },
+  };
+}
+
 function comparableTargets(program) {
   return memorisationForProgram(program).unverifiableTargets || [];
 }
@@ -269,7 +299,9 @@ export function buildProgram(examples, newInput = undefined, version = 3) {
     } : null;
     return { target, domainExamples, inferenceExamples, fieldDomain, candidates };
   });
-  const selected = targetCandidates.map(row => selectCandidate(row.candidates, newInput)).filter(Boolean);
+  const selected = targetCandidates
+    .map(row => resolveNumericFormulaCandidate(selectCandidate(row.candidates, newInput), row.domainExamples))
+    .filter(Boolean);
   const selectedByTarget = new Map(selected.map(item => [item.target, item]));
   const fieldDomains = targetCandidates.map(row => row.fieldDomain).filter(Boolean);
   const program = instrumentProgramMemorisation({

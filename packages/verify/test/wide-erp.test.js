@@ -2,10 +2,17 @@ import assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
 import { transform, verify } from "../src/index.js";
 import { generateJavaScriptTransform, generateJqQuery } from "../../../src/intelligence/json-transform/exporters.js";
+import { roundNumericFormulaValue } from "../../../src/intelligence/json-transform/operations.js";
 
 function roundCurrency(value) {
   return Math.round(value * 100) / 100;
 }
+
+assert.equal(roundNumericFormulaValue(-1.5, "half-up"), -1);
+assert.equal(roundNumericFormulaValue(-1.5, "half-even"), -2);
+assert.equal(roundNumericFormulaValue(2.5, "half-even"), 2);
+assert.equal(roundNumericFormulaValue(3.5, "half-even"), 4);
+assert.equal(roundNumericFormulaValue(-1.5, "half-away"), -2);
 
 function transformedOrder(row) {
   return {
@@ -55,6 +62,23 @@ function erpFixture(count) {
   return { original, transformed: original.map(transformedOrder) };
 }
 
+function injectDrift(fixture, index, label, mutate) {
+  const before = JSON.stringify(fixture.transformed[index]);
+  mutate(fixture.original[index], fixture.transformed[index]);
+  assert.notEqual(JSON.stringify(fixture.transformed[index]), before, `${label} mutation must change the expected output`);
+}
+
+function percentageFixture(roundValue, count = 40) {
+  const original = Array.from({ length: count }, (_, index) => ({
+    net_cents: index === 7 ? 216650 : 10001 + index * 173,
+    tax_rate_pct: index === 7 ? 19 : [5, 7, 19][index % 3],
+  }));
+  const transformed = original.map(row => ({
+    grossAmount: roundValue(row.net_cents * (100 + row.tax_rate_pct) / 100) / 100,
+  }));
+  return { original, transformed };
+}
+
 {
   const fixture = erpFixture(40);
   const result = verify(fixture);
@@ -63,16 +87,80 @@ function erpFixture(count) {
   assert.equal(opByTarget.get("$.totalQty"), "arraySum");
   assert.equal(opByTarget.get("$.grossAmount"), "numericFormula");
   assert.equal(opByTarget.get("$.primaryEmail"), "arrayIndex");
-  assert.ok(result.memorisation.memorisedTargets.length <= 2, result.summary);
-  for (const target of ["$.totalQty", "$.grossAmount", "$.primaryEmail"]) {
+  assert.equal(opByTarget.get("$.orderRef"), "stringReplace");
+  const grossFormula = result.rule.program.ops.find(op => op.target === "$.grossAmount");
+  assert.ok(grossFormula.rounding, "numericFormula must expose its rounding semantics");
+  assert.ok(grossFormula.evaluationOrder, "numericFormula must expose its arithmetic association");
+  assert.ok(result.memorisation.memorisedTargets.length <= 1, result.summary);
+  for (const target of ["$.orderRef", "$.totalQty", "$.grossAmount", "$.primaryEmail"]) {
     assert.ok(!result.memorisation.memorisedTargets.includes(target), `${target} must use a reusable rule`);
   }
   assert.deepEqual(transform({ rule: result.rule, input: fixture.original.slice(0, 3) }), fixture.transformed.slice(0, 3));
   const generatedSource = generateJavaScriptTransform({ rule: result.rule, status: result.ruleStatus });
   const generatedTransform = Function(`${generatedSource}; return transform;`)();
   assert.deepEqual(fixture.original.slice(0, 3).map(generatedTransform), fixture.transformed.slice(0, 3));
-  const reusableOps = result.rule.program.ops.filter(op => ["$.totalQty", "$.grossAmount", "$.primaryEmail"].includes(op.target));
-  assert.match(generateJqQuery({ ops: reusableOps }), /add|round/);
+  const reusableOps = result.rule.program.ops.filter(op => ["$.orderRef", "$.totalQty", "$.grossAmount", "$.primaryEmail"].includes(op.target));
+  assert.match(generateJqQuery({ ops: reusableOps }), /add|floor|split/);
+}
+
+{
+  const fixture = percentageFixture(Math.round);
+  const tieRaw = fixture.original[7].net_cents * (100 + fixture.original[7].tax_rate_pct) / 100;
+  assert.equal(tieRaw % 1, 0.5, "fixture must contain an exact positive half tie");
+  const result = verify(fixture);
+  const formula = result.rule.program.ops.find(op => op.target === "$.grossAmount");
+  assert.equal(result.verdict, "consistent");
+  assert.equal(result.flaggedRows.length, 0);
+  assert.equal(formula.op, "numericFormula");
+  assert.equal(formula.rounding, "half-up");
+  assert.equal(formula.evaluationOrder, "integer-rate");
+  assert.deepEqual(transform({ rule: result.rule, input: fixture.original }), fixture.transformed);
+  const generatedSource = generateJavaScriptTransform({ rule: result.rule, status: result.ruleStatus });
+  const generatedTransform = Function(`${generatedSource}; return transform;`)();
+  assert.deepEqual(fixture.original.map(generatedTransform), fixture.transformed);
+}
+
+{
+  const fixture = percentageFixture(Math.floor);
+  const clean = verify(fixture);
+  const cleanFormula = clean.rule.program.ops.find(op => op.target === "$.grossAmount");
+  assert.equal(clean.verdict, "consistent");
+  assert.equal(cleanFormula.rounding, "floor");
+  const cleanGeneratedSource = generateJavaScriptTransform({ rule: clean.rule, status: clean.ruleStatus });
+  const cleanGeneratedTransform = Function(`${cleanGeneratedSource}; return transform;`)();
+  assert.deepEqual(fixture.original.map(cleanGeneratedTransform), fixture.transformed);
+  assert.match(generateJqQuery(clean.rule.program), /floor/);
+  const driftRow = fixture.original.findIndex((row, index) => (
+    Math.round(row.net_cents * (100 + row.tax_rate_pct) / 100)
+    !== Math.floor(row.net_cents * (100 + row.tax_rate_pct) / 100)
+    && index > 7
+  ));
+  injectDrift(fixture, driftRow, "round-instead-of-floor", (original, output) => {
+    output.grossAmount = Math.round(original.net_cents * (100 + original.tax_rate_pct) / 100) / 100;
+  });
+  const drifted = verify(fixture);
+  assert.equal(drifted.verdict, "inconsistent");
+  assert.deepEqual(drifted.flaggedRows.map(row => row.index), [driftRow]);
+}
+
+{
+  const original = Array.from({ length: 40 }, (_, index) => ({
+    net_cents: index === 9 ? -3 : -201 - index * 17,
+    tax_rate_pct: index === 9 ? -50 : [-10, 5, 20][index % 3],
+  }));
+  const transformed = original.map(row => ({
+    grossAmount: Math.round(row.net_cents * (100 + row.tax_rate_pct) / 100) / 100,
+  }));
+  assert.equal(original[9].net_cents * (100 + original[9].tax_rate_pct) / 100, -1.5);
+  const result = verify({ original, transformed });
+  const formula = result.rule.program.ops.find(op => op.target === "$.grossAmount");
+  assert.equal(result.verdict, "consistent");
+  assert.equal(result.flaggedRows.length, 0);
+  assert.equal(formula.rounding, "half-up", "negative ties must preserve JavaScript Math.round semantics");
+  assert.deepEqual(transform({ rule: result.rule, input: original }), transformed);
+  const generatedSource = generateJavaScriptTransform({ rule: result.rule, status: result.ruleStatus });
+  const generatedTransform = Function(`${generatedSource}; return transform;`)();
+  assert.deepEqual(original.map(generatedTransform), transformed);
 }
 
 {
@@ -80,29 +168,27 @@ function erpFixture(count) {
   const aggregationRow = 300;
   const indexRow = 500;
   const compoundRow = 700;
+  const replacementRow = 850;
   const roundingRow = fixture.original.findIndex((row, index) => {
     if (index <= compoundRow) return false;
     const raw = (row.net_cents / 100) * (1 + row.tax_rate_pct / 100);
     return Math.floor(raw * 100) / 100 !== roundCurrency(raw);
   });
-  const aggregationTruth = transformedOrder(fixture.original[aggregationRow]);
-  const indexTruth = transformedOrder(fixture.original[indexRow]);
-  const compoundTruth = transformedOrder(fixture.original[compoundRow]);
-  const roundingTruth = transformedOrder(fixture.original[roundingRow]);
-  fixture.transformed[aggregationRow].totalQty -= fixture.original[aggregationRow].lines[0].quantity;
-  fixture.transformed[indexRow].primaryEmail = fixture.original[indexRow].contacts.at(-1);
-  fixture.transformed[compoundRow].grossAmount = roundCurrency(
-    compoundTruth.grossAmount * (1 + fixture.original[compoundRow].tax_rate_pct / 100),
-  );
-  const rawRoundingAmount = (fixture.original[roundingRow].net_cents / 100) * (1 + fixture.original[roundingRow].tax_rate_pct / 100);
-  fixture.transformed[roundingRow].grossAmount = Math.floor(rawRoundingAmount * 100) / 100;
-  assert.notEqual(fixture.transformed[aggregationRow].totalQty, aggregationTruth.totalQty, "aggregation mutation must change the expected value");
-  assert.notEqual(fixture.transformed[indexRow].primaryEmail, indexTruth.primaryEmail, "array-index mutation must change the expected value");
-  assert.notEqual(fixture.transformed[compoundRow].grossAmount, compoundTruth.grossAmount, "compound mutation must change the expected value");
-  assert.notEqual(fixture.transformed[roundingRow].grossAmount, roundingTruth.grossAmount, "rounding mutation must change the expected value");
+  injectDrift(fixture, aggregationRow, "aggregation", (original, output) => { output.totalQty -= original.lines[0].quantity; });
+  injectDrift(fixture, indexRow, "array-index", (original, output) => { output.primaryEmail = original.contacts.at(-1); });
+  injectDrift(fixture, compoundRow, "compound", (original, output) => {
+    output.grossAmount = roundCurrency(output.grossAmount * (1 + original.tax_rate_pct / 100));
+  });
+  injectDrift(fixture, roundingRow, "rounding", (original, output) => {
+    const raw = (original.net_cents / 100) * (1 + original.tax_rate_pct / 100);
+    output.grossAmount = Math.floor(raw * 100) / 100;
+  });
+  injectDrift(fixture, replacementRow, "global-replacement", (original, output) => {
+    output.orderRef = original.order_ref.replace("-", "");
+  });
   const result = verify(fixture);
   assert.equal(result.verdict, "inconsistent");
-  assert.deepEqual(result.flaggedRows.map(row => row.index), [aggregationRow, indexRow, compoundRow, roundingRow]);
+  assert.deepEqual(result.flaggedRows.map(row => row.index), [aggregationRow, indexRow, compoundRow, roundingRow, replacementRow]);
 }
 
 {
@@ -155,7 +241,7 @@ let performanceEvidence;
     sampled: true,
     validationRows: 2000,
   });
-  assert.ok(wide.result.memorisation.memorisedTargets.length <= 2, wide.result.summary);
+  assert.ok(wide.result.memorisation.memorisedTargets.length <= 1, wide.result.summary);
   assert.ok(wide.durationMs < 10_000, `2,000-row wide verification took ${wide.durationMs.toFixed(1)}ms`);
   assert.ok(wide.durationMs <= medium.durationMs * 5 + 250, `500→2,000 rows scaled from ${medium.durationMs.toFixed(1)}ms to ${wide.durationMs.toFixed(1)}ms`);
   performanceEvidence = { medium, wide };

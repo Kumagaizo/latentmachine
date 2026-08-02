@@ -1,5 +1,7 @@
 import { clone, getPath, setPath } from "./core.js";
 
+export const NUMERIC_FORMULA_ROUNDING = Object.freeze(["half-up", "half-even", "half-away", "floor", "ceil", "trunc", "none"]);
+
 export function parseJson(value, label = "JSON") {
   if (typeof value !== "string") return clone(value);
   try {
@@ -158,6 +160,30 @@ export function formatQuantity(amount, unit) {
   return `${String(rounded)}${unit}`;
 }
 
+export function numericFormulaRounding(options = {}) {
+  if (options.rounding) return options.rounding;
+  if (options.round === "round") return "half-up";
+  return options.round || "none";
+}
+
+function roundHalfEven(value) {
+  const lower = Math.floor(value);
+  const fraction = value - lower;
+  const epsilon = Math.min(1e-7, Number.EPSILON * Math.max(1, Math.abs(value)) * 4);
+  if (Math.abs(fraction - 0.5) <= epsilon) return Math.abs(lower % 2) === 0 ? lower : lower + 1;
+  return Math.round(value);
+}
+
+export function roundNumericFormulaValue(value, rounding) {
+  if (rounding === "half-up") return Math.round(value);
+  if (rounding === "half-even") return roundHalfEven(value);
+  if (rounding === "half-away") return value < 0 ? -Math.round(-value) : Math.round(value);
+  if (rounding === "floor") return Math.floor(value);
+  if (rounding === "ceil") return Math.ceil(value);
+  if (rounding === "trunc") return Math.trunc(value);
+  return value;
+}
+
 export function applyNumericFormula(baseValue, rateValue, options = {}) {
   const base = Number(baseValue);
   const rate = Number(rateValue);
@@ -165,13 +191,18 @@ export function applyNumericFormula(baseValue, rateValue, options = {}) {
   const baseDivisor = options.baseDivisor || 1;
   const rateDivisor = options.rateDivisor || 100;
   const direction = options.direction === "decrease" ? -1 : 1;
-  let value = (base / baseDivisor) * (1 + direction * (rate / rateDivisor));
   const decimals = Number.isInteger(options.decimals) ? options.decimals : 2;
   const factor = 10 ** decimals;
-  if (options.round === "round") value = Math.round(value * factor) / factor;
-  if (options.round === "floor") value = Math.floor(value * factor) / factor;
-  if (options.round === "ceil") value = Math.ceil(value * factor) / factor;
-  return value;
+  const rounding = numericFormulaRounding(options);
+  if (rounding === "none") {
+    return options.evaluationOrder === "integer-rate"
+      ? (base * (rateDivisor + direction * rate)) / (baseDivisor * rateDivisor)
+      : (base / baseDivisor) * (1 + direction * (rate / rateDivisor));
+  }
+  const scaled = options.evaluationOrder === "integer-rate"
+    ? (base * (rateDivisor + direction * rate) * factor) / (baseDivisor * rateDivisor)
+    : ((base / baseDivisor) * (1 + direction * (rate / rateDivisor))) * factor;
+  return roundNumericFormulaValue(scaled, rounding) / factor;
 }
 
 export function projectArrayRow(row, fields) {

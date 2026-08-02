@@ -12,6 +12,7 @@ export function programTitle(ops) {
     if (op.op === "templateConflict") return `Examples conflict for ${op.target.replace(/^\$\.?/, "")}`;
     if (op.op === "valueMapConflict") return `Examples conflict for ${op.target.replace(/^\$\.?/, "")}`;
     if (op.op === "stringCase") return `Change text case for ${op.target.replace(/^\$\.?/, "")}`;
+    if (op.op === "stringReplace") return `Replace text in ${op.target.replace(/^\$\.?/, "")}`;
     if (op.op === "numericTransform" || op.op === "numericBinary" || op.op === "numericFormula" || op.op === "quantityTransform") return `Compute ${op.target.replace(/^\$\.?/, "")}`;
     if (op.op === "dateFormat") return `Format ${op.target.replace(/^\$\.?/, "")} as a date`;
     if (op.op === "extractBetween") return `Extract ${op.target.replace(/^\$\.?/, "")} from text`;
@@ -93,7 +94,7 @@ function roleForOp(op) {
   if (op.op === "extractBetween") return "extracted";
   if (op.op === "quantityTransform") return "scaled";
   if (op.op === "stringSplit") return "split";
-  if (op.op === "stringNormalize") return "normalized";
+  if (op.op === "stringNormalize" || op.op === "stringReplace") return "normalized";
   if (op.op === "arrayStringTransform") return "cleaned";
   if (op.op === "arrayJoin") return "joined";
   if (op.op === "arrayFind") return "found";

@@ -145,7 +145,9 @@ const driftCases = [
 
 for (const [name, mutate] of driftCases) {
   const fixture = claimsFixture(40, { sparseNotes: false });
+  const before = JSON.stringify(fixture.transformed);
   mutate(fixture.transformed, fixture.original);
+  assert.notEqual(JSON.stringify(fixture.transformed), before, `${name} mutation must change the expected output`);
   const result = verify(fixture);
   assert.equal(result.verdict, "inconsistent", `${name} drift must remain inconsistent`);
   assert.ok(result.flaggedRows.length > 0, `${name} drift must identify a row`);

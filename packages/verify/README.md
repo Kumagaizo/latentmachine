@@ -38,6 +38,8 @@ Optional output fields are evaluated only on rows where their source domain is p
 
 For batches above 200 rows, Latentmachine generates candidate rules from a deterministic, output-diverse evidence sample and then validates the selected program against every row. `result.inference` discloses the evidence limit and full validation count. Rare low-cardinality output variants are retained in the evidence sample. A sampled lookup that does not cover the complete source domain is reported as unverifiable rather than producing false row flags.
 
+Learned `numericFormula` steps expose both `rounding` (`half-up`, `half-even`, `half-away`, `floor`, `ceil`, `trunc`, or `none`) and `evaluationOrder`. When the bounded evidence sample cannot distinguish equivalent arithmetic associations, the full batch resolves them in linear time before rows are classified. Global `stringReplace` rules are learned only for identifier-like fields with repeated literal delimiters; arbitrary regular expressions are not synthesised, and phone, date, and email guardrails keep precedence.
+
 Executable rules retain lookup tables in memory. Before logging or serialising a diagnostic result, use the exported compaction helpers:
 
 ```js

@@ -1,6 +1,6 @@
 import { arrayPaths, clone, distinctDefinedValues, getPath, hasPathToken, itemLeafPaths, parsePath, typeOf } from "./core.js";
 import { COST_ADJUSTMENT_WEIGHTS, costOf } from "./costs.js";
-import { applyNumericFormula, coerce, formatDateParts, normalizeString, parseDateParts, parseQuantity, phonePolicyForExamples, projectArrayRow, titleCase, transformString } from "./operations.js";
+import { applyNumericFormula, coerce, formatDateParts, normalizeString, NUMERIC_FORMULA_ROUNDING, parseDateParts, parseQuantity, phonePolicyForExamples, projectArrayRow, titleCase, transformString } from "./operations.js";
 import { deepEqual, stableStringify } from "./shared.js";
 
 const SPLIT_SEPARATORS = [" ", ",", "-", "_", "|", "/", "."];
@@ -108,6 +108,40 @@ function inferStringNormalize(examples, targetPath, targetValues, sourceEntries)
         targetPath,
         source.path,
       ));
+    }
+  }
+  return candidates;
+}
+
+function inferStringReplace(examples, targetPath, targetValues, sourceEntries) {
+  if (!targetValues.every(value => typeof value === "string")) return [];
+  const candidates = [];
+  for (const source of sourceEntries.filter(entry => entry.type === "string")) {
+    if (!hasPathToken(source.path, /(id|ref|reference|code|key|slug|sku|tag|label)/)
+      && !hasPathToken(targetPath, /(id|ref|reference|code|key|slug|sku|tag|label)/)) continue;
+    if (hasPathToken(source.path, /(phone|tel|mobile|date|created|updated|login|email)/)
+      || hasPathToken(targetPath, /(phone|tel|mobile|date|created|updated|login|email)/)) continue;
+    const sourceValues = examples.map(example => String(getPath(example.input, source.path)));
+    if (new Set(sourceValues).size < 2) continue;
+    const searchValues = [...new Set(sourceValues.flatMap(value => [...value].filter(char => /[^a-z0-9]/i.test(char))))];
+    const replacementValues = [...new Set(["", ...targetValues.flatMap(value => [...value].filter(char => /[^a-z0-9]/i.test(char)))])];
+    for (const search of searchValues) {
+      if (!sourceValues.some(value => value.split(search).length > 2)) continue;
+      for (const replacement of replacementValues) {
+        if (replacement === search) continue;
+        const transformed = sourceValues.map(value => value.split(search).join(replacement));
+        const matchCount = transformed.filter((value, index) => value === targetValues[index]).length;
+        if (!hasDominantSupport(matchCount, examples.length)) continue;
+        candidates.push(candidate(
+          "stringReplace",
+          `Replace every ${JSON.stringify(search)} in ${source.path}`,
+          "Replace every occurrence of a proven literal delimiter in a source string.",
+          {},
+          { op: "stringReplace", source: source.path, search, replacement, global: true, target: targetPath },
+          targetPath,
+          source.path,
+        ));
+      }
     }
   }
   return candidates;
@@ -232,37 +266,53 @@ function inferNumericFormula(examples, targetPath, targetValues, sourceEntries) 
       if (new Set(examples.map(example => Number(getPath(example.input, rate.path)))).size < 2) continue;
       for (const baseDivisor of [1, 100, 1000]) {
         for (const direction of ["increase", "decrease"]) {
-          for (const round of ["round", "none", "floor", "ceil"]) {
-            for (const decimals of [2, 0]) {
-              const formula = { baseDivisor, rateDivisor: 100, direction, round, decimals };
-              if (round !== "none" && !examples.some(example => (
-                applyNumericFormula(getPath(example.input, base.path), getPath(example.input, rate.path), formula)
-                !== applyNumericFormula(getPath(example.input, base.path), getPath(example.input, rate.path), { ...formula, round: "none" })
-              ))) continue;
-              const matchCount = examples.filter((example, index) => (
-                applyNumericFormula(
-                  getPath(example.input, base.path),
-                  getPath(example.input, rate.path),
-                  formula,
-                ) === targetValues[index]
-              )).length;
-              if (!hasDominantSupport(matchCount, examples.length)) continue;
-              candidates.push(candidate(
-                "numericFormula",
-                `Apply ${rate.path} to ${base.path}`,
-                "Scale a numeric base by a percentage rate and apply an explicit rounding rule.",
-                {},
-                { op: "numericFormula", base: base.path, rate: rate.path, ...formula, target: targetPath },
-                targetPath,
-                base.path,
-              ));
+          for (const evaluationOrder of ["integer-rate", "base-first"]) {
+            for (const rounding of NUMERIC_FORMULA_ROUNDING) {
+              for (const decimals of [2, 0]) {
+                const formula = { baseDivisor, rateDivisor: 100, direction, evaluationOrder, rounding, decimals };
+                if (rounding !== "none" && !examples.some(example => (
+                  applyNumericFormula(getPath(example.input, base.path), getPath(example.input, rate.path), formula)
+                  !== applyNumericFormula(getPath(example.input, base.path), getPath(example.input, rate.path), { ...formula, rounding: "none" })
+                ))) continue;
+                const matchCount = examples.filter((example, index) => (
+                  applyNumericFormula(
+                    getPath(example.input, base.path),
+                    getPath(example.input, rate.path),
+                    formula,
+                  ) === targetValues[index]
+                )).length;
+                if (!hasDominantSupport(matchCount, examples.length)) continue;
+                const indistinguishableModes = NUMERIC_FORMULA_ROUNDING.filter(mode => examples.every((example, index) => (
+                  applyNumericFormula(getPath(example.input, base.path), getPath(example.input, rate.path), { ...formula, rounding: mode }) === targetValues[index]
+                )));
+                candidates.push({
+                  ...candidate(
+                    "numericFormula",
+                    `Apply ${rate.path} to ${base.path}`,
+                    "Scale a numeric base by a percentage rate and apply an explicit rounding rule.",
+                    {},
+                    {
+                      op: "numericFormula",
+                      base: base.path,
+                      rate: rate.path,
+                      ...formula,
+                      roundingEvidence: indistinguishableModes.length > 1 ? "underdetermined" : "determined",
+                      target: targetPath,
+                    },
+                    targetPath,
+                    base.path,
+                  ),
+                  matchCount,
+                });
+              }
             }
           }
         }
       }
     }
   }
-  return candidates;
+  const bestMatchCount = Math.max(0, ...candidates.map(item => item.matchCount));
+  return candidates.filter(item => item.matchCount === bestMatchCount).map(({ matchCount, ...item }) => item);
 }
 
 function inferQuantityTransform(examples, targetPath, targetValues, sourceEntries) {
@@ -1369,6 +1419,7 @@ export function inferTargetCandidates(examples, targetEntry, sourceEntries) {
       ...coerceCandidates,
       ...inferStringCase(examples, targetPath, targetValues, sourceEntries),
       ...inferStringNormalize(examples, targetPath, targetValues, sourceEntries),
+      ...inferStringReplace(examples, targetPath, targetValues, sourceEntries),
       ...inferDateFormat(examples, targetPath, targetValues, sourceEntries),
       ...inferQuantityTransform(examples, targetPath, targetValues, sourceEntries),
       ...inferConstant(targetPath, targetValues),
@@ -1384,6 +1435,7 @@ export function inferTargetCandidates(examples, targetEntry, sourceEntries) {
     ...coerceCandidates,
     ...inferStringCase(examples, targetPath, targetValues, sourceEntries),
     ...inferStringNormalize(examples, targetPath, targetValues, sourceEntries),
+    ...inferStringReplace(examples, targetPath, targetValues, sourceEntries),
     ...inferDateFormat(examples, targetPath, targetValues, sourceEntries),
     ...inferNumericTransform(examples, targetPath, targetValues, sourceEntries),
     ...inferNumericFormula(examples, targetPath, targetValues, sourceEntries),

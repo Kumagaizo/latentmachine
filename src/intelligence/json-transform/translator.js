@@ -221,7 +221,7 @@ function operationKind(op) {
   if (op.op === "constant") return "added";
   if (op.op === "fallback") return "resolved";
   if (op.op === "coerce") return "coerced";
-  if (op.op === "stringCase" || op.op === "stringNormalize" || op.op === "arrayStringTransform") return "normalized";
+  if (op.op === "stringCase" || op.op === "stringNormalize" || op.op === "stringReplace" || op.op === "arrayStringTransform") return "normalized";
   if (op.op === "valueMap") return "mapped";
   if (op.op === "concat" || op.op === "template") return "built";
   if (op.op === "splitPart" || op.op === "stringSplit") return "split";

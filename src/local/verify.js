@@ -489,6 +489,7 @@ function opLine(op = {}) {
   if (op.op === "coerce") return `Read \`${op.source}\` as ${op.to} and write \`${target}\`.`;
   if (op.op === "stringCase") return `Apply ${op.mode} casing to \`${op.source}\` for \`${target}\`.`;
   if (op.op === "stringNormalize") return `Normalize text from \`${op.source}\` for \`${target}\`.`;
+  if (op.op === "stringReplace") return `Replace every ${JSON.stringify(op.search)} in \`${op.source}\` for \`${target}\`.`;
   if (op.op === "valueMap") return `Map known values from \`${op.source}\` into \`${target}\`.`;
   if (op.op === "template") return `Build \`${target}\` from ${sources.map(source => `\`${source}\``).join(", ")}.`;
   if (op.op === "concat") return `Join ${sources.map(source => `\`${source}\``).join(", ")} into \`${target}\`.`;
@@ -540,7 +541,7 @@ function productionDetail(op = {}) {
   if (op.op === "conditional") return `conditional choice from ${pathList(opSources(op))}`;
   if (op.op === "template" || op.op === "concat") return `built from ${pathList(opSources(op))}`;
   if (op.op === "coerce") return `converted from \`${op.source}\``;
-  if (op.op === "stringCase" || op.op === "stringNormalize") return `cleaned from \`${op.source}\``;
+  if (op.op === "stringCase" || op.op === "stringNormalize" || op.op === "stringReplace") return `cleaned from \`${op.source}\``;
   if (op.source) return `from \`${op.source}\``;
   return "derived from examples";
 }

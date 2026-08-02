@@ -1507,6 +1507,7 @@ function opValueExpr(op, root = "input", opIndex = 0) {
   }
   if (op.op === "stringCase") return withRequiredSource(op, root, value => stringTransformExpr(value, op.mode, { source: op.source }));
   if (op.op === "stringNormalize") return withRequiredSource(op, root, value => stringTransformExpr(value, op.mode, { source: op.source, phonePolicy: op.phonePolicy }));
+  if (op.op === "stringReplace") return withRequiredSource(op, root, value => `String(${value} ?? "").split(${literal(op.search)}).join(${literal(op.replacement)})`);
   if (op.op === "numericTransform") {
     return withRequiredSource(op, root, value => `(() => { const number = Number(${value}); if (!Number.isFinite(number)) return ${invalidNumberExpr(op.source)}; return ${op.mode === "add" ? `number + ${literal(op.value)}` : op.mode === "multiply" ? `number * ${literal(op.value)}` : op.mode === "divide" ? `number / ${literal(op.value)}` : "number"}; })()`);
   }
@@ -1519,13 +1520,25 @@ function opValueExpr(op, root = "input", opIndex = 0) {
   if (op.op === "numericFormula") {
     const baseValue = pathToAccess(op.base, root);
     const rateValue = pathToAccess(op.rate, root);
-    const direction = op.direction === "decrease" ? "-" : "+";
-    const raw = `(base / ${literal(op.baseDivisor || 1)}) * (1 ${direction} rate / ${literal(op.rateDivisor || 100)})`;
+    const direction = op.direction === "decrease" ? -1 : 1;
+    const baseDivisor = op.baseDivisor || 1;
+    const rateDivisor = op.rateDivisor || 100;
     const factor = 10 ** (Number.isInteger(op.decimals) ? op.decimals : 2);
-    const rounded = op.round === "round" ? `Math.round(value * ${factor}) / ${factor}`
-      : op.round === "floor" ? `Math.floor(value * ${factor}) / ${factor}`
-        : op.round === "ceil" ? `Math.ceil(value * ${factor}) / ${factor}` : "value";
-    return `(() => { const base = Number(${baseValue}); const rate = Number(${rateValue}); if (!Number.isFinite(base)) return ${invalidNumberExpr(op.base)}; if (!Number.isFinite(rate)) return ${invalidNumberExpr(op.rate)}; const value = ${raw}; return ${rounded}; })()`;
+    const rounding = op.rounding || (op.round === "round" ? "half-up" : op.round) || "none";
+    const raw = op.evaluationOrder === "integer-rate"
+      ? `(base * (${rateDivisor} + (${direction}) * rate)) / (${baseDivisor} * ${rateDivisor})`
+      : `(base / ${baseDivisor}) * (1 + (${direction}) * (rate / ${rateDivisor}))`;
+    const scaled = op.evaluationOrder === "integer-rate"
+      ? `(base * (${rateDivisor} + (${direction}) * rate) * ${factor}) / (${baseDivisor} * ${rateDivisor})`
+      : `((${raw}) * ${factor})`;
+    const roundedInteger = rounding === "half-up" ? "Math.round(scaled)"
+      : rounding === "half-even" ? "(() => { const lower = Math.floor(scaled); const fraction = scaled - lower; const epsilon = Math.min(1e-7, Number.EPSILON * Math.max(1, Math.abs(scaled)) * 4); return Math.abs(fraction - 0.5) <= epsilon ? (Math.abs(lower % 2) === 0 ? lower : lower + 1) : Math.round(scaled); })()"
+        : rounding === "half-away" ? "(scaled < 0 ? -Math.round(-scaled) : Math.round(scaled))"
+          : rounding === "floor" ? "Math.floor(scaled)"
+            : rounding === "ceil" ? "Math.ceil(scaled)"
+              : rounding === "trunc" ? "Math.trunc(scaled)" : null;
+    const result = roundedInteger ? `${roundedInteger} / ${factor}` : raw;
+    return `(() => { const base = Number(${baseValue}); const rate = Number(${rateValue}); if (!Number.isFinite(base)) return ${invalidNumberExpr(op.base)}; if (!Number.isFinite(rate)) return ${invalidNumberExpr(op.rate)};${roundedInteger ? ` const scaled = ${scaled};` : ""} return ${result}; })()`;
   }
   if (op.op === "quantityTransform") {
     return withRequiredSource(op, root, value => `(() => { const match = String(${value} ?? "").trim().match(/^(-?\\d+(?:\\.\\d+)?)([a-zA-Z]+)$/); if (!match || match[2] !== ${literal(op.unit)}) return ${invalidQuantityExpr(op.source)}; const amount = Number(match[1]); if (!Number.isFinite(amount)) return ${invalidQuantityExpr(op.source)}; return String(Number((amount * ${literal(op.factor)}).toFixed(6))) + match[2]; })()`);
@@ -1777,13 +1790,27 @@ function jqProjectionObject(fields = []) {
 function jqValueExpression(op) {
   if (op.op === "set") return pathToJq(op.source);
   if (op.op === "constant") return literal(op.value);
+  if (op.op === "stringReplace") return `(${pathToJq(op.source)} | split(${literal(op.search)}) | join(${literal(op.replacement)}))`;
   if (op.op === "numericFormula") {
-    const direction = op.direction === "decrease" ? "-" : "+";
-    const raw = `((${pathToJq(op.base)} / ${literal(op.baseDivisor || 1)}) * (1 ${direction} (${pathToJq(op.rate)} / ${literal(op.rateDivisor || 100)})))`;
-    if (op.round === "none") return raw;
+    const direction = op.direction === "decrease" ? -1 : 1;
+    const baseDivisor = op.baseDivisor || 1;
+    const rateDivisor = op.rateDivisor || 100;
+    const base = pathToJq(op.base);
+    const rate = pathToJq(op.rate);
+    const raw = op.evaluationOrder === "integer-rate"
+      ? `((${base} * (${rateDivisor} + (${direction} * ${rate}))) / (${baseDivisor} * ${rateDivisor}))`
+      : `((${base} / ${baseDivisor}) * (1 + (${direction} * (${rate} / ${rateDivisor}))))`;
+    const rounding = op.rounding || (op.round === "round" ? "half-up" : op.round) || "none";
+    if (rounding === "none") return raw;
     const factor = 10 ** (Number.isInteger(op.decimals) ? op.decimals : 2);
-    const round = ["round", "floor", "ceil"].includes(op.round) ? op.round : "round";
-    return `(((${raw}) * ${factor} | ${round}) / ${factor})`;
+    const scaled = op.evaluationOrder === "integer-rate"
+      ? `((${base} * (${rateDivisor} + (${direction} * ${rate})) * ${factor}) / (${baseDivisor} * ${rateDivisor}))`
+      : `((${raw}) * ${factor})`;
+    if (rounding === "half-up") return `(((${scaled}) + 0.5 | floor) / ${factor})`;
+    if (rounding === "half-away") return `((if ${scaled} < 0 then -((-${scaled} + 0.5) | floor) else ((${scaled} + 0.5) | floor) end) / ${factor})`;
+    if (rounding === "half-even") return unsupportedJq(op, "half-even rounding needs JavaScript fallback");
+    const jqRound = ["floor", "ceil", "trunc"].includes(rounding) ? rounding : "round";
+    return `(((${scaled}) | ${jqRound}) / ${factor})`;
   }
   if (op.op === "conditional") {
     const source = pathToJq(op.source);

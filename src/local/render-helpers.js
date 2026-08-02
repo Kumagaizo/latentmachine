@@ -302,7 +302,7 @@ export function createRenderHelpers({
     if (op.op === "set") return op.source === op.target ? "kept from input" : `from ${detailPath(op.source)}`;
     if (op.op === "constant") return `always ${specValuePreview(op.value)}`;
     if (op.op === "coerce") return `read ${detailPath(op.source)} as ${op.to}`;
-    if (op.op === "stringCase" || op.op === "stringNormalize") return `from ${detailPath(op.source)}, with text cleaned`;
+    if (op.op === "stringCase" || op.op === "stringNormalize" || op.op === "stringReplace") return `from ${detailPath(op.source)}, with text cleaned`;
     if (op.op === "valueMap") return `learned lookup from ${detailPath(op.source)}`;
     if (op.op === "template") return `built from ${detailList(opSources(op))}`;
     if (op.op === "concat") return `joined from ${detailList(op.sources || [])}`;

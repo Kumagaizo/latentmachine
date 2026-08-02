@@ -43,7 +43,9 @@ import { compactVerificationResult, SECURITY_LIMITS, verify } from "../src/index
     created_at: `2026-01-${String((index % 28) + 1).padStart(2, "0")}T12:00:00.000Z`,
   }));
   const transformed = original.map(row => ({ joinDate: row.created_at.slice(0, 10) }));
+  const before = JSON.stringify(transformed[1]);
   transformed[1].joinDate = "01/02/2026";
+  assert.notEqual(JSON.stringify(transformed[1]), before, "date-format mutation must change the expected output");
   const result = verify({ original, transformed });
   assert.equal(result.verdict, "inconsistent");
   assert.deepEqual(result.flaggedRows.map(row => row.index), [1]);

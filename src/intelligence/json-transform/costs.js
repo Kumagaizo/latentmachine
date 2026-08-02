@@ -12,6 +12,7 @@ const COST_PRIORS = {
   coerce: 1.45,
   stringCase: 1.35,
   stringNormalize: 1.16,
+  stringReplace: 1.42,
   dateFormat: 1.22,
   booleanNot: 1.35,
   quantityTransform: 1.32,

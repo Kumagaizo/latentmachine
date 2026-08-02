@@ -104,6 +104,7 @@ function applyOp(op, input) {
   if (op.op === "constant") return op.value;
   if (op.op === "coerce") return coerce(getPath(input, op.source), op.to);
   if (op.op === "stringCase") return transformString(getPath(input, op.source), op.mode);
+  if (op.op === "stringReplace") return String(getPath(input, op.source) ?? "").split(op.search).join(op.replacement);
   if (op.op === "numericTransform") {
     const value = Number(getPath(input, op.source));
     if (!Number.isFinite(value)) return `[invalid number ${op.source}]`;
