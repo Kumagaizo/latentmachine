@@ -3,7 +3,7 @@ import { arrayPaths, entries, formatPath, getPath, objectFields, parsePath, setP
 import { costOf } from "./costs.js";
 import { buildDiagnosis, diagnosisStatus, reliabilityEvidenceFor, reliabilityFor, riskTypes, assessConfidence } from "./reliability.js";
 import { parseJson } from "./operations.js";
-import { buildProgram } from "./program-builder.js";
+import { buildProgram, INFERENCE_EXAMPLE_LIMIT } from "./program-builder.js";
 import { memorisationForProgram } from "./memorisation.js";
 import { evidenceForProgram, explanationForProgram, preconditionsForProgram, programTitle, summarizeProgram } from "./program-view.js";
 import { executeJsonTransform, runtimeWarnings } from "./runtime.js";
@@ -175,6 +175,8 @@ export function runJsonTransform(input = {}) {
       durationMs: Date.now() - started,
       method: "jsonTransform",
       exampleCount: examples.length,
+      inferenceExampleLimit: INFERENCE_EXAMPLE_LIMIT,
+      inferenceSampled: examples.length > INFERENCE_EXAMPLE_LIMIT,
       operationCount: built.program.ops.length,
     },
   };

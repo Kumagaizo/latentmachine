@@ -87,7 +87,8 @@ function cliOpSources(op) {
   if (op.op === "template") return (op.parts || []).filter(part => part.kind === "source").map(part => part.path);
   if (op.op === "concat" || op.op === "fallback") return op.sources || [];
   if (op.op === "numericBinary") return [op.left, op.right].filter(Boolean);
-  if (["arrayMap", "arrayProject", "arrayCount", "arrayJoin", "arrayFind", "arrayGroupBy", "arrayStringTransform"].includes(op.op)) return [op.source].filter(Boolean);
+  if (op.op === "numericFormula") return [op.base, op.rate].filter(Boolean);
+  if (["arrayMap", "arrayProject", "arrayCount", "arraySum", "arrayIndex", "arrayJoin", "arrayFind", "arrayGroupBy", "arrayStringTransform"].includes(op.op)) return [op.source].filter(Boolean);
   return op.source ? [op.source] : [];
 }
 
@@ -1515,6 +1516,17 @@ function opValueExpr(op, root = "input", opIndex = 0) {
     const operation = op.mode === "add" ? "left + right" : op.mode === "subtract" ? "left - right" : op.mode === "multiply" ? "left * right" : "left";
     return `(() => { const left = Number(${leftValue}); const right = Number(${rightValue}); if (!Number.isFinite(left)) return ${invalidNumberExpr(op.left)}; if (!Number.isFinite(right)) return ${invalidNumberExpr(op.right)}; return ${operation}; })()`;
   }
+  if (op.op === "numericFormula") {
+    const baseValue = pathToAccess(op.base, root);
+    const rateValue = pathToAccess(op.rate, root);
+    const direction = op.direction === "decrease" ? "-" : "+";
+    const raw = `(base / ${literal(op.baseDivisor || 1)}) * (1 ${direction} rate / ${literal(op.rateDivisor || 100)})`;
+    const factor = 10 ** (Number.isInteger(op.decimals) ? op.decimals : 2);
+    const rounded = op.round === "round" ? `Math.round(value * ${factor}) / ${factor}`
+      : op.round === "floor" ? `Math.floor(value * ${factor}) / ${factor}`
+        : op.round === "ceil" ? `Math.ceil(value * ${factor}) / ${factor}` : "value";
+    return `(() => { const base = Number(${baseValue}); const rate = Number(${rateValue}); if (!Number.isFinite(base)) return ${invalidNumberExpr(op.base)}; if (!Number.isFinite(rate)) return ${invalidNumberExpr(op.rate)}; const value = ${raw}; return ${rounded}; })()`;
+  }
   if (op.op === "quantityTransform") {
     return withRequiredSource(op, root, value => `(() => { const match = String(${value} ?? "").trim().match(/^(-?\\d+(?:\\.\\d+)?)([a-zA-Z]+)$/); if (!match || match[2] !== ${literal(op.unit)}) return ${invalidQuantityExpr(op.source)}; const amount = Number(match[1]); if (!Number.isFinite(amount)) return ${invalidQuantityExpr(op.source)}; return String(Number((amount * ${literal(op.factor)}).toFixed(6))) + match[2]; })()`);
   }
@@ -1601,6 +1613,17 @@ function opValueExpr(op, root = "input", opIndex = 0) {
     const rows = `(${pathToAccess(op.source, root)} ?? [])`;
     const where = op.where ? `.filter(row => JSON.stringify(${pathToAccess(op.where.path, "row")}) === ${literal(JSON.stringify(op.where.equals))})` : "";
     return `Array.isArray(${rows}) ? ${rows}${where}.length : 0`;
+  }
+  if (op.op === "arraySum") {
+    const rows = `(${pathToAccess(op.source, root)} ?? [])`;
+    const value = op.extract ? pathToAccess(op.extract, "row") : "row";
+    return `(() => { const arr = ${rows}; if (!Array.isArray(arr)) return 0; const values = arr.map(row => Number(${value})); return values.every(Number.isFinite) ? values.reduce((sum, number) => sum + number, 0) : ${invalidNumberExpr(op.source)}; })()`;
+  }
+  if (op.op === "arrayIndex") {
+    const source = pathToAccess(op.source, root);
+    const selected = op.index === "last" ? "arr.at(-1)" : op.index === "first" ? "arr[0]" : `arr[${literal(op.index)}]`;
+    const value = op.extract ? pathToAccess(op.extract, "row") : "row";
+    return `(() => { const arr = ${source} ?? []; if (!Array.isArray(arr) || !arr.length) return undefined; const row = ${selected}; return ${value}; })()`;
   }
   if (op.op === "arrayJoin") {
     const rows = `(${pathToAccess(op.source, root)} ?? [])`;
@@ -1754,6 +1777,14 @@ function jqProjectionObject(fields = []) {
 function jqValueExpression(op) {
   if (op.op === "set") return pathToJq(op.source);
   if (op.op === "constant") return literal(op.value);
+  if (op.op === "numericFormula") {
+    const direction = op.direction === "decrease" ? "-" : "+";
+    const raw = `((${pathToJq(op.base)} / ${literal(op.baseDivisor || 1)}) * (1 ${direction} (${pathToJq(op.rate)} / ${literal(op.rateDivisor || 100)})))`;
+    if (op.round === "none") return raw;
+    const factor = 10 ** (Number.isInteger(op.decimals) ? op.decimals : 2);
+    const round = ["round", "floor", "ceil"].includes(op.round) ? op.round : "round";
+    return `(((${raw}) * ${factor} | ${round}) / ${factor})`;
+  }
   if (op.op === "conditional") {
     const source = pathToJq(op.source);
     const test = op.test === "notEquals"
@@ -1771,6 +1802,11 @@ function jqValueExpression(op) {
   if (op.op === "arrayMap") return jqArrayPipeline(op, pathToJq(op.extract));
   if (op.op === "arrayProject") return jqArrayPipeline(op, jqProjectionObject(op.fields || []));
   if (op.op === "arrayCount") return `[${jqArrayRows(op)}] | length`;
+  if (op.op === "arraySum") return `[${pathToJq(op.source)}[] | ${op.extract ? pathToJq(op.extract) : "."} | tonumber] | add // 0`;
+  if (op.op === "arrayIndex") {
+    const index = op.index === "last" ? -1 : op.index === "first" ? 0 : op.index;
+    return `${pathToJq(op.source)}[${index}]${op.extract ? ` | ${pathToJq(op.extract)}` : ""}`;
+  }
   if (op.op === "arrayJoin") return `${jqArrayPipeline(op, op.extract ? pathToJq(op.extract) : ".")} | join(${literal(op.separator || "")})`;
   if (op.op === "arrayFind") return `first(${jqArrayRows(op)} | ${pathToJq(op.extract)})`;
   if (op.op === "arrayGroupBy") {

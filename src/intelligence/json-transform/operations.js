@@ -158,6 +158,22 @@ export function formatQuantity(amount, unit) {
   return `${String(rounded)}${unit}`;
 }
 
+export function applyNumericFormula(baseValue, rateValue, options = {}) {
+  const base = Number(baseValue);
+  const rate = Number(rateValue);
+  if (!Number.isFinite(base) || !Number.isFinite(rate)) return null;
+  const baseDivisor = options.baseDivisor || 1;
+  const rateDivisor = options.rateDivisor || 100;
+  const direction = options.direction === "decrease" ? -1 : 1;
+  let value = (base / baseDivisor) * (1 + direction * (rate / rateDivisor));
+  const decimals = Number.isInteger(options.decimals) ? options.decimals : 2;
+  const factor = 10 ** decimals;
+  if (options.round === "round") value = Math.round(value * factor) / factor;
+  if (options.round === "floor") value = Math.floor(value * factor) / factor;
+  if (options.round === "ceil") value = Math.ceil(value * factor) / factor;
+  return value;
+}
+
 export function projectArrayRow(row, fields) {
   return fields.reduce((record, field) => {
     const value = getPath(row, field.source);

@@ -19,6 +19,7 @@ import {
 import { SECURITY_LIMITS, assertArrayLimit, assertSerializedLimit, assertTextLimit } from "../packages/verify/src/limits.js";
 import { compactVerificationResult } from "../packages/verify/src/reporting.js";
 import { memorisationSummary } from "../src/intelligence/json-transform/memorisation.js";
+import { INFERENCE_EXAMPLE_LIMIT } from "../src/intelligence/json-transform/program-builder.js";
 
 const FORMAT_ENUM = ["auto", "json", "csv", "yaml", "toml", "xml", "env", "sql"];
 const DIFF_PATH_LIST_LIMIT = 100;
@@ -91,6 +92,7 @@ export const TOOLS = [
       "Check whether a batch of AI-transformed data rows all follow one deterministic rule. " +
       "Takes the original records and transformed output, infers the majority rule, and returns a capped diagnostic summary. " +
       "Sparse optional fields are scoped to their source domain and may be unverifiable without flagging out-of-domain rows. " +
+      "Candidate inference uses at most 200 output-diverse examples, then validates every supplied row. " +
       "Uses a deterministic symbolic engine, not an LLM.",
     inputSchema: {
       type: "object",
@@ -422,6 +424,12 @@ export function handleVerify({ original, transformed, format = "auto", flagged_r
   return compactVerificationResult({
     verdict,
     totalRows: originalRows.length,
+    inference: {
+      strategy: "bounded-output-aware",
+      maximumEvidenceRows: INFERENCE_EXAMPLE_LIMIT,
+      sampled: originalRows.length > INFERENCE_EXAMPLE_LIMIT,
+      validationRows: originalRows.length,
+    },
     matchedRows: result.matched,
     flaggedRows: result.flagged.map((flag) => ({
       index: flag.i,

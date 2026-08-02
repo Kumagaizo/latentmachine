@@ -86,6 +86,7 @@ export function explanationSourceFields(op = {}) {
   if (op.op === "concat") return op.sources || [];
   if (op.op === "fallback") return op.sources || [];
   if (op.op === "numericBinary") return [op.left, op.right].filter(Boolean);
+  if (op.op === "numericFormula") return [op.base, op.rate].filter(Boolean);
   if (op.op === "arrayProject") {
     return [
       op.source,
@@ -95,6 +96,7 @@ export function explanationSourceFields(op = {}) {
   }
   if (["arrayMap", "arrayJoin"].includes(op.op)) return [op.source, op.where?.path, op.extract].filter(Boolean);
   if (op.op === "arrayCount") return [op.source, op.where?.path].filter(Boolean);
+  if (["arraySum", "arrayIndex"].includes(op.op)) return [op.source, op.extract].filter(Boolean);
   if (op.op === "arrayFind") return [op.source, op.where?.path, op.extract].filter(Boolean);
   if (op.op === "arrayGroupBy") return [op.source, op.groupBy, op.extract].filter(Boolean);
   if (op.op === "templateConflict") return op.sources || [];
@@ -142,6 +144,10 @@ export function explainOp(op = {}) {
     const actions = { add: "Add", subtract: "Subtract", multiply: "Multiply" };
     return `${actions[op.mode] || "Combine"} ${code(op.left)} and ${code(op.right)}, then write the result to ${target}.`;
   }
+  if (op.op === "numericFormula") {
+    const direction = op.direction === "decrease" ? "subtract" : "add";
+    return `Divide ${code(op.base)} by ${op.baseDivisor}, ${direction} the ${code(op.rate)} percentage, ${op.round} to ${op.decimals} decimals, and write the result to ${target}.`;
+  }
   if (op.op === "quantityTransform") return `Multiply ${code(op.source)} by ${op.factor} for ${op.unit || "the target unit"} and write the result to ${target}.`;
   if (op.op === "concat") {
     const separator = op.separators?.[0] ?? "";
@@ -177,6 +183,14 @@ export function explainOp(op = {}) {
   if (op.op === "arrayCount") {
     const filter = op.where ? ` where ${code(op.where.path)} is ${quote(op.where.equals)}` : "";
     return `Count items in ${code(op.source)}${filter} and write the number to ${target}.`;
+  }
+  if (op.op === "arraySum") {
+    const extract = op.extract ? ` at ${code(op.extract)}` : "";
+    return `Sum numeric values${extract} in ${code(op.source)} and write the result to ${target}.`;
+  }
+  if (op.op === "arrayIndex") {
+    const extract = op.extract ? `, take ${code(op.extract)}` : "";
+    return `Select the ${String(op.index)} item in ${code(op.source)}${extract}, and write it to ${target}.`;
   }
   if (op.op === "arrayJoin") {
     const filter = op.where ? ` where ${code(op.where.path)} is ${quote(op.where.equals)}` : "";
@@ -261,6 +275,11 @@ function opAssumptions(op = {}) {
       assumption(field, `Assumes ${code(field)} can be read as a number.`, { target, sourceFields: [op.left, op.right].filter(Boolean), kind: "number" })
     ));
   }
+  if (op.op === "numericFormula") {
+    return [op.base, op.rate].filter(Boolean).map(field => (
+      assumption(field, `Assumes ${code(field)} can be read as a number for the percentage formula.`, { target, sourceFields: [op.base, op.rate].filter(Boolean), kind: "number" })
+    ));
+  }
   if (op.op === "quantityTransform") {
     return [assumption(op.source, `Assumes ${code(op.source)} uses the same quantity shape shown in the examples.`, { target, kind: "quantity" })];
   }
@@ -292,7 +311,7 @@ function opAssumptions(op = {}) {
   if (op.op === "arrayStringTransform") {
     return [assumption(op.source, `Assumes ${code(op.source)} is an array of strings.`, { target, kind: "array" })];
   }
-  if (["arrayMap", "arrayProject", "arrayCount", "arrayJoin", "arrayFind", "arrayGroupBy"].includes(op.op)) {
+  if (["arrayMap", "arrayProject", "arrayCount", "arraySum", "arrayIndex", "arrayJoin", "arrayFind", "arrayGroupBy"].includes(op.op)) {
     const rows = [assumption(op.source, `Assumes ${code(op.source)} is an array.`, { target, kind: "array" })];
     if (op.where?.path) {
       rows.push(assumption(op.source, `Assumes items in ${code(op.source)} can be checked at ${code(op.where.path)} for ${quote(op.where.equals)}.`, {

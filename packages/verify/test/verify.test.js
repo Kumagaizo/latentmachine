@@ -60,7 +60,7 @@ import { compactVerificationResult, SECURITY_LIMITS, verify } from "../src/index
   assert.equal(result.confidence.label, "unverified");
   assert.ok(result.memorisation.memorisedTargets.includes("$.label"));
   assert.ok(result.confidence.reasons.some(reason => reason.kind === "memorised-lookup"));
-  assert.match(result.summary, /only field that could not be reduced to a rule/i);
+  assert.doesNotMatch(result.summary, /only field|drifted values/i);
 
   const compact = compactVerificationResult(result);
   assert.ok(JSON.stringify(compact).length < JSON.stringify(result).length / 2);

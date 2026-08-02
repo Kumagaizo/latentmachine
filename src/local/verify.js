@@ -496,12 +496,15 @@ function opLine(op = {}) {
   if (op.op === "conditional") return `Choose one of two values for \`${target}\` based on \`${op.source}\`.`;
   if (op.op === "numericTransform" || op.op === "quantityTransform") return `Calculate \`${target}\` from \`${op.source}\`.`;
   if (op.op === "numericBinary") return `Calculate \`${target}\` from ${sources.map(source => `\`${source}\``).join(" and ")}.`;
+  if (op.op === "numericFormula") return `Calculate \`${target}\` from ${sources.map(source => `\`${source}\``).join(" and ")} with percentage adjustment and rounding.`;
   if (op.op === "dateFormat") return `Format date \`${op.source}\` into \`${target}\`.`;
   if (op.op === "regexExtract") return `Extract text matching \`/${op.pattern}/\` from \`${op.source}\` into \`${target}\`.`;
   if (op.op === "arrayProject") return `Project records from \`${op.source}\` into \`${target}\`.`;
   if (op.op === "arrayGroupBy") return `Group records from \`${op.source}\` by \`${op.groupBy}\` into \`${target}\`.`;
   if (op.op === "arrayMap") return `Map values from \`${op.source}\` into \`${target}\`.`;
   if (op.op === "arrayCount") return `Count items in \`${op.source}\` for \`${target}\`.`;
+  if (op.op === "arraySum") return `Sum numeric values in \`${op.source}\` for \`${target}\`.`;
+  if (op.op === "arrayIndex") return `Select the ${String(op.index)} item in \`${op.source}\` for \`${target}\`.`;
   if (op.op === "arrayJoin") return `Join items from \`${op.source}\` into \`${target}\`.`;
   return `Apply ${op.op || "a rule"} to produce \`${target}\`.`;
 }

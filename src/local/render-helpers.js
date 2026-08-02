@@ -308,6 +308,7 @@ export function createRenderHelpers({
     if (op.op === "concat") return `joined from ${detailList(op.sources || [])}`;
     if (op.op === "numericTransform" || op.op === "quantityTransform") return `calculated from ${detailPath(op.source)}`;
     if (op.op === "numericBinary") return `calculated from ${detailList([op.left, op.right])}`;
+    if (op.op === "numericFormula") return `percentage formula from ${detailList([op.base, op.rate])}`;
     if (op.op === "booleanNot") return `inverted from ${detailPath(op.source)}`;
     if (op.op === "dateFormat") return `date from ${detailPath(op.source)}`;
     if (op.op === "extractBetween") return `text taken from ${detailPath(op.source)}`;
@@ -317,6 +318,8 @@ export function createRenderHelpers({
     if (op.op === "arrayMap") return `${op.where ? "filtered values" : "values"} from ${detailPath(op.source)}`;
     if (op.op === "arrayProject") return `${op.where ? "filtered records" : "records"} from ${detailPath(op.source)}`;
     if (op.op === "arrayCount") return `count from ${detailPath(op.source)}`;
+    if (op.op === "arraySum") return `sum from ${detailPath(op.source)}`;
+    if (op.op === "arrayIndex") return `${String(op.index)} item from ${detailPath(op.source)}`;
     if (op.op === "arrayJoin") return `joined values from ${detailPath(op.source)}`;
     if (op.op === "arrayFind") return `first matching item from ${detailPath(op.source)}`;
     if (op.op === "templateConflict" || op.op === "valueMapConflict") return "examples conflict";

@@ -68,6 +68,22 @@ export function assessConfidence(evidence = {}) {
   for (const item of evidence.memorisation?.insufficientSupport || []) {
     reasons.push(evidenceReason("insufficient-support", item.detail, "unverified"));
   }
+  for (const target of evidence.memorisation?.incompleteLookupTargets || []) {
+    const lookup = (evidence.memorisation?.lookups || []).find(item => item.target === target);
+    reasons.push(evidenceReason(
+      "bounded-lookup-evidence",
+      `${target} used a bounded inference sample that did not include ${lookup?.unseenSourceCount || "all"} source value${lookup?.unseenSourceCount === 1 ? "" : "s"}; no reusable rule was established.`,
+      "unverified",
+    ));
+  }
+  for (const lookup of evidence.memorisation?.lookups || []) {
+    if (!lookup.conflictingSourceValues) continue;
+    reasons.push(evidenceReason(
+      "memorised-source-conflict",
+      `${lookup.target} had ${lookup.conflictingSourceValues} repeated source value${lookup.conflictingSourceValues === 1 ? "" : "s"} with conflicting outputs inside an unverifiable lookup.`,
+      "unverified",
+    ));
+  }
 
   for (const item of blockingSchema) {
     reasons.push(evidenceReason("schema-drift", item.message || `${item.path || item.source || "Input"} changed shape.`, "unsafe"));

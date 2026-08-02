@@ -225,11 +225,13 @@ function operationKind(op) {
   if (op.op === "valueMap") return "mapped";
   if (op.op === "concat" || op.op === "template") return "built";
   if (op.op === "splitPart" || op.op === "stringSplit") return "split";
-  if (op.op === "numericTransform" || op.op === "numericBinary" || op.op === "quantityTransform" || op.op === "booleanNot" || op.op === "conditional") return "computed";
+  if (op.op === "numericTransform" || op.op === "numericBinary" || op.op === "numericFormula" || op.op === "quantityTransform" || op.op === "booleanNot" || op.op === "conditional") return "computed";
   if (op.op === "dateFormat") return "formatted";
   if (op.op === "extractBetween" || op.op === "regexExtract" || op.op === "arrayFind") return "extracted";
   if (op.op === "arrayMap" || op.op === "arrayProject" || op.op === "arrayGroupBy") return "reshaped";
   if (op.op === "arrayCount") return "counted";
+  if (op.op === "arraySum") return "summed";
+  if (op.op === "arrayIndex") return "selected";
   if (op.op === "arrayJoin") return "joined";
   if (op.op === "templateConflict" || op.op === "valueMapConflict") return "blocked";
   return "changed";

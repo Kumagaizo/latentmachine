@@ -8,8 +8,16 @@
 - The CLI treats `unverifiable` as a failing verdict unless `--allow-unverifiable` is supplied.
 - Memorisation metadata now separates `ruleVerifiedTargets`, `passthroughTargets`, and `nonMemorisedTargets` instead of overstating all non-memorised targets as verified.
 
+### Added
+
+- Infer reusable `arraySum`, primitive-array `arrayIndex`, and percentage-based `numericFormula` operations with explicit rounding semantics.
+- Bound hypothesis generation to 200 deterministic, output-diverse examples while continuing to validate every supplied row.
+- Report full per-field support plus repeated-source consistency and conflict counts for lookup-backed fields.
+
 ### Fixed
 
+- Remove the single-run memorisation drift hint: memorisation reflects rule expressiveness and is not evidence of drift without a comparable baseline.
+- Prevent superlinear wide-schema inference and cap leave-one-out reinference to small batches.
 - Scope optional output fields to their source-presence domain, so absent optional values no longer produce false row-level flags.
 - Discover optional fields across the full batch instead of assuming the first row contains the complete schema.
 - Classify optional-field rules with fewer than eight supporting examples as `unverifiable`; these fields cannot contribute inconsistent row flags.

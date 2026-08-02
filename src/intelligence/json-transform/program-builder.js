@@ -2,14 +2,15 @@ import { explainOp } from "./explain.js";
 import { entries, getPath, omitPaths, parsePath, uniqueBy } from "./core.js";
 import { COST_PRIOR_STEP } from "./costs.js";
 import { inferArrayGroupBy, inferTargetCandidates } from "./candidates.js";
-import { instrumentProgramMemorisation, MEMORISATION_MINIMUM_ROWS, MEMORISATION_RATIO_THRESHOLD } from "./memorisation.js";
+import { instrumentProgramMemorisation, memorisationForProgram, MEMORISATION_MINIMUM_ROWS, MEMORISATION_RATIO_THRESHOLD } from "./memorisation.js";
 import { executeJsonTransform, runtimeWarnings } from "./runtime.js";
-import { deepEqual, opSources } from "./shared.js";
+import { deepEqual, opSources, stableStringify } from "./shared.js";
 
 const AMBIGUITY_TRIAGE = {
   weakCostGap: COST_PRIOR_STEP,
   closeCostGap: COST_PRIOR_STEP * 1.6,
 };
+export const INFERENCE_EXAMPLE_LIMIT = 200;
 
 function candidateWarnings(op, input) {
   return runtimeWarnings({ ops: [op] }, input);
@@ -133,6 +134,26 @@ function mergedEntries(examples, select, options) {
   return [...byPath.values()];
 }
 
+function sampleInferenceExamples(examples, targetPath, limit = INFERENCE_EXAMPLE_LIMIT) {
+  if (examples.length <= limit) return examples;
+  const selectedIndices = new Set();
+  const firstByTargetValue = new Map();
+  for (const [index, example] of examples.entries()) {
+    const key = stableStringify(getPath(example.output, targetPath));
+    if (!firstByTargetValue.has(key)) firstByTargetValue.set(key, index);
+  }
+  if (firstByTargetValue.size <= Math.floor(limit / 2)) {
+    for (const index of firstByTargetValue.values()) selectedIndices.add(index);
+  }
+  const available = examples.map((_, index) => index).filter(index => !selectedIndices.has(index));
+  const remaining = limit - selectedIndices.size;
+  for (let index = 0; index < remaining; index++) {
+    const availableIndex = remaining === 1 ? 0 : Math.round(index * (available.length - 1) / (remaining - 1));
+    selectedIndices.add(available[availableIndex]);
+  }
+  return [...selectedIndices].sort((left, right) => left - right).map(index => examples[index]);
+}
+
 function outputEntriesForExamples(examples) {
   const leaves = mergedEntries(examples, example => example.output, { includeArrayLeaves: true });
   const groupedContainers = mergedEntries(examples, example => example.output, { includeContainers: true, includeArrayLeaves: true })
@@ -202,8 +223,24 @@ function candidateWithDomain(candidate, domain) {
   };
 }
 
+function candidateWithInference(candidate, inferenceExamples, supportedExamples) {
+  if (inferenceExamples.length === supportedExamples.length || !["valueMap", "valueMapConflict"].includes(candidate.op.op)) return candidate;
+  return {
+    ...candidate,
+    op: {
+      ...candidate.op,
+      inference: {
+        sampled: true,
+        rowCount: inferenceExamples.length,
+        supportCount: supportedExamples.length,
+        limit: INFERENCE_EXAMPLE_LIMIT,
+      },
+    },
+  };
+}
+
 function comparableTargets(program) {
-  return (program.fieldDomains || []).filter(domain => domain.unverifiable).map(domain => domain.target);
+  return memorisationForProgram(program).unverifiableTargets || [];
 }
 
 export function buildProgram(examples, newInput = undefined, version = 3) {
@@ -214,9 +251,11 @@ export function buildProgram(examples, newInput = undefined, version = 3) {
     const domainExamples = domain
       ? examples.filter(example => getPath(example.output, target.path) !== undefined)
       : examples;
+    const inferenceExamples = sampleInferenceExamples(domainExamples, target.path);
     const domainSources = mergedEntries(domainExamples, example => example.input, { includeArrayLeaves: true });
-    const candidates = inferTargetCandidates(domainExamples, target, domainSources)
-      .map(candidate => candidateWithDomain(candidate, domain));
+    const candidates = inferTargetCandidates(inferenceExamples, target, domainSources)
+      .map(candidate => candidateWithDomain(candidate, domain))
+      .map(candidate => candidateWithInference(candidate, inferenceExamples, domainExamples));
     const fieldDomain = domain && !domain.assumeRequired ? {
       target: target.path,
       supportCount: domain.supportCount,
@@ -228,7 +267,7 @@ export function buildProgram(examples, newInput = undefined, version = 3) {
         ? "insufficient-support"
         : !candidates.length ? "no-rule" : !domain.guardSources.length ? "unproven-domain" : null,
     } : null;
-    return { target, domainExamples, fieldDomain, candidates };
+    return { target, domainExamples, inferenceExamples, fieldDomain, candidates };
   });
   const selected = targetCandidates.map(row => selectCandidate(row.candidates, newInput)).filter(Boolean);
   const selectedByTarget = new Map(selected.map(item => [item.target, item]));
@@ -255,7 +294,7 @@ export function buildProgram(examples, newInput = undefined, version = 3) {
         candidate !== selectedCandidate
         && !deepEqual(candidate.op, selectedCandidate?.op)
         && !isDominatedConditionalLookup(selectedCandidate, candidate)
-        && !isDominatedMemorisedLookup(selectedCandidate, candidate, row.domainExamples.length)
+        && !isDominatedMemorisedLookup(selectedCandidate, candidate, row.inferenceExamples.length)
       ));
       if (!selectedCandidate || !alternative || Math.abs(alternative.cost - selectedCandidate.cost) > AMBIGUITY_TRIAGE.closeCostGap) return null;
       const strength = ambiguityStrength(selectedCandidate, alternative, newInput);

@@ -1,6 +1,6 @@
 import { clone, formatPath, getPath, hasPathToken, parsePath, setPath } from "./core.js";
-import { coerce, formatDateParts, formatQuantity, isAmbiguousDateText, normalizeString, parseDateParts, parseJson, parseQuantity, projectArrayRow, transformString } from "./operations.js";
-import { deepEqual } from "./shared.js";
+import { applyNumericFormula, coerce, formatDateParts, formatQuantity, isAmbiguousDateText, normalizeString, parseDateParts, parseJson, parseQuantity, projectArrayRow, transformString } from "./operations.js";
+import { deepEqual, opSources } from "./shared.js";
 
 function parseJsonObjectString(value) {
   if (typeof value !== "string" || !value.trim()) return null;
@@ -96,7 +96,7 @@ function stringCaseWarnings(op, input) {
 }
 
 function applyOp(op, input) {
-  if (op.source && !["arrayMap", "arrayProject", "arrayCount", "arrayJoin", "arrayFind", "arrayGroupBy", "arrayStringTransform", "stringSplit"].includes(op.op) && getPath(input, op.source) === undefined) return `[missing ${op.source}]`;
+  if (op.source && !["arrayMap", "arrayProject", "arrayCount", "arraySum", "arrayIndex", "arrayJoin", "arrayFind", "arrayGroupBy", "arrayStringTransform", "stringSplit"].includes(op.op) && getPath(input, op.source) === undefined) return `[missing ${op.source}]`;
   if (op.op === "set") {
     const value = getPath(input, op.source);
     return value === undefined ? `[missing ${op.source}]` : value;
@@ -121,6 +121,10 @@ function applyOp(op, input) {
     if (op.mode === "subtract") return left - right;
     if (op.mode === "multiply") return left * right;
     return left;
+  }
+  if (op.op === "numericFormula") {
+    const value = applyNumericFormula(getPath(input, op.base), getPath(input, op.rate), op);
+    return value === null ? `[invalid number ${op.base} or ${op.rate}]` : value;
   }
   if (op.op === "quantityTransform") {
     const parsed = parseQuantity(getPath(input, op.source));
@@ -216,6 +220,18 @@ function applyOp(op, input) {
     const rows = getPath(input, op.source) || [];
     if (!Array.isArray(rows)) return 0;
     return rows.filter(row => !op.where || deepEqual(getPath(row, op.where.path), op.where.equals)).length;
+  }
+  if (op.op === "arraySum") {
+    const rows = getPath(input, op.source) || [];
+    if (!Array.isArray(rows)) return 0;
+    const values = rows.map(row => Number(op.extract ? getPath(row, op.extract) : row));
+    return values.every(Number.isFinite) ? values.reduce((sum, value) => sum + value, 0) : `[invalid number ${op.source}]`;
+  }
+  if (op.op === "arrayIndex") {
+    const rows = getPath(input, op.source) || [];
+    if (!Array.isArray(rows) || !rows.length) return undefined;
+    const row = op.index === "last" ? rows.at(-1) : op.index === "first" ? rows[0] : rows[op.index];
+    return op.extract && row !== undefined ? getPath(row, op.extract) : row;
   }
   if (op.op === "arrayJoin") {
     const rows = getPath(input, op.source) || [];
@@ -386,13 +402,7 @@ export function runtimeWarnings(program, input) {
       }
       return [];
     }
-    const requiredSources = op.op === "template" ? op.parts.filter(part => part.kind === "source").map(part => part.path)
-      : op.op === "concat" ? op.sources
-        : op.op === "numericBinary" ? [op.left, op.right]
-          : op.op === "arrayProject" ? [op.source]
-            : op.op === "arrayCount" ? [op.source]
-        : op.source ? [op.source]
-          : [];
+    const requiredSources = opSources(op);
     return requiredSources
       .filter(source => getPath(parsedInput, source) === undefined)
       .map(source => ({ type: "missing-source", message: `${source} is required by the learned rule but is missing from the new input.`, op, source }));

@@ -1,4 +1,5 @@
 import { getPath } from "./core.js";
+import { stableStringify } from "./shared.js";
 
 export const MEMORISATION_RATIO_THRESHOLD = 0.5;
 export const MEMORISATION_MINIMUM_ROWS = 8;
@@ -11,23 +12,48 @@ function distinctSourceCount(op, examples) {
   return new Set(examples.map(example => JSON.stringify(getPath(example.input, op.source)))).size;
 }
 
+function lookupConsistency(op, examples) {
+  const groups = new Map();
+  for (const example of examples) {
+    const source = stableStringify(getPath(example.input, op.source));
+    const group = groups.get(source) || { count: 0, outputs: new Set() };
+    group.count += 1;
+    group.outputs.add(stableStringify(getPath(example.output, op.target)));
+    groups.set(source, group);
+  }
+  const repeated = [...groups.values()].filter(group => group.count > 1);
+  return {
+    repeatedSourceValues: repeated.length,
+    conflictingSourceValues: repeated.filter(group => group.outputs.size > 1).length,
+  };
+}
+
 export function instrumentProgramMemorisation(program, examples = []) {
   return {
     ...program,
     ops: (program.ops || []).map(op => {
       if (!["valueMap", "valueMapConflict"].includes(op.op)) return op;
-      const rowCount = op.domain?.supportCount ?? examples.length;
+      const rowCount = op.inference?.rowCount ?? op.domain?.supportCount ?? examples.length;
+      const domainExamples = op.domain?.optional
+        ? examples.filter(example => getPath(example.output, op.target) !== undefined)
+        : examples;
       const tableEntries = op.op === "valueMap"
         ? Object.keys(op.map || {}).length
-        : distinctSourceCount(op, op.domain?.optional
-          ? examples.filter(example => getPath(example.output, op.target) !== undefined)
-          : examples);
+        : distinctSourceCount(op, domainExamples);
+      const unseenSourceCount = op.op === "valueMap"
+        ? domainExamples.filter(example => !Object.prototype.hasOwnProperty.call(op.map || {}, JSON.stringify(getPath(example.input, op.source)))).length
+        : 0;
+      const consistency = lookupConsistency(op, domainExamples);
       return {
         ...op,
         memorisation: {
           tableEntries,
           rowCount,
           ratio: rowCount ? roundRatio(tableEntries / rowCount) : 0,
+          supportCount: domainExamples.length,
+          sampled: !!op.inference?.sampled,
+          unseenSourceCount,
+          ...consistency,
         },
       };
     }),
@@ -48,6 +74,8 @@ export function memorisationForProgram(program) {
     && item.ratio >= MEMORISATION_RATIO_THRESHOLD
   ));
   const memorisedTargets = [...new Set(memorised.map(item => item.target).filter(Boolean))];
+  const incompleteLookups = lookups.filter(item => item.sampled && item.unseenSourceCount > 0 && !memorisedTargets.includes(item.target));
+  const incompleteLookupTargets = [...new Set(incompleteLookups.map(item => item.target).filter(Boolean))];
   const fieldDomains = (program?.fieldDomains || []).filter(domain => domain?.target);
   const insufficientSupport = fieldDomains
     .filter(domain => domain.unverifiable)
@@ -63,7 +91,7 @@ export function memorisationForProgram(program) {
       caps: "unverified",
     }));
   const insufficientTargets = insufficientSupport.map(item => item.target);
-  const unverifiableTargets = [...new Set([...memorisedTargets, ...insufficientTargets])];
+  const unverifiableTargets = [...new Set([...memorisedTargets, ...insufficientTargets, ...incompleteLookupTargets])];
   const targets = [...new Set([
     ...(program?.ops || []).map(op => op.target),
     ...fieldDomains.map(domain => domain.target),
@@ -76,6 +104,7 @@ export function memorisationForProgram(program) {
     maxRatio: lookups.length ? Math.max(...lookups.map(item => item.ratio)) : 0,
     memorisedTargets,
     insufficientSupportTargets: insufficientTargets,
+    incompleteLookupTargets,
     unverifiableTargets,
     insufficientSupport,
     nonMemorisedTargets,
@@ -99,22 +128,31 @@ export function memorisationSummary(memorisation = {}) {
   const total = reusableCount + passthroughCount + unverifiableTargets.length;
   const verifiedText = `${reusableCount} verified against reusable rules. ${passthroughCount} passed through unchanged.`;
   const insufficient = memorisation.insufficientSupport || [];
-  if (!lookups.length && !insufficient.length) {
+  const incomplete = (memorisation.lookups || []).filter(item => (memorisation.incompleteLookupTargets || []).includes(item.target));
+  if (!lookups.length && !insufficient.length && !incomplete.length) {
     return `${total} field${total === 1 ? "" : "s"} checked. ${verifiedText}`;
   }
   const parts = [];
   if (lookups.length) {
-    const fields = lookups.map(item => `${item.target} (${item.tableEntries} of ${item.rowCount} rows)`).join(", ");
+    const fields = lookups.map(item => {
+      const support = item.supportCount && item.supportCount !== item.rowCount ? `; ${item.supportCount} total supported rows` : "";
+      const consistency = item.repeatedSourceValues
+        ? item.conflictingSourceValues
+          ? `; ${item.conflictingSourceValues} repeated source value${item.conflictingSourceValues === 1 ? "" : "s"} had conflicting outputs`
+          : `; ${item.repeatedSourceValues} repeated source value${item.repeatedSourceValues === 1 ? " was" : "s were"} internally consistent`
+        : "; no repeated source values were available for a consistency check";
+      return `${item.target} (${item.tableEntries} lookup entries from ${item.rowCount} inference rows${support}${consistency})`;
+    }).join(", ");
     parts.push(`${lookups.length} could not be verified because the engine fitted memorised lookups: ${fields}.`);
   }
   if (insufficient.length) {
     parts.push(`${insufficient.length} could not be verified because support was insufficient: ${insufficient.map(item => `${item.target} (${item.supportCount} of ${item.rowCount} rows)`).join(", ")}.`);
   }
-  const driftHint = lookups.length === 1 && unverifiableTargets.length === 1 && reusableCount + passthroughCount > 0
-    ? ` ${lookups[0].target} was the only field that could not be reduced to a rule; inspect it first for a small number of drifted values.`
-    : "";
+  if (incomplete.length) {
+    parts.push(`${incomplete.length} could not be verified because bounded inference did not observe every source value: ${incomplete.map(item => `${item.target} (${item.unseenSourceCount} outside the inference sample)`).join(", ")}.`);
+  }
   const domainNote = insufficient.length
     ? " Rows outside insufficiently supported field domains were not treated as contradictions."
     : "";
-  return `${total} fields checked. ${verifiedText} ${parts.join(" ")}${domainNote} Unverifiable fields do not contribute row flags.${driftHint}`;
+  return `${total} fields checked. ${verifiedText} ${parts.join(" ")}${domainNote} Unverifiable fields do not contribute row flags.`;
 }

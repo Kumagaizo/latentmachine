@@ -50,8 +50,9 @@ export const TOOLS = [
       "Check whether a batch of AI-transformed data rows all follow one deterministic rule.",
       "Paste the original records and the AI-generated output.",
       "Returns a capped diagnostic summary; sparse optional fields are scoped to their source domain and can be marked unverifiable without flagging out-of-domain rows.",
+      "Candidate inference uses at most 200 output-diverse examples, then validates every supplied row.",
       "High-cardinality lookup bodies are never inlined.",
-      "Text arguments are capped at 500,000 characters and the stdio JSON-RPC line at 1,000,000 characters; an audited wide-record fixture is safe at roughly 1,200 rows per call.",
+      "Text arguments are capped at 500,000 characters and the stdio JSON-RPC line at 1,000,000 characters; audited rich fixtures fit roughly 900 to 1,200 rows per call depending on schema width.",
       "Uses a deterministic symbolic engine, not an LLM.",
     ].join(" "),
     inputSchema: toolSchema({

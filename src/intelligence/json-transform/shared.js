@@ -23,6 +23,7 @@ export function opSources(op = {}) {
   if (op.op === "template") return (op.parts || []).filter(part => part.kind === "source").map(part => part.path);
   if (op.op === "concat" || op.op === "fallback") return op.sources || [];
   if (op.op === "numericBinary") return [op.left, op.right].filter(Boolean);
-  if (["arrayMap", "arrayProject", "arrayCount", "arrayJoin", "arrayFind", "arrayGroupBy", "arrayStringTransform"].includes(op.op)) return [op.source].filter(Boolean);
+  if (op.op === "numericFormula") return [op.base, op.rate].filter(Boolean);
+  if (["arrayMap", "arrayProject", "arrayCount", "arraySum", "arrayIndex", "arrayJoin", "arrayFind", "arrayGroupBy", "arrayStringTransform"].includes(op.op)) return [op.source].filter(Boolean);
   return op.source ? [op.source] : [];
 }

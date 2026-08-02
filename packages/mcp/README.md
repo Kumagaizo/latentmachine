@@ -31,7 +31,7 @@ If installed globally:
 
 ## Tools
 
-- `verify_data_transformation`: returns `consistent`, `inconsistent`, or field-attributed `unverifiable` for memorised or insufficiently supported rules. Optional fields are checked only inside their inferred source domain; unverifiable fields cannot contribute row flags. Row details are capped and lookup table bodies are omitted.
+- `verify_data_transformation`: returns `consistent`, `inconsistent`, or field-attributed `unverifiable` for memorised, incomplete, or insufficiently supported rules. Candidate inference is bounded to 200 output-diverse examples, while every supplied row is still validated. Optional fields are checked only inside their inferred source domain; unverifiable fields cannot contribute row flags. Row details are capped and lookup table bodies are omitted.
 - `infer_transformation_rule`: infers a symbolic rule from input/output examples.
 - `apply_transformation_rule`: applies a previously inferred rule to new input.
 - `detect_data_format`: detects JSON, CSV, YAML, TOML, XML, `.env`, SQL INSERT, or unknown data.
@@ -71,7 +71,7 @@ Learn and mutation-test summaries report `targetCoverage`, mutation counts, and 
 
 ## Transport limits
 
-The local stdio server caps each complete JSON-RPC line at 1,000,000 characters. Individual text arguments are capped at 500,000 characters, so either limit may be reached first depending on payload shape. In the audited wide-record verification fixture, batches of roughly 1,200 rows stayed inside both limits; callers should size batches by serialized characters rather than assuming a universal row limit. Oversized requests with a recoverable request ID receive a correlated JSON-RPC error.
+The local stdio server caps each complete JSON-RPC line at 1,000,000 characters. Individual text arguments are capped at 500,000 characters, so either limit may be reached first depending on payload shape. Audited rich fixtures fit roughly 900–1,200 rows per call: the 16-output ERP fixture reaches the input limit near 900 rows, while the narrower claims fixture fits about 1,200. Callers should size batches by serialized characters rather than assuming a universal row limit. Oversized requests with a recoverable request ID receive a correlated JSON-RPC error.
 
 ## Privacy
 

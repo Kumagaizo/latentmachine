@@ -3,6 +3,8 @@ import { runTransform } from "./translator.js";
 import { omitPaths } from "./core.js";
 import { deepEqual, stableStringify } from "./shared.js";
 
+const OUTLIER_REINFERENCE_LIMIT = 100;
+
 function evaluateResult(result, originalRows, transformedRows) {
   const program = result.rule?.program;
   const ignoredTargets = result.rule?.memorisation?.unverifiableTargets || [];
@@ -57,7 +59,7 @@ export function inferVerifyRule(originalRows, transformedRows) {
     ["unsafe", "ambiguous", "contradictory", "insufficient"].includes(fullResult.status)
     || best.flagged.length === originalRows.length
   );
-  if (originalRows.length > 2 && shouldSearchForOutlierRule) {
+  if (originalRows.length > 2 && originalRows.length <= OUTLIER_REINFERENCE_LIMIT && shouldSearchForOutlierRule) {
     const dominantExamples = dominantRepeatedInputExamples(examples);
     if (dominantExamples) {
       const dominantCandidate = evaluateResult(runTransform({ examples: dominantExamples }), originalRows, transformedRows);

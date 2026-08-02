@@ -1,6 +1,7 @@
 import { detectFormat, parseWithFormat } from "../../../src/intelligence/data-formats/index.js";
 import { inferVerifyRule } from "../../../src/intelligence/json-transform/verify-inference.js";
 import { memorisationSummary } from "../../../src/intelligence/json-transform/memorisation.js";
+import { INFERENCE_EXAMPLE_LIMIT } from "../../../src/intelligence/json-transform/program-builder.js";
 import { SECURITY_LIMITS, assertArrayLimit, assertSerializedLimit, assertTextLimit } from "./limits.js";
 
 function normalizeRows(parsed) {
@@ -56,6 +57,12 @@ export function verify({ original, transformed, format = "auto", legacyVerdict =
     verdict,
     ...(legacyVerdict && actualVerdict !== verdict ? { actualVerdict } : {}),
     totalRows: originalRows.length,
+    inference: {
+      strategy: "bounded-output-aware",
+      maximumEvidenceRows: INFERENCE_EXAMPLE_LIMIT,
+      sampled: originalRows.length > INFERENCE_EXAMPLE_LIMIT,
+      validationRows: originalRows.length,
+    },
     matchedRows: result.matched,
     flaggedRows: result.flagged.map((flag) => ({
       index: flag.i,

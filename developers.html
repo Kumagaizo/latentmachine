@@ -241,9 +241,10 @@ const csv = serializeWithFormat(data, "csv");
             <li><code>totalRows</code>: number of rows checked.</li>
             <li><code>matchedRows</code>: rows that followed the majority rule.</li>
             <li><code>flaggedRows</code>: <code>{ index, input, expected, actual }</code> for rows that broke the pattern.</li>
+            <li><code>inference</code>: the bounded evidence strategy, maximum evidence rows, whether sampling occurred, and the number of rows fully validated.</li>
             <li><code>ruleStatus</code>: <code>safe</code>, <code>unverified</code>, <code>ambiguous</code>, <code>contradictory</code>, <code>unsafe</code>, or <code>insufficient</code>.</li>
             <li><code>confidence</code>: the evidence label, checks, and reasons; memorised lookups never receive <code>proven</code>.</li>
-            <li><code>memorisation</code>: lookup ratios, support counts, <code>ruleVerifiedTargets</code>, unchanged <code>passthroughTargets</code>, <code>memorisedTargets</code>, <code>insufficientSupportTargets</code>, and the combined <code>unverifiableTargets</code>. Optional fields are checked only inside their inferred source domain, and unverifiable fields cannot contribute row flags.</li>
+            <li><code>memorisation</code>: lookup ratios, full support counts, repeated-source consistency counts, <code>ruleVerifiedTargets</code>, unchanged <code>passthroughTargets</code>, <code>memorisedTargets</code>, <code>insufficientSupportTargets</code>, <code>incompleteLookupTargets</code>, and the combined <code>unverifiableTargets</code>. Optional fields are checked only inside their inferred source domain, and unverifiable fields cannot contribute row flags.</li>
             <li><code>summary</code>: a human-readable, field-attributed verdict explanation.</li>
           </ul>
           <p>
@@ -332,9 +333,10 @@ const csv = serializeWithFormat(data, "csv");
           </ul>
           <p>
             Local stdio calls allow at most 500,000 characters per text argument and 1,000,000
-            characters for the complete JSON-RPC line. The audited wide-record fixture fits roughly
-            1,200 rows per call, but clients should batch by serialised size because record widths vary.
+            characters for the complete JSON-RPC line. Audited rich fixtures fit roughly 900–1,200
+            rows per call depending on schema width, but clients should batch by serialised size.
           </p>
+          <p>Candidate inference uses at most 200 deterministic, output-diverse examples; the selected rule is still validated against every supplied row.</p>
 
           <p>
             MCP can prepare a contract for review, but it cannot create

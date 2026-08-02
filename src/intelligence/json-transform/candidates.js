@@ -1,6 +1,6 @@
 import { arrayPaths, clone, distinctDefinedValues, getPath, hasPathToken, itemLeafPaths, parsePath, typeOf } from "./core.js";
 import { COST_ADJUSTMENT_WEIGHTS, costOf } from "./costs.js";
-import { coerce, formatDateParts, normalizeString, parseDateParts, parseQuantity, phonePolicyForExamples, projectArrayRow, titleCase, transformString } from "./operations.js";
+import { applyNumericFormula, coerce, formatDateParts, normalizeString, parseDateParts, parseQuantity, phonePolicyForExamples, projectArrayRow, titleCase, transformString } from "./operations.js";
 import { deepEqual, stableStringify } from "./shared.js";
 
 const SPLIT_SEPARATORS = [" ", ",", "-", "_", "|", "/", "."];
@@ -16,6 +16,10 @@ function hasDominantSupport(matchCount, rowCount) {
 
 function normalizedPathLeaf(path) {
   return String(parsePath(path).at(-1) || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function inputArrayPaths(examples) {
+  return [...new Set(examples.flatMap(example => arrayPaths(example.input)))];
 }
 
 function inferDirect(examples, targetPath, targetValues, sourceEntries) {
@@ -206,6 +210,54 @@ function inferNumericTransform(examples, targetPath, targetValues, sourceEntries
             targetPath,
             left.path,
           ));
+        }
+      }
+    }
+  }
+  return candidates;
+}
+
+function inferNumericFormula(examples, targetPath, targetValues, sourceEntries) {
+  if (!targetValues.every(value => typeof value === "number")) return [];
+  if (!hasPathToken(targetPath, /(amount|total|gross|net|price|cost|tax|revenue)/)) return [];
+  const numericSources = sourceEntries
+    .filter(entry => ["number", "string"].includes(entry.type))
+    .filter(entry => examples.every(example => Number.isFinite(Number(getPath(example.input, entry.path)))));
+  const rateSources = numericSources.filter(entry => hasPathToken(entry.path, /(rate|tax|percent|pct|discount|markup)/));
+  const candidates = [];
+  for (const base of numericSources) {
+    if (new Set(examples.map(example => Number(getPath(example.input, base.path)))).size < 2) continue;
+    for (const rate of rateSources) {
+      if (base.path === rate.path) continue;
+      if (new Set(examples.map(example => Number(getPath(example.input, rate.path)))).size < 2) continue;
+      for (const baseDivisor of [1, 100, 1000]) {
+        for (const direction of ["increase", "decrease"]) {
+          for (const round of ["round", "none", "floor", "ceil"]) {
+            for (const decimals of [2, 0]) {
+              const formula = { baseDivisor, rateDivisor: 100, direction, round, decimals };
+              if (round !== "none" && !examples.some(example => (
+                applyNumericFormula(getPath(example.input, base.path), getPath(example.input, rate.path), formula)
+                !== applyNumericFormula(getPath(example.input, base.path), getPath(example.input, rate.path), { ...formula, round: "none" })
+              ))) continue;
+              const matchCount = examples.filter((example, index) => (
+                applyNumericFormula(
+                  getPath(example.input, base.path),
+                  getPath(example.input, rate.path),
+                  formula,
+                ) === targetValues[index]
+              )).length;
+              if (!hasDominantSupport(matchCount, examples.length)) continue;
+              candidates.push(candidate(
+                "numericFormula",
+                `Apply ${rate.path} to ${base.path}`,
+                "Scale a numeric base by a percentage rate and apply an explicit rounding rule.",
+                {},
+                { op: "numericFormula", base: base.path, rate: rate.path, ...formula, target: targetPath },
+                targetPath,
+                base.path,
+              ));
+            }
+          }
         }
       }
     }
@@ -914,7 +966,7 @@ function inferValueMapConflicts(examples, targetPath, targetValues, sourceEntrie
 
 function inferArrayMap(examples, targetPath, targetValues) {
   if (!targetValues.every(Array.isArray)) return [];
-  const firstInputArrays = arrayPaths(examples[0].input);
+  const firstInputArrays = inputArrayPaths(examples);
   const candidates = [];
   for (const arrayPath of firstInputArrays) {
     const allRows = examples.flatMap(example => getPath(example.input, arrayPath) || []).filter(row => row && typeof row === "object");
@@ -986,7 +1038,7 @@ function targetObjectMappings(inputRows, outputRows) {
 
 function inferArrayProject(examples, targetPath, targetValues) {
   if (!targetValues.every(Array.isArray)) return [];
-  const firstInputArrays = arrayPaths(examples[0].input);
+  const firstInputArrays = inputArrayPaths(examples);
   const candidates = [];
   for (const arrayPath of firstInputArrays) {
     const allRows = examples.flatMap(example => getPath(example.input, arrayPath) || []).filter(row => row && typeof row === "object");
@@ -1037,7 +1089,7 @@ function inferArrayProject(examples, targetPath, targetValues) {
 
 function inferArrayCount(examples, targetPath, targetValues) {
   if (!targetValues.every(value => typeof value === "number")) return [];
-  const firstInputArrays = arrayPaths(examples[0].input);
+  const firstInputArrays = inputArrayPaths(examples);
   const candidates = [];
   for (const arrayPath of firstInputArrays) {
     const directMatchCount = examples.filter((example, index) => (getPath(example.input, arrayPath) || []).length === targetValues[index]).length;
@@ -1077,9 +1129,79 @@ function inferArrayCount(examples, targetPath, targetValues) {
   return candidates;
 }
 
+function inferArraySum(examples, targetPath, targetValues) {
+  if (!targetValues.every(value => typeof value === "number")) return [];
+  const candidates = [];
+  for (const arrayPath of inputArrayPaths(examples)) {
+    if (!examples.some(example => (getPath(example.input, arrayPath) || []).length > 1)) continue;
+    const allRows = examples.flatMap(example => getPath(example.input, arrayPath) || []);
+    const objectRows = allRows.filter(row => row && typeof row === "object" && !Array.isArray(row));
+    const extracts = objectRows.length
+      ? itemLeafPaths(objectRows).filter(path => objectRows.some(row => Number.isFinite(Number(getPath(row, path)))))
+      : [null];
+    for (const extract of extracts) {
+      const matchCount = examples.filter((example, index) => {
+        const rows = getPath(example.input, arrayPath);
+        if (!Array.isArray(rows)) return false;
+        const values = rows.map(row => extract ? getPath(row, extract) : row).map(Number);
+        return values.every(Number.isFinite) && values.reduce((sum, value) => sum + value, 0) === targetValues[index];
+      }).length;
+      if (!hasDominantSupport(matchCount, examples.length)) continue;
+      candidates.push(candidate(
+        "arraySum",
+        `Sum ${extract || "values"} in ${arrayPath}`,
+        "Sum numeric values across an input array.",
+        { extract: !!extract },
+        { op: "arraySum", source: arrayPath, extract, target: targetPath },
+        targetPath,
+        arrayPath,
+      ));
+    }
+  }
+  return candidates;
+}
+
+function arrayIndexValue(rows, index) {
+  if (!Array.isArray(rows) || !rows.length) return undefined;
+  if (index === "first") return rows[0];
+  if (index === "last") return rows.at(-1);
+  return rows[index];
+}
+
+function inferArrayIndex(examples, targetPath, targetValues) {
+  if (targetValues.some(value => value && typeof value === "object")) return [];
+  const candidates = [];
+  for (const arrayPath of inputArrayPaths(examples)) {
+    if (!examples.some(example => (getPath(example.input, arrayPath) || []).length > 1)) continue;
+    const allRows = examples.flatMap(example => getPath(example.input, arrayPath) || []);
+    if (allRows.some(row => row && typeof row === "object")) continue;
+    const extracts = [null];
+    for (const index of ["first", "last", 1, 2]) {
+      for (const extract of extracts) {
+        const matchCount = examples.filter((example, exampleIndex) => {
+          const selected = arrayIndexValue(getPath(example.input, arrayPath), index);
+          const value = extract && selected !== undefined ? getPath(selected, extract) : selected;
+          return deepEqual(value, targetValues[exampleIndex]);
+        }).length;
+        if (!hasDominantSupport(matchCount, examples.length)) continue;
+        candidates.push(candidate(
+          "arrayIndex",
+          `Take ${String(index)} from ${arrayPath}`,
+          "Select a stable array position and optionally extract one field.",
+          { extract: !!extract, index: typeof index === "number" ? index : 0 },
+          { op: "arrayIndex", source: arrayPath, index, extract, target: targetPath },
+          targetPath,
+          arrayPath,
+        ));
+      }
+    }
+  }
+  return candidates;
+}
+
 function inferArrayJoin(examples, targetPath, targetValues) {
   if (!targetValues.every(value => typeof value === "string")) return [];
-  const firstInputArrays = arrayPaths(examples[0].input);
+  const firstInputArrays = inputArrayPaths(examples);
   const separators = [", ", ",", " | ", "|", " ", "; "];
   const candidates = [];
   for (const arrayPath of firstInputArrays) {
@@ -1138,7 +1260,7 @@ function inferArrayJoin(examples, targetPath, targetValues) {
 
 function inferArrayFind(examples, targetPath, targetValues) {
   if (targetValues.some(value => value && typeof value === "object")) return [];
-  const firstInputArrays = arrayPaths(examples[0].input);
+  const firstInputArrays = inputArrayPaths(examples);
   const candidates = [];
   for (const arrayPath of firstInputArrays) {
     const allRows = examples.flatMap(example => getPath(example.input, arrayPath) || []).filter(row => row && typeof row === "object");
@@ -1187,7 +1309,7 @@ function groupArrayRows(rows, groupBy, extract) {
 export function inferArrayGroupBy(examples, targetPath, targetValues) {
   if (!targetValues.every(value => value && typeof value === "object" && !Array.isArray(value))) return [];
   const candidates = [];
-  for (const arrayPath of arrayPaths(examples[0].input)) {
+  for (const arrayPath of inputArrayPaths(examples)) {
     const exampleRows = examples.map(example => getPath(example.input, arrayPath));
     if (!exampleRows.every(Array.isArray)) continue;
     const allRows = exampleRows.flat();
@@ -1264,6 +1386,7 @@ export function inferTargetCandidates(examples, targetEntry, sourceEntries) {
     ...inferStringNormalize(examples, targetPath, targetValues, sourceEntries),
     ...inferDateFormat(examples, targetPath, targetValues, sourceEntries),
     ...inferNumericTransform(examples, targetPath, targetValues, sourceEntries),
+    ...inferNumericFormula(examples, targetPath, targetValues, sourceEntries),
     ...inferQuantityTransform(examples, targetPath, targetValues, sourceEntries),
     ...inferBooleanNot(examples, targetPath, targetValues, sourceEntries),
     ...inferFallback(examples, targetPath, targetValues, sourceEntries),
@@ -1278,6 +1401,8 @@ export function inferTargetCandidates(examples, targetEntry, sourceEntries) {
     ...inferArrayMap(examples, targetPath, targetValues),
     ...inferArrayProject(examples, targetPath, targetValues),
     ...inferArrayCount(examples, targetPath, targetValues),
+    ...inferArraySum(examples, targetPath, targetValues),
+    ...inferArrayIndex(examples, targetPath, targetValues),
     ...inferArrayJoin(examples, targetPath, targetValues),
     ...inferArrayFind(examples, targetPath, targetValues),
     ...inferArrayGroupBy(examples, targetPath, targetValues),
