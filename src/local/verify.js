@@ -495,7 +495,7 @@ function opLine(op = {}) {
   if (op.op === "concat") return `Join ${sources.map(source => `\`${source}\``).join(", ")} into \`${target}\`.`;
   if (op.op === "fallback") return `Use the first available value from ${sources.map(source => `\`${source}\``).join(", ")} for \`${target}\`.`;
   if (op.op === "conditional") return `Choose one of two values for \`${target}\` based on \`${op.source}\`.`;
-  if (op.op === "numericTransform" || op.op === "quantityTransform") return `Calculate \`${target}\` from \`${op.source}\`.`;
+  if (op.op === "numericTransform" || op.op === "numericCompare" || op.op === "quantityTransform") return `Calculate \`${target}\` from \`${op.source}\`.`;
   if (op.op === "numericBinary") return `Calculate \`${target}\` from ${sources.map(source => `\`${source}\``).join(" and ")}.`;
   if (op.op === "numericFormula") return `Calculate \`${target}\` from ${sources.map(source => `\`${source}\``).join(" and ")} with percentage adjustment and rounding.`;
   if (op.op === "dateFormat") return `Format date \`${op.source}\` into \`${target}\`.`;

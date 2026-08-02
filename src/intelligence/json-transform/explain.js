@@ -126,6 +126,7 @@ export function explainOp(op = {}) {
   if (op.op === "arrayStringTransform") return `${transformName(op.mode)} for each string in ${code(op.source)} and write the array to ${target}.`;
   if (op.op === "dateFormat") return `Format the date in ${code(op.source)} as ${op.mode} and write it to ${target}.`;
   if (op.op === "booleanNot") return `Invert ${code(op.source)} and write the result to ${target}.`;
+  if (op.op === "numericCompare") return `Check whether ${code(op.source)} is ${op.comparison === "lessThan" ? "less" : "greater"} than ${op.value}, then write the boolean result to ${target}.`;
   if (op.op === "conditional") {
     const testWord = op.test === "notEquals" ? "is not" : "is";
     return `If ${code(op.source)} ${testWord} ${quote(op.value)}, write ${quote(op.then)} to ${target}; otherwise write ${quote(op.else)}.`;
@@ -134,7 +135,9 @@ export function explainOp(op = {}) {
     return `Use the first available value from ${list((op.sources || []).map(code))} and write it to ${target}.`;
   }
   if (op.op === "numericTransform") {
-    const action = op.mode === "multiply"
+    const action = op.mode === "absolute"
+      ? `Take the absolute value of ${code(op.source)} and divide by ${op.value || 1}`
+      : op.mode === "multiply"
       ? `Multiply ${code(op.source)} by ${op.value}`
       : op.mode === "divide"
         ? `Divide ${code(op.source)} by ${op.value}`
@@ -273,6 +276,9 @@ function opAssumptions(op = {}) {
   }
   if (op.op === "numericTransform") {
     return [assumption(op.source, `Assumes ${code(op.source)} can be read as a number.`, { target, kind: "number" })];
+  }
+  if (op.op === "numericCompare") {
+    return [assumption(op.source, `Assumes ${code(op.source)} can be read as a number for comparison.`, { target, kind: "number" })];
   }
   if (op.op === "numericBinary") {
     return [op.left, op.right].filter(Boolean).map(field => (

@@ -10,6 +10,8 @@
 
 ### Added
 
+- Retain 80% to less than 95% low-cardinality mapping candidates as non-accusing `nearFit` evidence, with explicit reporting and promotion thresholds plus exact full-batch contradiction indices.
+- Infer signed magnitudes with absolute-value numeric transforms and boolean sign flags with zero-based numeric comparisons; both require evidence on both sides of zero.
 - Recover reusable rules that explain at least 95% of a field domain instead of letting a high-cardinality lookup absorb the exceptions. `memorisation.ruleDemotions` reports the rule, fit ratio, and exact contradicting rows; genuinely high-cardinality fields remain unverifiable.
 - Extend `arraySum` with two proven numeric item factors and a stable divisor for weighted commercial totals such as `sum(quantity × unit_cents) / 100`.
 - Infer reusable `arraySum`, primitive-array `arrayIndex`, and percentage-based `numericFormula` operations with explicit rounding semantics.

@@ -306,7 +306,7 @@ export function createRenderHelpers({
     if (op.op === "valueMap") return `learned lookup from ${detailPath(op.source)}`;
     if (op.op === "template") return `built from ${detailList(opSources(op))}`;
     if (op.op === "concat") return `joined from ${detailList(op.sources || [])}`;
-    if (op.op === "numericTransform" || op.op === "quantityTransform") return `calculated from ${detailPath(op.source)}`;
+    if (op.op === "numericTransform" || op.op === "numericCompare" || op.op === "quantityTransform") return `calculated from ${detailPath(op.source)}`;
     if (op.op === "numericBinary") return `calculated from ${detailList([op.left, op.right])}`;
     if (op.op === "numericFormula") return `percentage formula from ${detailList([op.base, op.rate])}`;
     if (op.op === "booleanNot") return `inverted from ${detailPath(op.source)}`;

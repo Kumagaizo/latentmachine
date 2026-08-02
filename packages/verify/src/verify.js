@@ -74,6 +74,7 @@ export function verify({ original, transformed, format = "auto", legacyVerdict =
     ruleStatus: result.result?.status || "unknown",
     confidence: result.result?.confidence || null,
     memorisation,
+    nearFit: memorisation?.nearFits?.[0] || null,
     summary: actualVerdict === "unverifiable"
       ? memorisationSummary(memorisation)
       : actualVerdict === "consistent"

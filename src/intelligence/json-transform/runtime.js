@@ -108,6 +108,7 @@ function applyOp(op, input) {
   if (op.op === "numericTransform") {
     const value = Number(getPath(input, op.source));
     if (!Number.isFinite(value)) return `[invalid number ${op.source}]`;
+    if (op.mode === "absolute") return Math.abs(value) / (op.value || 1);
     if (op.mode === "add") return value + op.value;
     if (op.mode === "multiply") return value * op.value;
     if (op.mode === "divide") return value / op.value;
@@ -126,6 +127,13 @@ function applyOp(op, input) {
   if (op.op === "numericFormula") {
     const value = applyNumericFormula(getPath(input, op.base), getPath(input, op.rate), op);
     return value === null ? `[invalid number ${op.base} or ${op.rate}]` : value;
+  }
+  if (op.op === "numericCompare") {
+    const value = Number(getPath(input, op.source));
+    if (!Number.isFinite(value)) return `[invalid number ${op.source}]`;
+    if (op.comparison === "lessThan") return value < op.value;
+    if (op.comparison === "greaterThan") return value > op.value;
+    return false;
   }
   if (op.op === "quantityTransform") {
     const parsed = parseQuantity(getPath(input, op.source));

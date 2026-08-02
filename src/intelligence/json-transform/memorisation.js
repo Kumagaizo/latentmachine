@@ -102,7 +102,9 @@ export function memorisationForProgram(program) {
       caps: "unverified",
     }));
   const insufficientTargets = insufficientSupport.map(item => item.target);
-  const unverifiableTargets = [...new Set([...memorisedTargets, ...insufficientTargets, ...incompleteLookupTargets])];
+  const nearFitTargets = (program?.nearFits || []).map(item => item.target).filter(Boolean);
+  const unverifiableTargets = [...new Set([...memorisedTargets, ...insufficientTargets, ...incompleteLookupTargets, ...nearFitTargets])];
+  const nearFits = (program?.nearFits || []).filter(item => unverifiableTargets.includes(item.target));
   const targets = [...new Set([
     ...(program?.ops || []).map(op => op.target),
     ...fieldDomains.map(domain => domain.target),
@@ -127,6 +129,7 @@ export function memorisationForProgram(program) {
     minimumRows: MEMORISATION_MINIMUM_ROWS,
     lookups,
     ruleDemotions,
+    nearFits,
   };
 }
 
@@ -141,7 +144,8 @@ export function memorisationSummary(memorisation = {}) {
   const verifiedText = `${reusableCount} verified against reusable rules. ${passthroughCount} passed through unchanged.`;
   const insufficient = memorisation.insufficientSupport || [];
   const incomplete = (memorisation.lookups || []).filter(item => (memorisation.incompleteLookupTargets || []).includes(item.target));
-  if (!lookups.length && !insufficient.length && !incomplete.length) {
+  const nearFits = memorisation.nearFits || [];
+  if (!lookups.length && !insufficient.length && !incomplete.length && !nearFits.length) {
     return `${total} field${total === 1 ? "" : "s"} checked. ${verifiedText}`;
   }
   const parts = [];
@@ -162,6 +166,9 @@ export function memorisationSummary(memorisation = {}) {
   }
   if (incomplete.length) {
     parts.push(`${incomplete.length} could not be verified because bounded inference did not observe every source value: ${incomplete.map(item => `${item.target} (${item.unseenSourceCount} outside the inference sample)`).join(", ")}.`);
+  }
+  if (nearFits.length) {
+    parts.push(`${nearFits.length} near-fit rule${nearFits.length === 1 ? " was" : "s were"} retained as non-accusing evidence: ${nearFits.map(item => `${item.target} (${item.supportCount} of ${item.rowCount} rows; ${(item.fitRatio * 100).toFixed(1)}% fit, ${(item.promotionThreshold * 100).toFixed(0)}% required)`).join(", ")}.`);
   }
   const domainNote = insufficient.length
     ? " Rows outside insufficiently supported field domains were not treated as contradictions."

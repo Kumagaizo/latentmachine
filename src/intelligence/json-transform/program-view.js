@@ -13,7 +13,7 @@ export function programTitle(ops) {
     if (op.op === "valueMapConflict") return `Examples conflict for ${op.target.replace(/^\$\.?/, "")}`;
     if (op.op === "stringCase") return `Change text case for ${op.target.replace(/^\$\.?/, "")}`;
     if (op.op === "stringReplace") return `Replace text in ${op.target.replace(/^\$\.?/, "")}`;
-    if (op.op === "numericTransform" || op.op === "numericBinary" || op.op === "numericFormula" || op.op === "quantityTransform") return `Compute ${op.target.replace(/^\$\.?/, "")}`;
+    if (op.op === "numericTransform" || op.op === "numericBinary" || op.op === "numericFormula" || op.op === "numericCompare" || op.op === "quantityTransform") return `Compute ${op.target.replace(/^\$\.?/, "")}`;
     if (op.op === "dateFormat") return `Format ${op.target.replace(/^\$\.?/, "")} as a date`;
     if (op.op === "extractBetween") return `Extract ${op.target.replace(/^\$\.?/, "")} from text`;
     if (op.op === "regexExtract") return `Extract patterned text into ${op.target.replace(/^\$\.?/, "")}`;

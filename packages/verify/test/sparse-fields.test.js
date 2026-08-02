@@ -53,7 +53,9 @@ for (const present of [1, 2, 5, 20, 30, 40]) {
 
 {
   const fixture = sparseFixture(20);
+  const before = JSON.stringify(fixture.transformed[27]);
   fixture.transformed[27].note = "drifted note";
+  assert.notEqual(JSON.stringify(fixture.transformed[27]), before, "optional-field drift must change the expected output");
   const result = verify(fixture);
   assert.equal(result.verdict, "inconsistent");
   assert.deepEqual(result.flaggedRows.map(row => row.index), [27]);
@@ -65,7 +67,9 @@ for (const present of [1, 2, 5, 20, 30, 40]) {
     email: `person${index + 1}@example.com`,
   }));
   const transformed = original.map(row => ({ id: row.id, email: row.email }));
+  const before = JSON.stringify(transformed[17]);
   delete transformed[17].email;
+  assert.notEqual(JSON.stringify(transformed[17]), before, "optional-field omission must change the expected output");
   const result = verify({ original, transformed });
   assert.equal(result.verdict, "inconsistent");
   assert.deepEqual(result.flaggedRows.map(row => row.index), [17]);

@@ -4,6 +4,8 @@ import { applyNumericFormula, coerce, formatDateParts, normalizeString, NUMERIC_
 import { deepEqual, stableStringify } from "./shared.js";
 
 const SPLIT_SEPARATORS = [" ", ",", "-", "_", "|", "/", "."];
+export const RULE_FIT_RATIO_THRESHOLD = 0.95;
+export const NEAR_FIT_RATIO_THRESHOLD = 0.8;
 
 function candidate(id, title, summary, hints, op, target, source = null) {
   return { id, title, summary, cost: costOf(op, hints), op, target, source };
@@ -11,7 +13,7 @@ function candidate(id, title, summary, hints, op, target, source = null) {
 
 function hasDominantSupport(matchCount, rowCount) {
   return matchCount === rowCount
-    || rowCount >= 8 && matchCount / rowCount >= 0.95;
+    || rowCount >= 8 && matchCount / rowCount >= RULE_FIT_RATIO_THRESHOLD;
 }
 
 function normalizedPathLeaf(path) {
@@ -202,6 +204,25 @@ function inferNumericTransform(examples, targetPath, targetValues, sourceEntries
   for (const source of numericSources) {
     const pairs = examples.map((example, index) => ({ from: Number(getPath(example.input, source.path)), to: targetValues[index] }));
     if (!pairs.every(pair => Number.isFinite(pair.from) && Number.isFinite(pair.to))) continue;
+    if (hasPathToken(targetPath, /(abs|absolute|magnitude)/)
+      && pairs.some(pair => pair.from < 0)
+      && pairs.some(pair => pair.from > 0)) {
+      for (const divisor of [1, 100, 1000]) {
+        const matches = pairs.map(pair => Math.abs(pair.from) / divisor === pair.to);
+        const matchCount = matches.filter(Boolean).length;
+        if (!hasDominantSupport(matchCount, pairs.length)) continue;
+        const fit = candidateFit(examples, matches);
+        candidates.push(candidate(
+          "numericTransform",
+          `Take the magnitude of ${source.path}`,
+          "Take the absolute numeric value and apply a stable divisor.",
+          { magnitude: divisor - 1 },
+          { op: "numericTransform", source: source.path, mode: "absolute", value: divisor, target: targetPath, ...(fit ? { fit } : {}) },
+          targetPath,
+          source.path,
+        ));
+      }
+    }
     const delta = pairs[0].to - pairs[0].from;
     if (delta !== 0 && pairs.every(pair => pair.from + delta === pair.to)) {
       candidates.push(candidate(
@@ -264,6 +285,35 @@ function inferNumericTransform(examples, targetPath, targetValues, sourceEntries
           ));
         }
       }
+    }
+  }
+  return candidates;
+}
+
+function inferNumericCompare(examples, targetPath, targetValues, sourceEntries) {
+  if (!targetValues.every(value => typeof value === "boolean") || new Set(targetValues).size < 2) return [];
+  const candidates = [];
+  for (const source of sourceEntries.filter(entry => ["number", "string"].includes(entry.type))) {
+    const values = examples.map(example => Number(getPath(example.input, source.path)));
+    if (!values.every(Number.isFinite)) continue;
+    for (const comparison of ["lessThan", "greaterThan"]) {
+      const outcomes = values.map(value => comparison === "lessThan" ? value < 0 : value > 0);
+      if (new Set(outcomes).size < 2) continue;
+      const matches = values.map((value, index) => (
+        outcomes[index] === targetValues[index]
+      ));
+      const matchCount = matches.filter(Boolean).length;
+      if (!hasDominantSupport(matchCount, examples.length)) continue;
+      const fit = candidateFit(examples, matches);
+      candidates.push(candidate(
+        "numericCompare",
+        `Check the sign of ${source.path}`,
+        "Compare a numeric source with zero to produce a boolean flag.",
+        {},
+        { op: "numericCompare", source: source.path, comparison, value: 0, target: targetPath, ...(fit ? { fit } : {}) },
+        targetPath,
+        source.path,
+      ));
     }
   }
   return candidates;
@@ -874,7 +924,14 @@ function inferValueMap(examples, targetPath, targetValues, sourceEntries) {
     ));
     const matchCount = matches.filter(Boolean).length;
     const exactIdentity = examples.every((example, index) => deepEqual(getPath(example.input, source.path), targetValues[index]));
-    if (dominant && Object.keys(map).length >= 2 && !exactIdentity && hasDominantSupport(matchCount, examples.length)) {
+    const mappingCount = Object.keys(map).length;
+    const fitRatio = matchCount / examples.length;
+    const reusableFit = hasDominantSupport(matchCount, examples.length);
+    const nearFit = !reusableFit
+      && examples.length >= 8
+      && fitRatio >= NEAR_FIT_RATIO_THRESHOLD
+      && mappingCount <= Math.min(16, Math.floor(examples.length / 2));
+    if (dominant && mappingCount >= 2 && !exactIdentity && (reusableFit || nearFit)) {
       const fit = candidateFit(examples, matches);
       const sourceKey = pathLeaf(source.path);
       const targetKey = pathLeaf(targetPath);
@@ -891,7 +948,7 @@ function inferValueMap(examples, targetPath, targetValues, sourceEntries) {
         `Map values from ${source.path}`,
         "Use a learned lookup table from example values.",
         { idPenalty, numericToTextPenalty, templatedStringPenalty, nameMatch: nameBonus, unrelated: unrelatedPenalty, affinity },
-        { op: "valueMap", source: source.path, map, target: targetPath, ...(fit ? { fit } : {}) },
+        { op: "valueMap", source: source.path, map, target: targetPath, ...(fit ? { fit: { ...fit, ...(nearFit ? { near: true } : {}) } } : {}) },
         targetPath,
         source.path,
       ));
@@ -1510,6 +1567,7 @@ export function inferTargetCandidates(examples, targetEntry, sourceEntries) {
     ...inferDateFormat(examples, targetPath, targetValues, sourceEntries),
     ...inferNumericTransform(examples, targetPath, targetValues, sourceEntries),
     ...inferNumericFormula(examples, targetPath, targetValues, sourceEntries),
+    ...inferNumericCompare(examples, targetPath, targetValues, sourceEntries),
     ...inferQuantityTransform(examples, targetPath, targetValues, sourceEntries),
     ...inferBooleanNot(examples, targetPath, targetValues, sourceEntries),
     ...inferFallback(examples, targetPath, targetValues, sourceEntries),

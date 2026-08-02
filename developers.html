@@ -64,7 +64,7 @@
           <h1>Bring deterministic verification into your workflow.</h1>
 
           <p>
-            Reusable percentage rules expose their rounding mode and evaluation order in each <code>numericFormula</code> step. Global <code>stringReplace</code> steps are limited to identifier-like fields and literal delimiters proven by repeated occurrences in the examples.
+            Reusable percentage rules expose their rounding mode and evaluation order in each <code>numericFormula</code> step. Signed magnitude and zero-comparison rules require evidence on both sides of zero. Global <code>stringReplace</code> steps are limited to identifier-like fields and literal delimiters proven by repeated occurrences in the examples.
           </p>
           <p>
             Use <a href="/verify">Verify</a> to check an AI-transformed batch and
@@ -247,7 +247,8 @@ const csv = serializeWithFormat(data, "csv");
             <li><code>inference</code>: the bounded evidence strategy, maximum evidence rows, whether sampling occurred, and the number of rows fully validated.</li>
             <li><code>ruleStatus</code>: <code>safe</code>, <code>unverified</code>, <code>ambiguous</code>, <code>contradictory</code>, <code>unsafe</code>, or <code>insufficient</code>.</li>
             <li><code>confidence</code>: the evidence label, checks, and reasons; memorised lookups never receive <code>proven</code>.</li>
-            <li><code>memorisation</code>: lookup ratios, full support counts, repeated-source consistency counts, <code>ruleDemotions</code> with exact contradicting row indices, <code>ruleVerifiedTargets</code>, unchanged <code>passthroughTargets</code>, <code>memorisedTargets</code>, <code>insufficientSupportTargets</code>, <code>incompleteLookupTargets</code>, and the combined <code>unverifiableTargets</code>. Optional fields are checked only inside their inferred source domain, and unverifiable fields cannot contribute row flags.</li>
+            <li><code>nearFit</code>: the strongest non-accusing low-cardinality rule candidate that fitted at least 80% but less than the 95% promotion threshold, including exact full-batch contradiction indices; otherwise <code>null</code>.</li>
+            <li><code>memorisation</code>: lookup ratios, full support counts, repeated-source consistency counts, <code>ruleDemotions</code> with exact contradicting row indices, all <code>nearFits</code>, <code>ruleVerifiedTargets</code>, unchanged <code>passthroughTargets</code>, <code>memorisedTargets</code>, <code>insufficientSupportTargets</code>, <code>incompleteLookupTargets</code>, and the combined <code>unverifiableTargets</code>. Optional fields are checked only inside their inferred source domain, and unverifiable fields cannot contribute row flags.</li>
             <li><code>summary</code>: a human-readable, field-attributed verdict explanation.</li>
           </ul>
           <p>

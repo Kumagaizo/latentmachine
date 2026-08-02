@@ -1509,7 +1509,7 @@ function opValueExpr(op, root = "input", opIndex = 0) {
   if (op.op === "stringNormalize") return withRequiredSource(op, root, value => stringTransformExpr(value, op.mode, { source: op.source, phonePolicy: op.phonePolicy }));
   if (op.op === "stringReplace") return withRequiredSource(op, root, value => `String(${value} ?? "").split(${literal(op.search)}).join(${literal(op.replacement)})`);
   if (op.op === "numericTransform") {
-    return withRequiredSource(op, root, value => `(() => { const number = Number(${value}); if (!Number.isFinite(number)) return ${invalidNumberExpr(op.source)}; return ${op.mode === "add" ? `number + ${literal(op.value)}` : op.mode === "multiply" ? `number * ${literal(op.value)}` : op.mode === "divide" ? `number / ${literal(op.value)}` : "number"}; })()`);
+    return withRequiredSource(op, root, value => `(() => { const number = Number(${value}); if (!Number.isFinite(number)) return ${invalidNumberExpr(op.source)}; return ${op.mode === "add" ? `number + ${literal(op.value)}` : op.mode === "multiply" ? `number * ${literal(op.value)}` : op.mode === "divide" ? `number / ${literal(op.value)}` : op.mode === "absolute" ? `Math.abs(number) / ${literal(op.value || 1)}` : "number"}; })()`);
   }
   if (op.op === "numericBinary") {
     const leftValue = pathToAccess(op.left, root);
@@ -1540,6 +1540,7 @@ function opValueExpr(op, root = "input", opIndex = 0) {
     const result = roundedInteger ? `${roundedInteger} / ${factor}` : raw;
     return `(() => { const base = Number(${baseValue}); const rate = Number(${rateValue}); if (!Number.isFinite(base)) return ${invalidNumberExpr(op.base)}; if (!Number.isFinite(rate)) return ${invalidNumberExpr(op.rate)};${roundedInteger ? ` const scaled = ${scaled};` : ""} return ${result}; })()`;
   }
+  if (op.op === "numericCompare") return withRequiredSource(op, root, value => `(() => { const number = Number(${value}); if (!Number.isFinite(number)) return ${invalidNumberExpr(op.source)}; return number ${op.comparison === "lessThan" ? "<" : ">"} ${literal(op.value)}; })()`);
   if (op.op === "quantityTransform") {
     return withRequiredSource(op, root, value => `(() => { const match = String(${value} ?? "").trim().match(/^(-?\\d+(?:\\.\\d+)?)([a-zA-Z]+)$/); if (!match || match[2] !== ${literal(op.unit)}) return ${invalidQuantityExpr(op.source)}; const amount = Number(match[1]); if (!Number.isFinite(amount)) return ${invalidQuantityExpr(op.source)}; return String(Number((amount * ${literal(op.factor)}).toFixed(6))) + match[2]; })()`);
   }
@@ -1793,6 +1794,15 @@ function jqValueExpression(op) {
   if (op.op === "set") return pathToJq(op.source);
   if (op.op === "constant") return literal(op.value);
   if (op.op === "stringReplace") return `(${pathToJq(op.source)} | split(${literal(op.search)}) | join(${literal(op.replacement)}))`;
+  if (op.op === "numericTransform") {
+    const value = `(${pathToJq(op.source)} | tonumber)`;
+    if (op.mode === "absolute") return `(${value} as $number | (if $number < 0 then -$number else $number end) / ${literal(op.value || 1)})`;
+    if (op.mode === "add") return `(${value} + ${literal(op.value)})`;
+    if (op.mode === "multiply") return `(${value} * ${literal(op.value)})`;
+    if (op.mode === "divide") return `(${value} / ${literal(op.value)})`;
+    return value;
+  }
+  if (op.op === "numericCompare") return `((${pathToJq(op.source)} | tonumber) ${op.comparison === "lessThan" ? "<" : ">"} ${literal(op.value)})`;
   if (op.op === "numericFormula") {
     const direction = op.direction === "decrease" ? -1 : 1;
     const baseDivisor = op.baseDivisor || 1;

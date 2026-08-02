@@ -92,10 +92,12 @@ import { compactVerificationResult, SECURITY_LIMITS, verify } from "../src/index
     amount: row.cents / 100,
     email: row.email,
   }));
+  const before = JSON.stringify(transformed[7]);
   delete transformed[7].email;
+  assert.notEqual(JSON.stringify(transformed[7]), before, "missing-field mutation must change the expected output");
   const result = verify({ original, transformed });
   assert.equal(result.verdict, "inconsistent");
-  assert.ok(result.flaggedRows.some(row => row.index === 7));
+  assert.deepEqual(result.flaggedRows.map(row => row.index), [7]);
 }
 
 {
@@ -115,45 +117,28 @@ import { compactVerificationResult, SECURITY_LIMITS, verify } from "../src/index
 }
 
 {
-  const result = verify({
-    original: [
-      { id: 1, date: "2026-01-01" },
-      { id: 2, date: "2026-01-02" },
-      { id: 3, date: "2026-01-03" },
-      { id: 4, date: "2026-01-04" },
-      { id: 5, date: "2026-01-05" },
-    ],
-    transformed: [
-      { id: 1, date: "2026-01-01" },
-      { id: 2, date: "2026-01-02" },
-      { id: 3, date: "2026-01-03" },
-      { id: 4, date: "01/04/2026" },
-      { id: 5, date: "01/05/2026" },
-    ],
-  });
+  const original = Array.from({ length: 5 }, (_, index) => ({ id: index + 1, date: `2026-01-0${index + 1}` }));
+  const transformed = original.map(row => ({ ...row }));
+  for (const index of [3, 4]) {
+    const before = JSON.stringify(transformed[index]);
+    transformed[index].date = `01/0${index + 1}/2026`;
+    assert.notEqual(JSON.stringify(transformed[index]), before, `date drift at row ${index} must change the expected output`);
+  }
+  const result = verify({ original, transformed });
   assert.equal(result.verdict, "inconsistent");
-  assert.ok(result.flaggedRows.some((row) => row.index === 3 || row.index === 4));
+  assert.deepEqual(result.flaggedRows.map(row => row.index), [3, 4]);
 }
 
 {
-  const result = verify({
-    original: [
-      { id: 1, name: "Ada" },
-      { id: 2, name: "Bo" },
-      { id: 3, name: "Cy" },
-      { id: 4, name: "Dee" },
-      { id: 5, name: "Eli" },
-    ],
-    transformed: [
-      { userId: 1, fullName: "Ada" },
-      { userId: 2, fullName: "Bo" },
-      { userId: 3, fullName: "Cy" },
-      { userId: 4, fullName: "Dee" },
-      { userId: 5, fullName: "Elliot" },
-    ],
-  });
+  const names = ["Ada", "Bo", "Cy", "Dee", "Eli"];
+  const original = names.map((name, index) => ({ id: index + 1, name }));
+  const transformed = original.map(row => ({ userId: row.id, fullName: row.name }));
+  const before = JSON.stringify(transformed[4]);
+  transformed[4].fullName = "Elliot";
+  assert.notEqual(JSON.stringify(transformed[4]), before, "composition drift must change the expected output");
+  const result = verify({ original, transformed });
   assert.equal(result.verdict, "inconsistent");
-  assert.ok(result.flaggedRows.some((row) => row.index === 4));
+  assert.deepEqual(result.flaggedRows.map(row => row.index), [4]);
 }
 
 assert.throws(

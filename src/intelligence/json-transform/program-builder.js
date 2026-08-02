@@ -1,7 +1,7 @@
 import { explainOp } from "./explain.js";
 import { entries, getPath, omitPaths, parsePath, uniqueBy } from "./core.js";
 import { COST_PRIOR_STEP } from "./costs.js";
-import { inferArrayGroupBy, inferTargetCandidates } from "./candidates.js";
+import { inferArrayGroupBy, inferTargetCandidates, NEAR_FIT_RATIO_THRESHOLD, RULE_FIT_RATIO_THRESHOLD } from "./candidates.js";
 import { instrumentProgramMemorisation, memorisationForProgram, MEMORISATION_MINIMUM_ROWS, MEMORISATION_RATIO_THRESHOLD } from "./memorisation.js";
 import { applyNumericFormula, NUMERIC_FORMULA_ROUNDING } from "./operations.js";
 import { executeJsonTransform, runtimeWarnings } from "./runtime.js";
@@ -12,6 +12,7 @@ const AMBIGUITY_TRIAGE = {
   closeCostGap: COST_PRIOR_STEP * 1.6,
 };
 export const INFERENCE_EXAMPLE_LIMIT = 200;
+const OUTPUT_VARIANT_SAMPLE_SHARE = 0.1;
 
 function candidateWarnings(op, input) {
   return runtimeWarnings({ ops: [op] }, input);
@@ -143,7 +144,9 @@ function sampleInferenceExamples(examples, targetPath, limit = INFERENCE_EXAMPLE
     const key = stableStringify(getPath(example.output, targetPath));
     if (!firstByTargetValue.has(key)) firstByTargetValue.set(key, index);
   }
-  if (firstByTargetValue.size <= Math.floor(limit / 2)) {
+  // Reserve a bounded slice for rare categories without letting many unique
+  // erroneous outputs crowd representative rows out of the evidence window.
+  if (firstByTargetValue.size <= Math.floor(limit * OUTPUT_VARIANT_SAMPLE_SHARE)) {
     for (const index of firstByTargetValue.values()) selectedIndices.add(index);
   }
   const available = examples.map((_, index) => index).filter(index => !selectedIndices.has(index));
@@ -291,19 +294,45 @@ function resolveCandidateFit(candidate, examples, exampleIndices) {
   };
 }
 
+function resolveNearFit(candidate, examples, exampleIndices) {
+  if (!candidate?.op?.fit?.near) return null;
+  const matches = examples.map(example => {
+    const prediction = executeJsonTransform({ ops: [candidate.op] }, example.input);
+    return deepEqual(getPath(prediction, candidate.op.target), getPath(example.output, candidate.op.target));
+  });
+  const supportCount = matches.filter(Boolean).length;
+  const fitRatio = supportCount / examples.length;
+  if (fitRatio < NEAR_FIT_RATIO_THRESHOLD || fitRatio >= RULE_FIT_RATIO_THRESHOLD) return null;
+  const contradictingRows = matches.flatMap((matched, index) => matched ? [] : [exampleIndices.get(examples[index]) ?? index]);
+  return {
+    target: candidate.op.target,
+    candidate: `${candidate.op.op}(${candidate.op.source} -> ${candidate.op.target})`,
+    source: candidate.op.source || null,
+    fitRatio: Number(fitRatio.toFixed(4)),
+    promotionThreshold: RULE_FIT_RATIO_THRESHOLD,
+    reportingThreshold: NEAR_FIT_RATIO_THRESHOLD,
+    supportCount,
+    rowCount: examples.length,
+    contradictingRows,
+    note: `A rule explained ${Number((fitRatio * 100).toFixed(1))}% of rows. ${Number(((1 - fitRatio) * 100).toFixed(1))}% contradicted it, above the ${Number(((1 - RULE_FIT_RATIO_THRESHOLD) * 100).toFixed(1))}% exception limit for promoting a rule.`,
+  };
+}
+
 function hasDominantFit(supportCount, rowCount) {
-  return supportCount === rowCount || rowCount >= 8 && supportCount / rowCount >= 0.95;
+  return supportCount === rowCount || rowCount >= 8 && supportCount / rowCount >= RULE_FIT_RATIO_THRESHOLD;
+}
+
+function isMemorisedLookup(candidate, rowCount) {
+  if (candidate?.op?.op !== "valueMap") return false;
+  return rowCount >= MEMORISATION_MINIMUM_ROWS
+    && Object.keys(candidate.op.map || {}).length / rowCount >= MEMORISATION_RATIO_THRESHOLD;
 }
 
 function selectTargetCandidate(row, newInput, exampleIndices) {
   const initiallySelected = selectCandidate(row.candidates, newInput);
   const resolvedInitial = resolveNumericFormulaCandidate(initiallySelected, row.domainExamples);
   const initialFit = resolveCandidateFit(resolvedInitial, row.domainExamples, exampleIndices);
-  const initialLookupRatio = resolvedInitial?.op?.op === "valueMap"
-    ? Object.keys(resolvedInitial.op.map || {}).length / row.inferenceExamples.length
-    : 0;
-  const initialIsMemorisedLookup = row.inferenceExamples.length >= MEMORISATION_MINIMUM_ROWS
-    && initialLookupRatio >= MEMORISATION_RATIO_THRESHOLD;
+  const initialIsMemorisedLookup = isMemorisedLookup(resolvedInitial, row.inferenceExamples.length);
   if (initialFit && !initialIsMemorisedLookup) return initialFit;
   for (const candidate of row.candidates.filter(item => item !== initiallySelected && item.op?.fit)) {
     const resolvedFit = resolveCandidateFit(candidate, row.domainExamples, exampleIndices);
@@ -356,10 +385,20 @@ export function buildProgram(examples, newInput = undefined, version = 3) {
     .map(row => selectTargetCandidate(row, newInput, exampleIndices))
     .filter(Boolean);
   const selectedByTarget = new Map(selected.map(item => [item.target, item]));
+  const nearFits = targetCandidates.flatMap(row => {
+    const selectedCandidate = selectedByTarget.get(row.target.path);
+    if (selectedCandidate?.op?.op !== "valueMapConflict" && !isMemorisedLookup(selectedCandidate, row.inferenceExamples.length)) return [];
+    const resolved = row.candidates
+      .map(candidate => resolveNearFit(candidate, row.domainExamples, exampleIndices))
+      .filter(Boolean)
+      .sort((left, right) => right.fitRatio - left.fitRatio);
+    return resolved.slice(0, 1);
+  }).sort((left, right) => right.fitRatio - left.fitRatio);
   const fieldDomains = targetCandidates.map(row => row.fieldDomain).filter(Boolean);
   const program = instrumentProgramMemorisation({
     version,
     ...(fieldDomains.length ? { fieldDomains } : {}),
+    ...(nearFits.length ? { nearFits } : {}),
     ops: selected.map(item => item.op),
   }, examples);
   const predictions = examples.map(example => executeJsonTransform(program, example.input));

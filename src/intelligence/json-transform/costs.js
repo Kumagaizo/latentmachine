@@ -15,6 +15,7 @@ const COST_PRIORS = {
   stringReplace: 1.42,
   dateFormat: 1.22,
   booleanNot: 1.35,
+  numericCompare: 1.38,
   quantityTransform: 1.32,
   numericBinary: 1.45,
   numericTransform: 1.55,
