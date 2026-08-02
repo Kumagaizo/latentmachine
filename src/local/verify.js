@@ -251,9 +251,11 @@ function verdictTextForRun(run) {
 function memorisationText(run) {
   const memo = run?.result?.rule?.memorisation || {};
   const lookups = (memo.lookups || []).filter(item => (memo.memorisedTargets || []).includes(item.target));
-  const total = (memo.verifiedTargets || []).length + (memo.memorisedTargets || []).length;
+  const reusableCount = (memo.ruleVerifiedTargets || []).length;
+  const passthroughCount = (memo.passthroughTargets || []).length;
+  const total = reusableCount + passthroughCount + (memo.memorisedTargets || []).length;
   const fields = lookups.map(item => `${item.target} (${item.tableEntries} of ${item.rowCount} rows)`).join(", ");
-  return `${total} fields checked. ${(memo.verifiedTargets || []).length} verified against a reusable rule. ${lookups.length} fitted as memorised lookups: ${fields}. Drift in these fields would not be detected.`;
+  return `${total} fields checked. ${reusableCount} verified against reusable rules. ${passthroughCount} passed through unchanged. ${lookups.length} fitted as memorised lookups: ${fields}. Drift in these fields would not be detected.`;
 }
 
 function isTypingTarget(target) {

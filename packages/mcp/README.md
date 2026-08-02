@@ -65,7 +65,13 @@ Approve the exact core fingerprint in Contract Studio or with the CLI. Automated
 
 Contract tools return concise summaries by default. Runtime record summaries are capped at 20 unless `record_limit` is set, and full reports require `include_report: true`.
 
+Learn and mutation-test summaries report `targetCoverage`, mutation counts, and undetected gaps. The summary's effective `inferenceStatus` is `unverified` when a nominally safe inference has mutation gaps or covers less than half of its operation targets; `sourceInferenceStatus` preserves the engine's pre-mutation status.
+
 `get_contract_challenges` and `test_transformation_contract` accept either a bare contract or the complete `{ summary, review, contract }` result returned by `learn_transformation_contract`. Verification responses contain a compact, non-executable rule; call `infer_transformation_rule` when the next step is `apply_transformation_rule`.
+
+## Transport limits
+
+The local stdio server caps each complete JSON-RPC line at 1,000,000 characters. Individual text arguments are capped at 500,000 characters, so either limit may be reached first depending on payload shape. In the audited wide-record verification fixture, batches of roughly 1,200 rows stayed inside both limits; callers should size batches by serialized characters rather than assuming a universal row limit. Oversized requests with a recoverable request ID receive a correlated JSON-RPC error.
 
 ## Privacy
 
@@ -73,7 +79,7 @@ This package is the local stdio transport. Examples, contracts, input, and outpu
 
 The hosted endpoint at `https://latentmachine.com/api/mcp` is different: payloads travel to Latentmachine's Vercel function for stateless processing. Its contract run/check tools default to privacy-safe report shaping, but that does not make the network transfer local.
 
-The hosted adapter rejects request bodies over 1,000,000 characters, tool text fields over 500,000 characters, JSON-RPC batches over four calls, and per-client bursts over 30 requests or 2,000,000 request characters per minute. The in-function limiter is a safety valve; production deployments should also configure a Vercel WAF rate-limit rule for `/api/mcp` so enforcement happens globally before function execution.
+The hosted adapter separately rejects request bodies over 1,000,000 characters, tool text fields over 500,000 characters, JSON-RPC batches over four calls, and per-client bursts over 30 requests or 2,000,000 request characters per minute. The in-function limiter is a safety valve; production deployments should also configure a Vercel WAF rate-limit rule for `/api/mcp` so enforcement happens globally before function execution.
 
 ## Local smoke test
 

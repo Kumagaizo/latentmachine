@@ -3,6 +3,7 @@ import {
   getPath,
   parsePath,
   setPath,
+  typeOf,
 } from "../json-transform/core.js";
 import { executeJsonTransform } from "../json-transform/runtime.js";
 import { deepEqual, stableStringify } from "../json-transform/shared.js";
@@ -67,6 +68,72 @@ function incompatibleValue(expectedTypes = []) {
     ["null", null],
   ];
   return cloneJson(candidates.find(([type]) => !expectedTypes.includes(type))?.[1] ?? "__latentmachine_wrong_type__");
+}
+
+function schemaTypes(schema = {}) {
+  if (typeof schema.type === "string") return [schema.type];
+  if (Array.isArray(schema.type)) return schema.type;
+  if (Array.isArray(schema.anyOf)) return [...new Set(schema.anyOf.flatMap(schemaTypes))];
+  return [];
+}
+
+function schemaAtPath(schema, path) {
+  let current = schema;
+  for (const part of parsePath(path)) {
+    if (!current) return null;
+    if (Array.isArray(current.anyOf)) {
+      current = current.anyOf.find(option => option?.properties?.[part] || option?.items) || current.anyOf[0];
+    }
+    current = typeof part === "number" ? current?.items : current?.properties?.[part];
+  }
+  return current || null;
+}
+
+function observedTargetValues(contract, target) {
+  return (contract.evidence?.examples || [])
+    .map(example => getPath(example.output, target))
+    .filter(value => value !== undefined);
+}
+
+function operationTargetMutations(contract) {
+  const byTarget = new Map();
+  for (const operation of contract.program?.ops || []) {
+    if (operation.target && !byTarget.has(operation.target)) byTarget.set(operation.target, operation);
+  }
+  return [...byTarget.entries()].flatMap(([target, operation]) => {
+    const values = observedTargetValues(contract, target);
+    const observedTypes = [...new Set(values.map(typeOf))];
+    const expectedTypes = schemaTypes(schemaAtPath(contract.output?.schema, target));
+    const mutations = [
+      descriptor(contract, null, "remove-operation-target", "output", { path: target }, `Remove learned operation target ${target}.`),
+      descriptor(contract, null, "change-operation-target-type", "output", {
+        path: target,
+        value: incompatibleValue(expectedTypes.length ? expectedTypes : observedTypes),
+      }, `Replace learned operation target ${target} with an incompatible JSON type.`),
+    ];
+    if (values.length && values.every(value => typeof value === "string") && values.some(value => /[A-Za-z]/.test(value))) {
+      mutations.push(descriptor(contract, null, "change-target-case", "output", {
+        path: target,
+      }, `Change letter casing at learned string target ${target}.`));
+      if (operation.op === "dateFormat" || /(date|time|created|updated|joined)/i.test(target) || values.some(value => /^\d{4}-\d{2}-\d{2}/.test(value))) {
+        mutations.push(descriptor(contract, null, "change-target-date-format", "output", {
+          path: target,
+        }, `Change the date representation at learned target ${target}.`));
+      }
+    }
+    if (values.length && values.every(value => typeof value === "number")) {
+      mutations.push(descriptor(contract, null, "scale-target-unit", "output", {
+        path: target,
+        factor: 100,
+      }, `Scale numeric target ${target} by 100 to probe unit drift.`));
+    }
+    if (["concat", "template"].includes(operation.op)) {
+      mutations.push(descriptor(contract, null, "swap-composition-order", "output", {
+        path: target,
+      }, `Reverse the composed parts at learned target ${target}.`));
+    }
+    return mutations;
+  });
 }
 
 function disallowedValue(values = []) {
@@ -178,6 +245,7 @@ export function generateTransformationMutations(contract) {
   const generated = (contract.invariants || [])
     .map(invariant => mutationForInvariant(contract, invariant))
     .filter(Boolean);
+  generated.push(...operationTargetMutations(contract));
   generated.push(descriptor(
     contract,
     null,
@@ -219,6 +287,29 @@ function deletePath(value, path) {
 
 function mutatePath(value, mutation) {
   if (mutation.kind.startsWith("remove-")) return deletePath(value, mutation.parameters.path);
+  const current = getPath(value, mutation.parameters.path);
+  if (mutation.kind === "change-target-case") {
+    const text = String(current ?? "");
+    const changed = text === text.toUpperCase() ? text.toLowerCase() : text.toUpperCase();
+    return setPath(clone(value), mutation.parameters.path, changed || "LATENTMACHINE_CASE_DRIFT");
+  }
+  if (mutation.kind === "scale-target-unit") {
+    const number = Number(current);
+    const changed = Number.isFinite(number) && number !== 0 ? number * mutation.parameters.factor : mutation.parameters.factor;
+    return setPath(clone(value), mutation.parameters.path, changed);
+  }
+  if (mutation.kind === "change-target-date-format") {
+    const text = String(current ?? "");
+    const match = text.match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);
+    const changed = match ? `${match[2]}/${match[3]}/${match[1]}${match[4]}` : `format-drift:${text}`;
+    return setPath(clone(value), mutation.parameters.path, changed);
+  }
+  if (mutation.kind === "swap-composition-order") {
+    const text = String(current ?? "");
+    const parts = text.split(/\s+/).filter(Boolean);
+    const changed = parts.length > 1 ? parts.reverse().join(" ") : `composition-drift:${text}`;
+    return setPath(clone(value), mutation.parameters.path, changed);
+  }
   return setPath(clone(value), mutation.parameters.path, mutation.parameters.value);
 }
 
@@ -320,13 +411,23 @@ export function runTransformationMutationSuite(contract, context = {}) {
       invariantResults: evaluation.results,
     };
   });
+  const detected = mutations.filter(item => item.detected).map(item => item.id);
+  const undetected = mutations.filter(item => !item.detected).map(item => item.id);
+  const coverage = mutationCoverage(contract, mutations);
+  const sourceInferenceStatus = contract.inference?.status || null;
+  const inferenceStatus = sourceInferenceStatus === "safe"
+    && (undetected.length > 0 || coverage.targetCoverage < 0.5)
+    ? "unverified"
+    : sourceInferenceStatus;
 
   return {
     version: "transformation-mutation-report/1",
     contractFingerprint: contract.identity.coreFingerprint,
+    inferenceStatus,
+    sourceInferenceStatus,
     mutations,
-    detected: mutations.filter(item => item.detected).map(item => item.id),
-    undetected: mutations.filter(item => !item.detected).map(item => item.id),
-    coverage: mutationCoverage(contract, mutations),
+    detected,
+    undetected,
+    coverage,
   };
 }

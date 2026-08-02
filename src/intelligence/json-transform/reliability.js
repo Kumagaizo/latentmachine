@@ -60,7 +60,7 @@ export function assessConfidence(evidence = {}) {
   if (memorisedTargets.length) {
     reasons.push(evidenceReason(
       "memorised-lookup",
-      `${memorisedTargets.length} of ${(evidence.memorisation?.verifiedTargets || []).length + memorisedTargets.length} fields were fitted with high-cardinality lookup tables: ${memorisedTargets.join(", ")}.`,
+      `${memorisedTargets.length} of ${(evidence.memorisation?.nonMemorisedTargets || []).length + memorisedTargets.length} fields were fitted with high-cardinality lookup tables: ${memorisedTargets.join(", ")}.`,
       "unverified",
     ));
   }

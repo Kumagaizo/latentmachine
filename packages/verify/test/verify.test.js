@@ -30,6 +30,10 @@ import { compactVerificationResult, SECURITY_LIMITS, verify } from "../src/index
   assert.equal(result.verdict, "consistent");
   assert.equal(result.ruleStatus, "safe");
   assert.deepEqual(result.memorisation.memorisedTargets, []);
+  assert.deepEqual(result.memorisation.passthroughTargets, ["$.id"]);
+  assert.deepEqual(result.memorisation.ruleVerifiedTargets, ["$.planLabel"]);
+  assert.deepEqual(result.memorisation.nonMemorisedTargets, ["$.id", "$.planLabel"]);
+  assert.equal("verifiedTargets" in result.memorisation, false);
   assert.equal(result.memorisation.lookups[0].ratio, 0.05);
 }
 

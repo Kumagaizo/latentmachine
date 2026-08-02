@@ -131,7 +131,11 @@ export function explainOp(op = {}) {
     return `Use the first available value from ${list((op.sources || []).map(code))} and write it to ${target}.`;
   }
   if (op.op === "numericTransform") {
-    const action = op.mode === "multiply" ? `Multiply ${code(op.source)} by ${op.value}` : `Add ${op.value} to ${code(op.source)}`;
+    const action = op.mode === "multiply"
+      ? `Multiply ${code(op.source)} by ${op.value}`
+      : op.mode === "divide"
+        ? `Divide ${code(op.source)} by ${op.value}`
+        : `Add ${op.value} to ${code(op.source)}`;
     return `${action} and write the result to ${target}.`;
   }
   if (op.op === "numericBinary") {

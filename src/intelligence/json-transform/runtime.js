@@ -109,6 +109,7 @@ function applyOp(op, input) {
     if (!Number.isFinite(value)) return `[invalid number ${op.source}]`;
     if (op.mode === "add") return value + op.value;
     if (op.mode === "multiply") return value * op.value;
+    if (op.mode === "divide") return value / op.value;
     return value;
   }
   if (op.op === "numericBinary") {

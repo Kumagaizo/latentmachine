@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 import readline from "node:readline";
-import { handleJsonRpc, MAX_JSON_RPC_LINE_CHARACTERS } from "../src/server.js";
+import {
+  extractJsonRpcIdFromHead,
+  handleJsonRpc,
+  MAX_JSON_RPC_LINE_CHARACTERS,
+} from "../src/server.js";
 
 if (process.argv.includes("--help") || process.argv.includes("-h")) {
   console.log(`Usage: latentmachine-mcp
@@ -22,7 +26,7 @@ async function handleLine(line) {
   if (line.length > MAX_JSON_RPC_LINE_CHARACTERS) {
     process.stdout.write(`${JSON.stringify({
       jsonrpc: "2.0",
-      id: null,
+      id: extractJsonRpcIdFromHead(line),
       error: { code: -32600, message: `JSON-RPC request is too large. Limit is ${MAX_JSON_RPC_LINE_CHARACTERS} characters.` },
     })}\n`);
     return;
@@ -48,7 +52,7 @@ input.on("line", (line) => {
   handleLine(line).catch((error) => {
     process.stdout.write(`${JSON.stringify({
       jsonrpc: "2.0",
-      id: null,
+      id: extractJsonRpcIdFromHead(line),
       error: { code: -32603, message: error?.message || "Internal error." },
     })}\n`);
   });

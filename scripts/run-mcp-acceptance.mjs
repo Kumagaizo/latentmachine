@@ -326,7 +326,10 @@ let learnedContract;
     },
   });
   const result = parseToolText(response);
-  assert.equal(result.summary.inferenceStatus, "safe");
+  assert.equal(result.summary.inferenceStatus, "unverified");
+  assert.equal(result.summary.sourceInferenceStatus, "safe");
+  assert.equal(result.summary.targetCoverage, 1);
+  assert.ok(result.summary.mutationGapCount > 0);
   assert.equal(result.summary.approvalState, "unreviewed");
   assert.equal(result.summary.humanApproved, false);
   assert.equal(result.review.required, true);
@@ -433,6 +436,8 @@ const approvedContract = approveContract(learnedContract, {
   });
   const result = parseToolText(response);
   assert.ok(result.summary.mutationCount > 0);
+  assert.equal(result.summary.coverage.targetCoverage, 1);
+  assert.equal(result.summary.inferenceStatus, "unverified");
   assert.equal("report" in result, false);
   console.log("OK MCP contract mutation summary");
 }

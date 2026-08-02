@@ -243,9 +243,14 @@ const csv = serializeWithFormat(data, "csv");
             <li><code>flaggedRows</code>: <code>{ index, input, expected, actual }</code> for rows that broke the pattern.</li>
             <li><code>ruleStatus</code>: <code>safe</code>, <code>unverified</code>, <code>ambiguous</code>, <code>contradictory</code>, <code>unsafe</code>, or <code>insufficient</code>.</li>
             <li><code>confidence</code>: the evidence label, checks, and reasons; memorised lookups never receive <code>proven</code>.</li>
-            <li><code>memorisation</code>: lookup ratios, affected targets, and the threshold and evidence floor in force.</li>
+            <li><code>memorisation</code>: lookup ratios, <code>ruleVerifiedTargets</code>, unchanged <code>passthroughTargets</code>, affected <code>memorisedTargets</code>, and the threshold and evidence floor in force.</li>
             <li><code>summary</code>: a human-readable, field-attributed verdict explanation.</li>
           </ul>
+          <p>
+            Executable rules retain lookup bodies. Use <code>compactVerificationResult()</code> or
+            <code>compactRuleArtifact()</code> before logging or serialising diagnostics; compact rules
+            are explicitly marked <code>executable: false</code>.
+          </p>
           <p><code>infer()</code> returns:</p>
           <ul>
             <li><code>status</code>: the evidence state for the inferred rule.</li>
@@ -325,6 +330,11 @@ const csv = serializeWithFormat(data, "csv");
             <li><strong>check_transformation_contract</strong>: check external output against an already-approved contract.</li>
             <li><strong>compare_transformation_contracts</strong>: classify behavioral, evidence, policy, review, and metadata changes.</li>
           </ul>
+          <p>
+            Local stdio calls allow at most 500,000 characters per text argument and 1,000,000
+            characters for the complete JSON-RPC line. The audited wide-record fixture fits roughly
+            1,200 rows per call, but clients should batch by serialised size because record widths vary.
+          </p>
 
           <p>
             MCP can prepare a contract for review, but it cannot create

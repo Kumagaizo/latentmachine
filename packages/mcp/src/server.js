@@ -10,6 +10,20 @@ const CONTRACT_RECORD_LIST_LIMIT = 20;
 
 let runtimePromise;
 
+export function extractJsonRpcIdFromHead(line, scanLimit = 1024) {
+  const head = String(line).slice(0, scanLimit);
+  const match = head.match(/"id"\s*:\s*(?:"((?:[^"\\]|\\.)*)"|(-?\d+)|null)/);
+  if (!match) return null;
+  if (match[1] !== undefined) {
+    try {
+      return JSON.parse(`"${match[1]}"`);
+    } catch {
+      return null;
+    }
+  }
+  return match[2] === undefined ? null : Number(match[2]);
+}
+
 async function loadRuntime() {
   if (!runtimePromise) {
     runtimePromise = import("@latentmachine/verify").catch((error) => {
@@ -36,6 +50,7 @@ export const TOOLS = [
       "Check whether a batch of AI-transformed data rows all follow one deterministic rule.",
       "Paste the original records and the AI-generated output.",
       "Returns a capped diagnostic summary; high-cardinality lookup bodies are never inlined.",
+      "Text arguments are capped at 500,000 characters and the stdio JSON-RPC line at 1,000,000 characters; an audited wide-record fixture is safe at roughly 1,200 rows per call.",
       "Uses a deterministic symbolic engine, not an LLM.",
     ].join(" "),
     inputSchema: toolSchema({
@@ -161,7 +176,7 @@ export const TOOLS = [
   },
   {
     name: "test_transformation_contract",
-    description: "Mutation-test a Transformation Contract against its evidence and disclose detected behavior plus visible gaps.",
+    description: "Mutation-test every learned operation target against its evidence, disclose target coverage and detection gaps, and downgrade the reported inference status when mutation evidence is incomplete.",
     inputSchema: toolSchema({
       contract: {
         type: "string",
@@ -267,12 +282,24 @@ function capList(items) {
   };
 }
 
-function contractSummary(contract) {
+function effectiveInferenceStatus(contract, mutationReport = null) {
+  const status = contract?.inference?.status || null;
+  if (status !== "safe" || !mutationReport) return status;
+  return mutationReport.inferenceStatus || status;
+}
+
+function contractSummary(contract, mutationReport = null) {
   const challenges = Array.isArray(contract?.challenges) ? contract.challenges : [];
   return {
     contractId: contract?.identity?.contractId || null,
     coreFingerprint: contract?.identity?.coreFingerprint || null,
-    inferenceStatus: contract?.inference?.status || null,
+    inferenceStatus: effectiveInferenceStatus(contract, mutationReport),
+    sourceInferenceStatus: contract?.inference?.status || null,
+    ...(mutationReport ? {
+      mutationCount: mutationReport.mutations.length,
+      mutationGapCount: mutationReport.undetected.length,
+      targetCoverage: mutationReport.coverage?.targetCoverage ?? 0,
+    } : {}),
     approvalState: contract?.lifecycle?.approvalState || null,
     revision: contract?.lifecycle?.revision || null,
     blockingChallenges: challenges.filter(item => (
@@ -316,10 +343,12 @@ function runtimeResult(report, args) {
   };
 }
 
-function mutationResult(report, includeReport) {
+function mutationResult(report, includeReport, contract) {
   return {
     summary: {
       contractFingerprint: report.contractFingerprint,
+      inferenceStatus: effectiveInferenceStatus(contract, report),
+      sourceInferenceStatus: contract?.inference?.status || null,
       mutationCount: report.mutations.length,
       detectedCount: report.detected.length,
       gapCount: report.undetected.length,
@@ -390,8 +419,13 @@ async function callTool(name, args = {}) {
   if (name === "learn_transformation_contract") {
     const examples = parseJson(args.examples, "examples", runtime);
     const contract = runtime.learnContract({ examples }, { evidenceSource: "mcp-local-stdio" });
+    const mutationReport = runtime.runTransformationMutationSuite(contract, {
+      inputRecords: contract.evidence?.examples?.map(example => example.input) || [],
+      outputRecords: contract.evidence?.examples?.map(example => example.output) || [],
+      failedRecords: [],
+    });
     return {
-      summary: contractSummary(contract),
+      summary: contractSummary(contract, mutationReport),
       review: {
         required: contract.lifecycle.approvalState !== "approved",
         humanApprovalCreated: false,
@@ -418,7 +452,7 @@ async function callTool(name, args = {}) {
       outputRecords: contract.evidence?.examples?.map(example => example.output) || [],
       failedRecords: [],
     });
-    return mutationResult(report, !!args.include_report);
+    return mutationResult(report, !!args.include_report, contract);
   }
 
   if (name === "run_transformation_contract") {

@@ -32,6 +32,19 @@ console.log(result.flaggedRows);
 
 `result.verdict` is `consistent`, `inconsistent`, or `unverifiable`. The third state means the examples were fitted by a high-cardinality lookup rather than a reusable rule; affected fields and lookup ratios are available in `result.memorisation` and `result.summary`. Memorised rules never receive `confidence.label: "proven"`.
 
+`result.memorisation` distinguishes `ruleVerifiedTargets`, `passthroughTargets`, and `memorisedTargets`; `nonMemorisedTargets` is the union of the first two groups. This avoids treating fields copied unchanged as independently verified rules.
+
+Executable rules retain lookup tables in memory. Before logging or serialising a diagnostic result, use the exported compaction helpers:
+
+```js
+import { compactRuleArtifact, compactVerificationResult } from "@latentmachine/verify";
+
+const safeResult = compactVerificationResult(result);
+const safeRuleSummary = compactRuleArtifact(result.rule);
+```
+
+Both helpers remove lookup bodies and mark compact rule artifacts `executable: false`; pass only a full rule from `infer()` to `transform()`.
+
 ## Infer and apply a rule
 
 ```js

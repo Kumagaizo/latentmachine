@@ -46,8 +46,12 @@ export function inferVerifyRule(originalRows, transformedRows) {
   const fullResult = runTransform({ examples });
   let best = evaluateResult(fullResult, originalRows, transformedRows);
 
-  const shouldSearchForOutlierRule = ["unsafe", "ambiguous", "contradictory", "insufficient"].includes(fullResult.status)
-    || best.flagged.length === originalRows.length;
+  const dominantReplayAlreadyFound = best.flagged.length > 0
+    && best.matched / originalRows.length >= 0.95;
+  const shouldSearchForOutlierRule = !dominantReplayAlreadyFound && (
+    ["unsafe", "ambiguous", "contradictory", "insufficient"].includes(fullResult.status)
+    || best.flagged.length === originalRows.length
+  );
   if (originalRows.length > 2 && shouldSearchForOutlierRule) {
     const dominantExamples = dominantRepeatedInputExamples(examples);
     if (dominantExamples) {

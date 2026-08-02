@@ -1507,7 +1507,7 @@ function opValueExpr(op, root = "input", opIndex = 0) {
   if (op.op === "stringCase") return withRequiredSource(op, root, value => stringTransformExpr(value, op.mode, { source: op.source }));
   if (op.op === "stringNormalize") return withRequiredSource(op, root, value => stringTransformExpr(value, op.mode, { source: op.source, phonePolicy: op.phonePolicy }));
   if (op.op === "numericTransform") {
-    return withRequiredSource(op, root, value => `(() => { const number = Number(${value}); if (!Number.isFinite(number)) return ${invalidNumberExpr(op.source)}; return ${op.mode === "add" ? `number + ${literal(op.value)}` : op.mode === "multiply" ? `number * ${literal(op.value)}` : "number"}; })()`);
+    return withRequiredSource(op, root, value => `(() => { const number = Number(${value}); if (!Number.isFinite(number)) return ${invalidNumberExpr(op.source)}; return ${op.mode === "add" ? `number + ${literal(op.value)}` : op.mode === "multiply" ? `number * ${literal(op.value)}` : op.mode === "divide" ? `number / ${literal(op.value)}` : "number"}; })()`);
   }
   if (op.op === "numericBinary") {
     const leftValue = pathToAccess(op.left, root);

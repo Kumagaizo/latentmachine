@@ -47,11 +47,23 @@ function productionRows(count) {
   const started = Date.now();
   const result = verify(fixture);
   const durationMs = Date.now() - started;
-  assert.equal(result.verdict, "unverifiable");
-  assert.equal(result.ruleStatus, "unverified");
-  assert.ok(result.memorisation.maxRatio >= 0.99);
-  assert.ok(result.memorisation.memorisedTargets.includes("$.mrr"));
+  assert.equal(result.verdict, "consistent");
+  assert.equal(result.ruleStatus, "safe");
+  assert.equal(result.memorisation.memorisedTargets.includes("$.mrr"), false);
+  assert.deepEqual(
+    result.rule.program.ops.find(operation => operation.target === "$.mrr"),
+    { op: "numericTransform", source: "$.mrr_cents", mode: "divide", value: 100, target: "$.mrr" },
+  );
   assert.ok(durationMs < 1000, `300-row verification took ${durationMs}ms`);
+}
+
+{
+  const fixture = productionRows(1600);
+  fixture.transformed[1544].mrr = fixture.original[1544].mrr_cents;
+  const result = verify(fixture);
+  assert.equal(result.verdict, "inconsistent");
+  assert.ok(result.flaggedRows.some(row => row.index === 1544));
+  assert.equal(result.memorisation.memorisedTargets.includes("$.mrr"), false);
 }
 
 const driftCases = [
@@ -75,13 +87,16 @@ for (const [name, mutate] of driftCases) {
 }
 
 {
-  const fixture = productionRows(12);
+  const fixture = {
+    original: Array.from({ length: 12 }, (_, index) => ({ id: `account-${index + 1}` })),
+    transformed: Array.from({ length: 12 }, (_, index) => ({ label: `Segment ${index + 1}` })),
+  };
   const contract = learnContract({
     examples: fixture.original.map((input, index) => ({ input, output: fixture.transformed[index] })),
   });
   assert.equal(contract.inference.status, "unverified");
   assert.equal(contract.lifecycle.approvalState, "review_required");
-  assert.ok(contract.challenges.some(challenge => challenge.affectedPaths.includes("$.mrr")));
+  assert.ok(contract.challenges.some(challenge => challenge.affectedPaths.includes("$.label")));
 }
 
 console.log("memorisation.test.js passed");

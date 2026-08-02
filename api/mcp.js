@@ -246,7 +246,7 @@ export const TOOLS = [
   {
     name: "test_transformation_contract",
     description:
-      "Mutation-test a Transformation Contract against its evidence and disclose protected behavior plus visible gaps. " +
+      "Mutation-test every learned operation target against its evidence, disclose target coverage and detection gaps, and downgrade the reported inference status when mutation evidence is incomplete. " +
       "Remote HTTP use sends the contract and its embedded evidence to Latentmachine for stateless processing.",
     inputSchema: {
       type: "object",
@@ -521,12 +521,18 @@ export function handleFingerprint({ data, compare_to, format = "auto" }) {
   };
 }
 
-function contractSummary(contract) {
+function contractSummary(contract, mutationReport = null) {
   const challenges = Array.isArray(contract?.challenges) ? contract.challenges : [];
   return {
     contractId: contract?.identity?.contractId || null,
     coreFingerprint: contract?.identity?.coreFingerprint || null,
-    inferenceStatus: contract?.inference?.status || null,
+    inferenceStatus: mutationReport?.inferenceStatus || contract?.inference?.status || null,
+    sourceInferenceStatus: contract?.inference?.status || null,
+    ...(mutationReport ? {
+      mutationCount: mutationReport.mutations.length,
+      mutationGapCount: mutationReport.undetected.length,
+      targetCoverage: mutationReport.coverage?.targetCoverage ?? 0,
+    } : {}),
     approvalState: contract?.lifecycle?.approvalState || null,
     revision: contract?.lifecycle?.revision || null,
     blockingChallenges: challenges.filter(item => (
@@ -578,8 +584,13 @@ export function handleLearnContract({ examples, include_contract = true }) {
     throw new Error("Provide at least one { input, output } example.");
   }
   const contract = learnContract({ examples: parsed }, { evidenceSource: "mcp-remote-http" });
+  const mutationReport = runTransformationMutationSuite(contract, {
+    inputRecords: contract.evidence?.examples?.map(example => example.input) || [],
+    outputRecords: contract.evidence?.examples?.map(example => example.output) || [],
+    failedRecords: [],
+  });
   return {
-    summary: contractSummary(contract),
+    summary: contractSummary(contract, mutationReport),
     review: {
       required: contract.lifecycle.approvalState !== "approved",
       humanApprovalCreated: false,
@@ -608,6 +619,8 @@ export function handleContractTest({ contract, include_report = false }) {
   return {
     summary: {
       contractFingerprint: report.contractFingerprint,
+      inferenceStatus: report.inferenceStatus,
+      sourceInferenceStatus: report.sourceInferenceStatus,
       mutationCount: report.mutations.length,
       detectedCount: report.detected.length,
       gapCount: report.undetected.length,

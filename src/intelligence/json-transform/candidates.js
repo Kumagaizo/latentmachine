@@ -93,6 +93,34 @@ function inferStringNormalize(examples, targetPath, targetValues, sourceEntries)
   return candidates;
 }
 
+function bestNumericScale(pairs, mode) {
+  const observed = new Map();
+  for (const pair of pairs) {
+    if (pair.from === 0 || pair.to === 0) continue;
+    const value = mode === "multiply" ? pair.to / pair.from : pair.from / pair.to;
+    if (!Number.isFinite(value) || value === 1) continue;
+    observed.set(value, (observed.get(value) || 0) + 1);
+  }
+  return [...observed.entries()]
+    .sort((left, right) => right[1] - left[1] || Math.abs(left[0]) - Math.abs(right[0]))
+    .slice(0, 16)
+    .map(([value]) => value)
+    .map(value => ({
+      value,
+      matches: pairs.filter(pair => (
+        mode === "multiply" ? pair.from * value === pair.to : pair.from / value === pair.to
+      )).length,
+    }))
+    .sort((left, right) => right.matches - left.matches || Math.abs(left.value) - Math.abs(right.value))[0] || null;
+}
+
+function hasDominantNumericSupport(scale, rowCount) {
+  return !!scale && (
+    scale.matches === rowCount
+    || rowCount >= 8 && scale.matches / rowCount >= 0.95
+  );
+}
+
 function inferNumericTransform(examples, targetPath, targetValues, sourceEntries) {
   if (!targetValues.every(value => typeof value === "number")) return [];
   const numericSources = sourceEntries
@@ -114,14 +142,28 @@ function inferNumericTransform(examples, targetPath, targetValues, sourceEntries
         source.path,
       ));
     }
-    const factor = pairs[0].from === 0 ? null : pairs[0].to / pairs[0].from;
-    if (factor !== null && factor !== 1 && Number.isFinite(factor) && pairs.every(pair => pair.from * factor === pair.to)) {
+    const multiplyScale = bestNumericScale(pairs, "multiply");
+    const divideScale = bestNumericScale(pairs, "divide");
+    const multiplySupported = hasDominantNumericSupport(multiplyScale, pairs.length);
+    const divideSupported = hasDominantNumericSupport(divideScale, pairs.length);
+    if (multiplySupported && (!divideSupported || multiplyScale.matches >= divideScale.matches)) {
       candidates.push(candidate(
         "numericTransform",
-        `Multiply ${source.path} by ${factor}`,
+        `Multiply ${source.path} by ${multiplyScale.value}`,
         "Multiply a numeric source value by a stable factor.",
-        { magnitude: factor - 1 },
-        { op: "numericTransform", source: source.path, mode: "multiply", value: factor, target: targetPath },
+        { magnitude: multiplyScale.value - 1 },
+        { op: "numericTransform", source: source.path, mode: "multiply", value: multiplyScale.value, target: targetPath },
+        targetPath,
+        source.path,
+      ));
+    }
+    if (divideSupported && (!multiplySupported || divideScale.matches > multiplyScale.matches)) {
+      candidates.push(candidate(
+        "numericTransform",
+        `Divide ${source.path} by ${divideScale.value}`,
+        "Divide a numeric source value by a stable divisor.",
+        { magnitude: divideScale.value - 1 },
+        { op: "numericTransform", source: source.path, mode: "divide", value: divideScale.value, target: targetPath },
         targetPath,
         source.path,
       ));

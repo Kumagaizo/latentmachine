@@ -3,6 +3,10 @@ import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  extractJsonRpcIdFromHead,
+  MAX_JSON_RPC_LINE_CHARACTERS,
+} from "../src/server.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const serverPath = join(here, "..", "bin", "latentmachine-mcp.js");
@@ -43,11 +47,36 @@ child.on("exit", (code, signal) => {
   pending.clear();
 });
 
-function request(message) {
+function requestLine(id, line, timeoutMs = 3000) {
   return new Promise((resolve) => {
-    pending.set(message.id, resolve);
-    child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", ...message })}\n`);
+    const timer = setTimeout(() => {
+      pending.delete(id);
+      resolve({ error: new Error(`Timed out waiting for JSON-RPC id ${id}.`) });
+    }, timeoutMs);
+    pending.set(id, (message) => {
+      clearTimeout(timer);
+      resolve(message);
+    });
+    child.stdin.write(`${line}\n`);
   });
+}
+
+function request(message) {
+  return requestLine(message.id, JSON.stringify({ jsonrpc: "2.0", ...message }));
+}
+
+function requestLineOfLength(id, length) {
+  const message = {
+    jsonrpc: "2.0",
+    id,
+    method: "tools/call",
+    params: { name: "detect_data_format", arguments: { text: "" } },
+  };
+  const emptyLength = JSON.stringify(message).length;
+  message.params.arguments.text = "x".repeat(length - emptyLength);
+  const line = JSON.stringify(message);
+  assert.equal(line.length, length);
+  return line;
 }
 
 try {
@@ -133,7 +162,10 @@ try {
     },
   });
   const learned = JSON.parse(learnedResponse.result.content[0].text);
-  assert.equal(learned.summary.inferenceStatus, "safe");
+  assert.equal(learned.summary.inferenceStatus, "unverified");
+  assert.equal(learned.summary.sourceInferenceStatus, "safe");
+  assert.equal(learned.summary.targetCoverage, 1);
+  assert.ok(learned.summary.mutationGapCount > 0);
   assert.equal(learned.review.required, true);
   assert.equal(learned.review.humanApprovalCreated, false);
   assert.equal(learned.contract.lifecycle.approvalState, "unreviewed");
@@ -215,6 +247,9 @@ try {
   const mutation = JSON.parse(testResponse.result.content[0].text);
   assert.ok(mutation.summary.mutationCount > 0);
   assert.ok(mutation.summary.coverage.operationTargetCount > 0);
+  assert.equal(mutation.summary.coverage.targetCoverage, 1);
+  assert.ok(mutation.summary.mutationCount >= mutation.summary.coverage.operationTargetCount * 2);
+  assert.equal(mutation.summary.inferenceStatus, "unverified");
   assert.equal("report" in mutation, false);
 
   const comparisonResponse = await request({
@@ -243,6 +278,26 @@ try {
     ])}\n`);
   });
   assert.equal(oversizedBatch.error.code, -32600);
+
+  assert.equal(extractJsonRpcIdFromHead('{"jsonrpc":"2.0","id":"job\\n42","method":"ping"}'), "job\n42");
+
+  const justUnder = await requestLine(
+    41,
+    requestLineOfLength(41, MAX_JSON_RPC_LINE_CHARACTERS),
+  );
+  if (justUnder.error) throw justUnder.error;
+  assert.equal(justUnder.id, 41);
+  assert.equal(justUnder.result.isError, true);
+  assert.match(justUnder.result.content[0].text, /too large/i);
+
+  const justOver = await requestLine(
+    42,
+    requestLineOfLength(42, MAX_JSON_RPC_LINE_CHARACTERS + 1),
+  );
+  if (justOver.error instanceof Error) throw justOver.error;
+  assert.equal(justOver.id, 42);
+  assert.equal(justOver.error.code, -32600);
+  assert.match(justOver.error.message, /too large/i);
 
   console.log("mcp smoke.js passed");
 } finally {

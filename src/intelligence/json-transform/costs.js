@@ -102,11 +102,11 @@ function costAdjustment(op, hints = {}) {
   const pathDistance = hints.pathDistance || 0;
   const pathMatch = hints.pathMatch ? COST_ADJUSTMENT_WEIGHTS.pathMatch : 0;
   const composedStringMode = op.mode && String(op.mode).includes("+") ? COST_ADJUSTMENT_WEIGHTS.composedStringMode : 0;
-  const numericScale = op.op === "numericTransform" && op.mode === "multiply" ? COST_ADJUSTMENT_WEIGHTS.numericScale : 0;
+  const numericScale = op.op === "numericTransform" && ["multiply", "divide"].includes(op.mode) ? COST_ADJUSTMENT_WEIGHTS.numericScale : 0;
   const arrayStringModePenalty = op.op === "arrayStringTransform"
     ? op.mode === "collapseWhitespace" ? COST_ADJUSTMENT_WEIGHTS.arrayCollapseWhitespace : ["lower", "upper"].includes(op.mode) ? COST_ADJUSTMENT_WEIGHTS.arrayCaseChange : 0
     : 0;
-  const magnitudeWeight = op.op === "numericTransform" && op.mode === "multiply"
+  const magnitudeWeight = op.op === "numericTransform" && ["multiply", "divide"].includes(op.mode)
     ? COST_ADJUSTMENT_WEIGHTS.numericMultiplyMagnitude
     : op.op === "quantityTransform"
       ? COST_ADJUSTMENT_WEIGHTS.quantityMagnitude

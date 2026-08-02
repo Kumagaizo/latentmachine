@@ -47,10 +47,16 @@ export function memorisationForProgram(program) {
   ));
   const memorisedTargets = [...new Set(memorised.map(item => item.target).filter(Boolean))];
   const targets = [...new Set((program?.ops || []).map(op => op.target).filter(Boolean))];
+  const nonMemorisedTargets = targets.filter(target => !memorisedTargets.includes(target));
+  const passthroughTargets = [...new Set((program?.ops || [])
+    .filter(op => op.op === "set" && op.source === op.target && nonMemorisedTargets.includes(op.target))
+    .map(op => op.target))];
   return {
     maxRatio: lookups.length ? Math.max(...lookups.map(item => item.ratio)) : 0,
     memorisedTargets,
-    verifiedTargets: targets.filter(target => !memorisedTargets.includes(target)),
+    nonMemorisedTargets,
+    ruleVerifiedTargets: nonMemorisedTargets.filter(target => !passthroughTargets.includes(target)),
+    passthroughTargets,
     threshold: MEMORISATION_RATIO_THRESHOLD,
     minimumRows: MEMORISATION_MINIMUM_ROWS,
     lookups,
@@ -61,10 +67,13 @@ export function memorisationSummary(memorisation = {}) {
   const lookups = (memorisation.lookups || []).filter(item => (
     (memorisation.memorisedTargets || []).includes(item.target)
   ));
-  const total = (memorisation.verifiedTargets || []).length + (memorisation.memorisedTargets || []).length;
+  const reusableCount = (memorisation.ruleVerifiedTargets || []).length;
+  const passthroughCount = (memorisation.passthroughTargets || []).length;
+  const total = reusableCount + passthroughCount + (memorisation.memorisedTargets || []).length;
+  const verifiedText = `${reusableCount} verified against reusable rules. ${passthroughCount} passed through unchanged.`;
   if (!lookups.length) {
-    return `${total} field${total === 1 ? "" : "s"} checked. All were verified against a reusable rule.`;
+    return `${total} field${total === 1 ? "" : "s"} checked. ${verifiedText}`;
   }
   const fields = lookups.map(item => `${item.target} (${item.tableEntries} of ${item.rowCount} rows)`).join(", ");
-  return `${total} fields checked. ${memorisation.verifiedTargets.length} verified against a reusable rule. ${lookups.length} could not be verified because the engine fitted memorised lookups: ${fields}. Drift in these fields would not be detected.`;
+  return `${total} fields checked. ${verifiedText} ${lookups.length} could not be verified because the engine fitted memorised lookups: ${fields}. Drift in these fields would not be detected.`;
 }
