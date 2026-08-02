@@ -1,5 +1,5 @@
 import { explainOp } from "./explain.js";
-import { entries, getPath, parsePath, uniqueBy } from "./core.js";
+import { entries, getPath, omitPaths, parsePath, uniqueBy } from "./core.js";
 import { COST_PRIOR_STEP } from "./costs.js";
 import { inferArrayGroupBy, inferTargetCandidates } from "./candidates.js";
 import { instrumentProgramMemorisation, MEMORISATION_MINIMUM_ROWS, MEMORISATION_RATIO_THRESHOLD } from "./memorisation.js";
@@ -123,13 +123,24 @@ function isDescendantPath(path, ancestor) {
     && ancestorParts.every((part, index) => part === parts[index]);
 }
 
+function mergedEntries(examples, select, options) {
+  const byPath = new Map();
+  for (const example of examples) {
+    for (const entry of entries(select(example), [], options)) {
+      if (!byPath.has(entry.path)) byPath.set(entry.path, entry);
+    }
+  }
+  return [...byPath.values()];
+}
+
 function outputEntriesForExamples(examples) {
-  const leaves = entries(examples[0].output, [], { includeArrayLeaves: true });
-  const groupedContainers = entries(examples[0].output, [], { includeContainers: true, includeArrayLeaves: true })
+  const leaves = mergedEntries(examples, example => example.output, { includeArrayLeaves: true });
+  const groupedContainers = mergedEntries(examples, example => example.output, { includeContainers: true, includeArrayLeaves: true })
     .filter(entry => isGroupByOutputShape(entry.value))
     .filter(entry => {
-      const targetValues = examples.map(example => getPath(example.output, entry.path));
-      return inferArrayGroupBy(examples, entry.path, targetValues).length > 0;
+      const domainExamples = examples.filter(example => getPath(example.output, entry.path) !== undefined);
+      const targetValues = domainExamples.map(example => getPath(example.output, entry.path));
+      return inferArrayGroupBy(domainExamples, entry.path, targetValues).length > 0;
     });
   if (!groupedContainers.length) return leaves;
   return [
@@ -138,22 +149,105 @@ function outputEntriesForExamples(examples) {
   ];
 }
 
+function domainForTarget(examples, targetPath, sourceEntries) {
+  const present = examples.filter(example => getPath(example.output, targetPath) !== undefined);
+  if (present.length === examples.length) return null;
+  const guardSources = sourceEntries
+    .map(entry => entry.path)
+    .filter((path, index, paths) => paths.indexOf(path) === index)
+    .filter(path => examples.every(example => (
+      (getPath(example.output, targetPath) !== undefined)
+      === (getPath(example.input, path) !== undefined)
+    )));
+  guardSources.sort((left, right) => (
+    Number(right === targetPath) - Number(left === targetPath)
+    || left.localeCompare(right)
+  ));
+  const coverage = Number((present.length / examples.length).toFixed(4));
+  return {
+    target: targetPath,
+    optional: true,
+    supportCount: present.length,
+    totalRows: examples.length,
+    coverage,
+    guardSources,
+    // Only treat a field as optional when its presence is explained by an
+    // input field with the same domain. Otherwise a missing or invented
+    // output field is schema drift, not evidence of optionality.
+    assumeRequired: !guardSources.length,
+  };
+}
+
+function candidateWithDomain(candidate, domain) {
+  if (!domain || domain.assumeRequired) return candidate;
+  const candidateSources = opSources(candidate.op);
+  const source = candidateSources.find(path => domain.guardSources.includes(path))
+    || domain.guardSources[0]
+    || null;
+  const unverifiable = domain.supportCount < MEMORISATION_MINIMUM_ROWS || !source;
+  return {
+    ...candidate,
+    op: {
+      ...candidate.op,
+      domain: {
+        optional: true,
+        source,
+        supportCount: domain.supportCount,
+        totalRows: domain.totalRows,
+        coverage: domain.coverage,
+        unverifiable,
+        reason: domain.supportCount < MEMORISATION_MINIMUM_ROWS ? "insufficient-support" : !source ? "unproven-domain" : null,
+      },
+    },
+  };
+}
+
+function comparableTargets(program) {
+  return (program.fieldDomains || []).filter(domain => domain.unverifiable).map(domain => domain.target);
+}
+
 export function buildProgram(examples, newInput = undefined, version = 3) {
   const outputEntries = outputEntriesForExamples(examples);
-  const sourceEntries = entries(examples[0].input, [], { includeArrayLeaves: true });
-  const targetCandidates = outputEntries.map(target => ({
-    target,
-    candidates: inferTargetCandidates(examples, target, sourceEntries),
-  }));
+  const sourceEntries = mergedEntries(examples, example => example.input, { includeArrayLeaves: true });
+  const targetCandidates = outputEntries.map(target => {
+    const domain = domainForTarget(examples, target.path, sourceEntries);
+    const domainExamples = domain
+      ? examples.filter(example => getPath(example.output, target.path) !== undefined)
+      : examples;
+    const domainSources = mergedEntries(domainExamples, example => example.input, { includeArrayLeaves: true });
+    const candidates = inferTargetCandidates(domainExamples, target, domainSources)
+      .map(candidate => candidateWithDomain(candidate, domain));
+    const fieldDomain = domain && !domain.assumeRequired ? {
+      target: target.path,
+      supportCount: domain.supportCount,
+      totalRows: domain.totalRows,
+      coverage: domain.coverage,
+      source: candidates[0]?.op?.domain?.source || domain.guardSources[0] || null,
+      unverifiable: domain.supportCount < MEMORISATION_MINIMUM_ROWS || !candidates.length || !domain.guardSources.length,
+      reason: domain.supportCount < MEMORISATION_MINIMUM_ROWS
+        ? "insufficient-support"
+        : !candidates.length ? "no-rule" : !domain.guardSources.length ? "unproven-domain" : null,
+    } : null;
+    return { target, domainExamples, fieldDomain, candidates };
+  });
   const selected = targetCandidates.map(row => selectCandidate(row.candidates, newInput)).filter(Boolean);
   const selectedByTarget = new Map(selected.map(item => [item.target, item]));
+  const fieldDomains = targetCandidates.map(row => row.fieldDomain).filter(Boolean);
   const program = instrumentProgramMemorisation({
     version,
+    ...(fieldDomains.length ? { fieldDomains } : {}),
     ops: selected.map(item => item.op),
   }, examples);
   const predictions = examples.map(example => executeJsonTransform(program, example.input));
-  const exact = predictions.every((prediction, index) => deepEqual(prediction, examples[index].output));
-  const unexplained = targetCandidates.filter(row => !row.candidates.length).map(row => row.target.path);
+  const ignoredTargets = comparableTargets(program);
+  const matches = predictions.map((prediction, index) => deepEqual(
+    omitPaths(prediction, ignoredTargets),
+    omitPaths(examples[index].output, ignoredTargets),
+  ));
+  const exact = matches.every(Boolean);
+  const unexplained = targetCandidates
+    .filter(row => !row.candidates.length && !row.fieldDomain?.unverifiable)
+    .map(row => row.target.path);
   const ambiguityTriage = targetCandidates
     .map(row => {
       const selectedCandidate = selectedByTarget.get(row.target.path) || row.candidates[0];
@@ -161,7 +255,7 @@ export function buildProgram(examples, newInput = undefined, version = 3) {
         candidate !== selectedCandidate
         && !deepEqual(candidate.op, selectedCandidate?.op)
         && !isDominatedConditionalLookup(selectedCandidate, candidate)
-        && !isDominatedMemorisedLookup(selectedCandidate, candidate, examples.length)
+        && !isDominatedMemorisedLookup(selectedCandidate, candidate, row.domainExamples.length)
       ));
       if (!selectedCandidate || !alternative || Math.abs(alternative.cost - selectedCandidate.cost) > AMBIGUITY_TRIAGE.closeCostGap) return null;
       const strength = ambiguityStrength(selectedCandidate, alternative, newInput);
@@ -188,5 +282,5 @@ export function buildProgram(examples, newInput = undefined, version = 3) {
     })
     .filter(Boolean);
   const ambiguous = ambiguityTriage.filter(item => item.strength === "meaningful");
-  return { program, targetCandidates, predictions, exact, unexplained, ambiguous, ambiguityTriage };
+  return { program, targetCandidates, predictions, matches, exact, unexplained, ambiguous, ambiguityTriage };
 }

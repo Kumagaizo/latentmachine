@@ -45,13 +45,22 @@ import { compactVerificationResult, SECURITY_LIMITS, verify } from "../src/index
   const transformed = original.map(row => ({ joinDate: row.created_at.slice(0, 10) }));
   transformed[1].joinDate = "01/02/2026";
   const result = verify({ original, transformed });
+  assert.equal(result.verdict, "inconsistent");
+  assert.deepEqual(result.flaggedRows.map(row => row.index), [1]);
+  assert.equal(result.rule.program.ops[0].op, "dateFormat");
+}
+
+{
+  const original = Array.from({ length: 40 }, (_, index) => ({ id: `customer-${index + 1}` }));
+  const transformed = original.map((row, index) => ({ id: row.id, label: `Private segment ${index + 1}` }));
+  const result = verify({ original, transformed });
   assert.equal(result.verdict, "unverifiable");
   assert.equal(result.flaggedRows.length, 0);
   assert.equal(result.ruleStatus, "unverified");
   assert.equal(result.confidence.label, "unverified");
-  assert.ok(result.memorisation.memorisedTargets.includes("$.joinDate"));
+  assert.ok(result.memorisation.memorisedTargets.includes("$.label"));
   assert.ok(result.confidence.reasons.some(reason => reason.kind === "memorised-lookup"));
-  assert.ok(result.confidence.reasons.every(reason => reason.kind !== "exact-fit"));
+  assert.match(result.summary, /only field that could not be reduced to a rule/i);
 
   const compact = compactVerificationResult(result);
   assert.ok(JSON.stringify(compact).length < JSON.stringify(result).length / 2);

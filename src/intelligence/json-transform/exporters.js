@@ -1647,7 +1647,17 @@ function confidenceSummary(result) {
 }
 
 function outputObjectLines(program, root = "input") {
-  return (program?.ops || []).flatMap((op, index) => pathToSet(op.target, opValueExpr(op, root, index), "output"));
+  return (program?.ops || []).flatMap((op, index) => {
+    const lines = pathToSet(op.target, opValueExpr(op, root, index), "output");
+    if (!op.domain?.optional) return lines;
+    if (!op.domain.source) return [];
+    const guard = pathToAccess(op.domain.source, root);
+    return [
+      `if (${guard} !== undefined) {`,
+      ...lines.map(line => `  ${line}`),
+      "}",
+    ];
+  });
 }
 
 function jqKey(key) {

@@ -6,6 +6,7 @@ import {
   FORMAT_ORDER,
 } from "../intelligence/data-formats/index.js";
 import { inferVerifyRule } from "../intelligence/json-transform/verify-inference.js";
+import { memorisationSummary } from "../intelligence/json-transform/memorisation.js";
 import { opSources } from "../intelligence/json-transform/shared.js";
 import { VERIFY_SAMPLES, verifySampleById } from "../intelligence/json-transform/verify-samples.js";
 import { esc, inlineCodeHtml, plural } from "./shared.js";
@@ -250,12 +251,7 @@ function verdictTextForRun(run) {
 
 function memorisationText(run) {
   const memo = run?.result?.rule?.memorisation || {};
-  const lookups = (memo.lookups || []).filter(item => (memo.memorisedTargets || []).includes(item.target));
-  const reusableCount = (memo.ruleVerifiedTargets || []).length;
-  const passthroughCount = (memo.passthroughTargets || []).length;
-  const total = reusableCount + passthroughCount + (memo.memorisedTargets || []).length;
-  const fields = lookups.map(item => `${item.target} (${item.tableEntries} of ${item.rowCount} rows)`).join(", ");
-  return `${total} fields checked. ${reusableCount} verified against reusable rules. ${passthroughCount} passed through unchanged. ${lookups.length} fitted as memorised lookups: ${fields}. Drift in these fields would not be detected.`;
+  return memorisationSummary(memo);
 }
 
 function isTypingTarget(target) {

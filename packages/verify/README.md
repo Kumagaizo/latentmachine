@@ -30,9 +30,11 @@ console.log(result.verdict);
 console.log(result.flaggedRows);
 ```
 
-`result.verdict` is `consistent`, `inconsistent`, or `unverifiable`. The third state means the examples were fitted by a high-cardinality lookup rather than a reusable rule; affected fields and lookup ratios are available in `result.memorisation` and `result.summary`. Memorised rules never receive `confidence.label: "proven"`.
+`result.verdict` is `consistent`, `inconsistent`, or `unverifiable`. The third state means at least one field was fitted by a high-cardinality lookup or did not have enough in-domain examples to establish a reusable rule. Affected fields, lookup ratios, and support counts are available in `result.memorisation` and `result.summary`. Unverifiable rules never receive `confidence.label: "proven"`.
 
-`result.memorisation` distinguishes `ruleVerifiedTargets`, `passthroughTargets`, and `memorisedTargets`; `nonMemorisedTargets` is the union of the first two groups. This avoids treating fields copied unchanged as independently verified rules.
+`result.memorisation` distinguishes `ruleVerifiedTargets`, unchanged `passthroughTargets`, high-cardinality `memorisedTargets`, and `insufficientSupportTargets`. `unverifiableTargets` is the union of the latter two groups. `nonMemorisedTargets` only means a target was not fitted by a lookup; it can still be unverifiable because its support was insufficient.
+
+Optional output fields are evaluated only on rows where their source domain is present. When that domain is too small to prove a rule, the field is reported as unverifiable and is excluded from row flags; rows outside the field's domain are never treated as contradictions.
 
 Executable rules retain lookup tables in memory. Before logging or serialising a diagnostic result, use the exported compaction helpers:
 

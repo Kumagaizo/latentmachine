@@ -42,13 +42,14 @@ export function verify({ original, transformed, format = "auto", legacyVerdict =
 
   const result = inferVerifyRule(originalRows, transformedRows);
   const memorisation = result.result?.rule?.memorisation || result.result?.memorisation || null;
-  const hasMemorisedTargets = (memorisation?.memorisedTargets || []).length > 0;
+  const unverifiableTargets = memorisation?.unverifiableTargets || memorisation?.memorisedTargets || [];
+  const hasUnverifiableTargets = unverifiableTargets.length > 0;
   const actualVerdict = result.flagged.length > 0
     ? "inconsistent"
-    : hasMemorisedTargets ? "unverifiable" : "consistent";
+    : hasUnverifiableTargets ? "unverifiable" : "consistent";
   const verdict = legacyVerdict && actualVerdict === "unverifiable" ? "consistent" : actualVerdict;
   if (legacyVerdict && actualVerdict === "unverifiable") {
-    console.warn(`legacyVerdict is deprecated: mapped unverifiable to consistent for ${(memorisation.memorisedTargets || []).join(", ")}.`);
+    console.warn(`legacyVerdict is deprecated: mapped unverifiable to consistent for ${unverifiableTargets.join(", ")}.`);
   }
 
   return {

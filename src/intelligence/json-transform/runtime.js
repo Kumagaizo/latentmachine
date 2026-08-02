@@ -248,6 +248,7 @@ function applyOp(op, input) {
 export function runtimeWarnings(program, input) {
   const parsedInput = parseJson(input, "Input");
   return (program.ops || []).flatMap(op => {
+    if (op.domain?.optional && (!op.domain.source || getPath(parsedInput, op.domain.source) === undefined)) return [];
     if (op.op === "conditional") {
       const value = getPath(parsedInput, op.source);
       return value === undefined ? [{
@@ -402,6 +403,7 @@ export function executeJsonTransform(program, input) {
   const parsedInput = parseJson(input, "Input");
   let output = {};
   for (const op of program.ops || []) {
+    if (op.domain?.optional && (!op.domain.source || getPath(parsedInput, op.domain.source) === undefined)) continue;
     output = setPath(output, op.target, applyOp(op, parsedInput));
   }
   return output;

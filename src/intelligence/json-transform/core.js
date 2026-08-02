@@ -71,6 +71,17 @@ export function setPath(root, path, value) {
   return root;
 }
 
+export function omitPaths(value, paths = []) {
+  const result = clone(value);
+  for (const path of paths) {
+    const parts = parsePath(path);
+    if (!parts.length) return undefined;
+    const parent = parts.slice(0, -1).reduce((current, part) => current?.[part], result);
+    if (parent && typeof parent === "object") delete parent[parts.at(-1)];
+  }
+  return result;
+}
+
 export function entries(value, path = [], options = {}) {
   const includeContainers = options.includeContainers ?? false;
   const includeArrayLeaves = options.includeArrayLeaves ?? true;

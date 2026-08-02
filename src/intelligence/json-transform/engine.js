@@ -111,7 +111,7 @@ export function runJsonTransform(input = {}) {
   const tests = examples.map((example, index) => ({
     id: example.id,
     index,
-    passed: deepEqual(built.predictions[index], example.output),
+    passed: built.matches[index],
     expected: example.output,
     predicted: built.predictions[index],
   }));

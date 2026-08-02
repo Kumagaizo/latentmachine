@@ -58,7 +58,7 @@
   },
   "homepage": "https://latentmachine.com/developers",
   "scripts": {
-    "test": "node test/verify.test.js && node test/memorisation.test.js && node test/infer.test.js && node test/transform.test.js && node test/formats.test.js && node test/fingerprint.test.js && node test/contracts.test.js && node test/cli-contracts.test.js",
+    "test": "node test/verify.test.js && node test/memorisation.test.js && node test/sparse-fields.test.js && node test/infer.test.js && node test/transform.test.js && node test/formats.test.js && node test/fingerprint.test.js && node test/contracts.test.js && node test/cli-contracts.test.js",
     "prepare:publish": "node scripts/prepare-publish.mjs",
     "prepublishOnly": "node scripts/guard-root-publish.mjs"
   }

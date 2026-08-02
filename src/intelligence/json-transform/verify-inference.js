@@ -1,13 +1,18 @@
 import { executeJsonTransform } from "./runtime.js";
 import { runTransform } from "./translator.js";
+import { omitPaths } from "./core.js";
 import { deepEqual, stableStringify } from "./shared.js";
 
 function evaluateResult(result, originalRows, transformedRows) {
   const program = result.rule?.program;
+  const ignoredTargets = result.rule?.memorisation?.unverifiableTargets || [];
   const flagged = [];
   originalRows.forEach((row, index) => {
     const predicted = program ? executeJsonTransform(program, row) : null;
-    if (!deepEqual(predicted, transformedRows[index])) {
+    if (!deepEqual(
+      omitPaths(predicted, ignoredTargets),
+      omitPaths(transformedRows[index], ignoredTargets),
+    )) {
       flagged.push({ i: index, input: row, predicted, actual: transformedRows[index] });
     }
   });

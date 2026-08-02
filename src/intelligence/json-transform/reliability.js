@@ -36,6 +36,7 @@ export function assessConfidence(evidence = {}) {
   const unexplainedPaths = evidence.unexplainedPaths || [];
   const ambiguities = evidence.meaningfulAmbiguities || [];
   const memorisedTargets = evidence.memorisation?.memorisedTargets || [];
+  const unverifiableTargets = evidence.memorisation?.unverifiableTargets || memorisedTargets;
   const noBlocking = blockingSchema.length === 0 && guardrails.length === 0;
   const checkRows = [
     { passed: !!evidence.exactFit, reason: "examples reproduce exactly" },
@@ -43,7 +44,7 @@ export function assessConfidence(evidence = {}) {
     { passed: unexplainedPaths.length === 0, reason: "all output paths explained" },
     { passed: ambiguities.length === 0, reason: "no meaningful ambiguity" },
     { passed: (evidence.examplesProvided || 0) >= 2, reason: "at least two examples" },
-    { passed: memorisedTargets.length === 0, reason: "no high-cardinality lookup was fitted" },
+    { passed: unverifiableTargets.length === 0, reason: "all target fields have sufficient reusable evidence" },
   ];
   const checks = {
     passed: checkRows.filter(row => row.passed).length,
@@ -53,7 +54,7 @@ export function assessConfidence(evidence = {}) {
 
   if (!evidence.exactFit) {
     reasons.push(evidenceReason("not-exact", `${evidence.examplesMatched || 0}/${evidence.examplesProvided || 0} examples matched.`, "blocked"));
-  } else if (!memorisedTargets.length) {
+  } else if (!unverifiableTargets.length) {
     reasons.push(evidenceReason("exact-fit", `${evidence.examplesMatched || 0}/${evidence.examplesProvided || 0} examples matched exactly.`));
   }
 
@@ -63,6 +64,9 @@ export function assessConfidence(evidence = {}) {
       `${memorisedTargets.length} of ${(evidence.memorisation?.nonMemorisedTargets || []).length + memorisedTargets.length} fields were fitted with high-cardinality lookup tables: ${memorisedTargets.join(", ")}.`,
       "unverified",
     ));
+  }
+  for (const item of evidence.memorisation?.insufficientSupport || []) {
+    reasons.push(evidenceReason("insufficient-support", item.detail, "unverified"));
   }
 
   for (const item of blockingSchema) {
@@ -80,15 +84,15 @@ export function assessConfidence(evidence = {}) {
   if ((evidence.examplesProvided || 0) < 2 && evidence.exactFit) {
     reasons.push(evidenceReason("single-example", "Only one example supports this rule.", "needs-proof"));
   }
-  if (reasons.length === 1 && evidence.exactFit && noBlocking && !unexplainedPaths.length && !ambiguities.length && !memorisedTargets.length && (evidence.examplesProvided || 0) >= 2) {
+  if (reasons.length === 1 && evidence.exactFit && noBlocking && !unexplainedPaths.length && !ambiguities.length && !unverifiableTargets.length && (evidence.examplesProvided || 0) >= 2) {
     reasons.push(evidenceReason("proven", "No unresolved paths, meaningful ambiguities, or blocking guardrails."));
   }
 
   let label = "proven";
   if (!evidence.exactFit) label = "blocked";
   else if (!noBlocking) label = "unsafe";
+  else if (unverifiableTargets.length) label = "unverified";
   else if (unexplainedPaths.length || ambiguities.length) label = "needs-proof";
-  else if (memorisedTargets.length) label = "unverified";
   else if ((evidence.examplesProvided || 0) < 2) label = "supported";
 
   const risk = label === "blocked" || label === "unsafe" ? "high" : label === "proven" ? "low" : "medium";
@@ -118,13 +122,13 @@ export function diagnosisStatus({ built, warnings, examples, memorisation }) {
   if (warnings.some(warning => CONTRADICTION_WARNING_TYPES.has(warning.type))) return "contradictory";
   if (!built.exact || built.unexplained.length) return "unsafe";
   if (warnings.length) return "unsafe";
+  if (memorisation?.unverifiableTargets?.length || memorisation?.memorisedTargets?.length) return "unverified";
   const unprovenGroupBy = examples.length < 2 && built.targetCandidates.some(row => (
     row.candidates.some(candidate => candidate.op?.op === "arrayGroupBy")
   ));
   if (unprovenGroupBy) return "insufficient";
   if (examples.length < 2 && built.ambiguous.length) return "insufficient";
   if (built.ambiguous.length) return "ambiguous";
-  if (memorisation?.memorisedTargets?.length) return "unverified";
   return "safe";
 }
 
@@ -249,6 +253,17 @@ function suggestedExamplesFor({ status, built, warnings }) {
       target: item.target,
       field: item.source,
       fields: [item.source, item.target].filter(Boolean),
+    });
+  }
+  for (const domain of built.program?.fieldDomains || []) {
+    if (!domain.unverifiable) continue;
+    suggestions.push({
+      type: domain.reason || "insufficient-support",
+      reason: domain.reason === "insufficient-support"
+        ? `${domain.target} was present in ${domain.supportCount} of ${domain.totalRows} rows. Provide at least ${MEMORISATION_MINIMUM_ROWS} representative rows before treating it as a verified rule.`
+        : `Provide examples that tie the presence of ${domain.target} to a reusable input-field condition.`,
+      target: domain.target,
+      fields: [domain.source, domain.target].filter(Boolean),
     });
   }
   return suggestions;

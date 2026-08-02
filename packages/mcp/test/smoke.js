@@ -61,8 +61,8 @@ function requestLine(id, line, timeoutMs = 3000) {
   });
 }
 
-function request(message) {
-  return requestLine(message.id, JSON.stringify({ jsonrpc: "2.0", ...message }));
+function request(message, timeoutMs = 3000) {
+  return requestLine(message.id, JSON.stringify({ jsonrpc: "2.0", ...message }), timeoutMs);
 }
 
 function requestLineOfLength(id, length) {
@@ -266,6 +266,50 @@ try {
   const comparison = JSON.parse(comparisonResponse.result.content[0].text);
   assert.equal(comparison.summary.relation, "non_behavioral_change");
   assert.equal(comparison.summary.requiresReapproval, false);
+
+  const richOriginal = Array.from({ length: 1000 }, (_, index) => ({
+    claim_id: `claim_${index}`,
+    first_name: ["Ada", "Bo", "Cy"][index % 3],
+    last_name: `Surname${index}`,
+    payer: ["aetna", "cigna", "united"][index % 3],
+    amount_cents: 100035 + ((index * 7919) % 490000),
+    diagnoses: Array.from({ length: (index % 4) + 1 }, (_, item) => `D${index}-${item}`),
+    submitted_at: `2026-02-${String((index % 28) + 1).padStart(2, "0")}T12:00:00.000Z`,
+    approved: index % 3 !== 0,
+    provider: `provider_${index % 7}`,
+    ...(index % 251 === 0 ? { notes: `  extended claim ${index}  ` } : {}),
+  }));
+  const richTransformed = richOriginal.map(row => ({
+    claimId: row.claim_id,
+    patientName: `${row.first_name} ${row.last_name}`,
+    payer: row.payer.toUpperCase(),
+    amount: row.amount_cents / 100,
+    diagnosisCount: row.diagnoses.length,
+    submittedDate: row.submitted_at.slice(0, 10),
+    status: row.approved ? "approved" : "pending",
+    provider: row.provider,
+    ...(row.notes !== undefined ? { notes: row.notes.trim() } : {}),
+  }));
+  const richOriginalText = JSON.stringify(richOriginal);
+  const richTransformedText = JSON.stringify(richTransformed);
+  assert.ok(richOriginalText.length < 500_000);
+  assert.ok(richTransformedText.length < 500_000);
+  const richVerify = await request({
+    id: 13,
+    method: "tools/call",
+    params: {
+      name: "verify_data_transformation",
+      arguments: {
+        original: richOriginalText,
+        transformed: richTransformedText,
+      },
+    },
+  }, 30_000);
+  if (richVerify.error) throw richVerify.error;
+  const richVerifyResult = JSON.parse(richVerify.result.content[0].text);
+  assert.equal(richVerifyResult.verdict, "unverifiable");
+  assert.equal(richVerifyResult.flaggedRowCount, 0);
+  assert.deepEqual(richVerifyResult.memorisation.insufficientSupportTargets, ["$.notes"]);
 
   const oversizedBatch = await new Promise((resolve) => {
     pending.set(null, resolve);

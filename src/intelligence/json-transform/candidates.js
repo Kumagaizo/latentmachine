@@ -9,9 +9,23 @@ function candidate(id, title, summary, hints, op, target, source = null) {
   return { id, title, summary, cost: costOf(op, hints), op, target, source };
 }
 
+function hasDominantSupport(matchCount, rowCount) {
+  return matchCount === rowCount
+    || rowCount >= 8 && matchCount / rowCount >= 0.95;
+}
+
+function normalizedPathLeaf(path) {
+  return String(parsePath(path).at(-1) || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
 function inferDirect(examples, targetPath, targetValues, sourceEntries) {
   return sourceEntries
-    .filter(source => examples.every((example, index) => deepEqual(getPath(example.input, source.path), targetValues[index])))
+    .filter(source => {
+      const matchCount = examples.filter((example, index) => deepEqual(getPath(example.input, source.path), targetValues[index])).length;
+      return matchCount === examples.length
+        || normalizedPathLeaf(source.path) === normalizedPathLeaf(targetPath)
+          && hasDominantSupport(matchCount, examples.length);
+    })
     .map(source => candidate(
       "set",
       source.path === targetPath ? `Keep ${targetPath}` : `Move ${source.path} to ${targetPath}`,
@@ -47,7 +61,8 @@ function inferStringCase(examples, targetPath, targetValues, sourceEntries) {
   for (const source of sourceEntries.filter(entry => entry.type === "string")) {
     for (const mode of modes) {
       const changesAtLeastOneExample = examples.some(example => transformString(getPath(example.input, source.path), mode) !== getPath(example.input, source.path));
-      if (changesAtLeastOneExample && examples.every((example, index) => transformString(getPath(example.input, source.path), mode) === targetValues[index])) {
+      const matchCount = examples.filter((example, index) => transformString(getPath(example.input, source.path), mode) === targetValues[index]).length;
+      if (changesAtLeastOneExample && hasDominantSupport(matchCount, examples.length)) {
         candidates.push(candidate(
           "stringCase",
           `${mode} ${source.path}`,
@@ -76,7 +91,8 @@ function inferStringNormalize(examples, targetPath, targetValues, sourceEntries)
     for (const { mode, title, allowed } of modes) {
       if (!allowed(source, targetPath)) continue;
       const phonePolicy = mode === "phone" ? phonePolicyForExamples(examples, source.path, targetValues) : null;
-      const matches = examples.every((example, index) => normalizeString(getPath(example.input, source.path), mode, { phonePolicy }) === targetValues[index]);
+      const matchCount = examples.filter((example, index) => normalizeString(getPath(example.input, source.path), mode, { phonePolicy }) === targetValues[index]).length;
+      const matches = hasDominantSupport(matchCount, examples.length);
       const changes = examples.some((example, index) => String(getPath(example.input, source.path) ?? "") !== targetValues[index]);
       if (!matches || !changes) continue;
       candidates.push(candidate(
@@ -278,10 +294,11 @@ function inferDateFormat(examples, targetPath, targetValues, sourceEntries) {
   const candidates = [];
   for (const source of sourceEntries.filter(entry => entry.type === "string")) {
     for (const mode of modes) {
-      const matches = examples.every((example, index) => {
+      const matchCount = examples.filter((example, index) => {
         const parts = parseDateParts(getPath(example.input, source.path));
         return formatDateParts(parts, mode) === targetValues[index];
-      });
+      }).length;
+      const matches = hasDominantSupport(matchCount, examples.length);
       const changes = examples.some((example, index) => String(getPath(example.input, source.path)) !== targetValues[index]);
       if (matches && changes) {
         candidates.push(candidate(
@@ -313,13 +330,18 @@ function inferConcat(examples, targetPath, targetValues, sourceEntries) {
         if (typeof a !== "string" || typeof b !== "string") return null;
         return target.startsWith(a) && target.endsWith(b) ? target.slice(a.length, target.length - b.length) : null;
       });
-      if (separators.every(separator => separator !== null && separator === separators[0])) {
+      const separatorCounts = new Map();
+      for (const separator of separators) {
+        if (separator !== null) separatorCounts.set(separator, (separatorCounts.get(separator) || 0) + 1);
+      }
+      const dominant = [...separatorCounts.entries()].sort((left, right) => right[1] - left[1])[0];
+      if (dominant && hasDominantSupport(dominant[1], examples.length)) {
         candidates.push(candidate(
           "concat",
           `Merge ${first.path} and ${second.path}`,
           "Concatenate source fields with a stable separator.",
-          { separator: !!separators[0] },
-          { op: "concat", sources: [first.path, second.path], separators: [separators[0]], target: targetPath },
+          { separator: !!dominant[0] },
+          { op: "concat", sources: [first.path, second.path], separators: [dominant[0]], target: targetPath },
           targetPath,
           first.path,
         ));
@@ -1018,7 +1040,8 @@ function inferArrayCount(examples, targetPath, targetValues) {
   const firstInputArrays = arrayPaths(examples[0].input);
   const candidates = [];
   for (const arrayPath of firstInputArrays) {
-    if (examples.every((example, index) => (getPath(example.input, arrayPath) || []).length === targetValues[index])) {
+    const directMatchCount = examples.filter((example, index) => (getPath(example.input, arrayPath) || []).length === targetValues[index]).length;
+    if (hasDominantSupport(directMatchCount, examples.length)) {
       candidates.push(candidate(
         "arrayCount",
         `Count ${arrayPath}`,
@@ -1033,11 +1056,11 @@ function inferArrayCount(examples, targetPath, targetValues) {
     for (const wherePath of itemLeafPaths(allRows)) {
       const values = distinctDefinedValues(allRows, wherePath);
       for (const equals of values) {
-        const matches = examples.every((example, index) => {
+        const matchCount = examples.filter((example, index) => {
           const rows = getPath(example.input, arrayPath) || [];
           return rows.filter(row => deepEqual(getPath(row, wherePath), equals)).length === targetValues[index];
-        });
-        if (matches) {
+        }).length;
+        if (hasDominantSupport(matchCount, examples.length)) {
           candidates.push(candidate(
             "arrayCount",
             `Count ${arrayPath} where ${wherePath}`,

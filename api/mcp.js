@@ -90,6 +90,7 @@ export const TOOLS = [
     description:
       "Check whether a batch of AI-transformed data rows all follow one deterministic rule. " +
       "Takes the original records and transformed output, infers the majority rule, and returns a capped diagnostic summary. " +
+      "Sparse optional fields are scoped to their source domain and may be unverifiable without flagging out-of-domain rows. " +
       "Uses a deterministic symbolic engine, not an LLM.",
     inputSchema: {
       type: "object",
@@ -412,10 +413,11 @@ export function handleVerify({ original, transformed, format = "auto", flagged_r
 
   const result = inferVerifyRule(originalRows, transformedRows);
   const memorisation = result.result?.rule?.memorisation || null;
-  const hasMemorisedTargets = (memorisation?.memorisedTargets || []).length > 0;
+  const unverifiableTargets = memorisation?.unverifiableTargets || memorisation?.memorisedTargets || [];
+  const hasUnverifiableTargets = unverifiableTargets.length > 0;
   const verdict = result.flagged.length
     ? "inconsistent"
-    : hasMemorisedTargets ? "unverifiable" : "consistent";
+    : hasUnverifiableTargets ? "unverifiable" : "consistent";
 
   return compactVerificationResult({
     verdict,

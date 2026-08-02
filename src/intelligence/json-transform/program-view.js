@@ -41,13 +41,15 @@ export function summarizeProgram(ops) {
 }
 
 export function preconditionsForProgram(program, examples) {
-  const firstInput = examples[0]?.input || {};
-  const preconditions = (program.ops || []).flatMap(op => opSources(op).map(source => {
-    const value = getPath(firstInput, source);
+  const preconditions = (program.ops || []).flatMap(op => (
+    [...new Set([...opSources(op), op.domain?.source].filter(Boolean))]
+  ).map(source => {
+    const supportingInput = examples.find(example => getPath(example.input, source) !== undefined)?.input || {};
+    const value = getPath(supportingInput, source);
     return {
       field: source,
       type: typeOf(value),
-      required: op.op !== "fallback",
+      required: op.op !== "fallback" && !op.domain?.optional,
       usedBy: op.target,
     };
   }));

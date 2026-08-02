@@ -49,7 +49,8 @@ export const TOOLS = [
     description: [
       "Check whether a batch of AI-transformed data rows all follow one deterministic rule.",
       "Paste the original records and the AI-generated output.",
-      "Returns a capped diagnostic summary; high-cardinality lookup bodies are never inlined.",
+      "Returns a capped diagnostic summary; sparse optional fields are scoped to their source domain and can be marked unverifiable without flagging out-of-domain rows.",
+      "High-cardinality lookup bodies are never inlined.",
       "Text arguments are capped at 500,000 characters and the stdio JSON-RPC line at 1,000,000 characters; an audited wide-record fixture is safe at roughly 1,200 rows per call.",
       "Uses a deterministic symbolic engine, not an LLM.",
     ].join(" "),
