@@ -10,6 +10,8 @@
 
 ### Added
 
+- Recover reusable rules that explain at least 95% of a field domain instead of letting a high-cardinality lookup absorb the exceptions. `memorisation.ruleDemotions` reports the rule, fit ratio, and exact contradicting rows; genuinely high-cardinality fields remain unverifiable.
+- Extend `arraySum` with two proven numeric item factors and a stable divisor for weighted commercial totals such as `sum(quantity × unit_cents) / 100`.
 - Infer reusable `arraySum`, primitive-array `arrayIndex`, and percentage-based `numericFormula` operations with explicit rounding semantics.
 - Infer proven global literal-delimiter replacements for identifier-like fields with `stringReplace`; repeated-delimiter evidence is required before the global rule is selected.
 - Bound hypothesis generation to 200 deterministic, output-diverse examples while continuing to validate every supplied row.
@@ -17,6 +19,7 @@
 
 ### Fixed
 
+- Require drift fixtures to assert the exact injected row set as well as a non-no-op mutation, preventing unrelated false positives from masquerading as detection.
 - Preserve percentage-formula evaluation order and explicit `half-up`, `half-even`, `half-away`, `floor`, `ceil`, `trunc`, or `none` rounding semantics. Full-batch validation resolves associations that the bounded inference sample cannot distinguish, preventing false financial drift at exact half ties.
 - Make drift regressions self-validating so a no-op mutation fails the fixture instead of being recorded as detection ground truth.
 - Remove the single-run memorisation drift hint: memorisation reflects rule expressiveness and is not evidence of drift without a comparable baseline.

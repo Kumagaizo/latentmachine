@@ -269,11 +269,64 @@ function resolveNumericFormulaCandidate(candidate, examples) {
   };
 }
 
+function resolveCandidateFit(candidate, examples, exampleIndices) {
+  if (!candidate?.op?.fit) return candidate;
+  const matches = examples.map(example => {
+    const prediction = executeJsonTransform({ ops: [candidate.op] }, example.input);
+    return deepEqual(getPath(prediction, candidate.op.target), getPath(example.output, candidate.op.target));
+  });
+  const supportCount = matches.filter(Boolean).length;
+  if (!hasDominantFit(supportCount, examples.length)) return null;
+  return {
+    ...candidate,
+    op: {
+      ...candidate.op,
+      fit: {
+        supportCount,
+        rowCount: examples.length,
+        ratio: Number((supportCount / examples.length).toFixed(4)),
+        contradictingRows: matches.flatMap((matchesRow, index) => matchesRow ? [] : [exampleIndices.get(examples[index]) ?? index]),
+      },
+    },
+  };
+}
+
+function hasDominantFit(supportCount, rowCount) {
+  return supportCount === rowCount || rowCount >= 8 && supportCount / rowCount >= 0.95;
+}
+
+function selectTargetCandidate(row, newInput, exampleIndices) {
+  const initiallySelected = selectCandidate(row.candidates, newInput);
+  const resolvedInitial = resolveNumericFormulaCandidate(initiallySelected, row.domainExamples);
+  const initialFit = resolveCandidateFit(resolvedInitial, row.domainExamples, exampleIndices);
+  const initialLookupRatio = resolvedInitial?.op?.op === "valueMap"
+    ? Object.keys(resolvedInitial.op.map || {}).length / row.inferenceExamples.length
+    : 0;
+  const initialIsMemorisedLookup = row.inferenceExamples.length >= MEMORISATION_MINIMUM_ROWS
+    && initialLookupRatio >= MEMORISATION_RATIO_THRESHOLD;
+  if (initialFit && !initialIsMemorisedLookup) return initialFit;
+  for (const candidate of row.candidates.filter(item => item !== initiallySelected && item.op?.fit)) {
+    const resolvedFit = resolveCandidateFit(candidate, row.domainExamples, exampleIndices);
+    if (resolvedFit) return resolvedFit;
+  }
+  if (initialFit) return initialFit;
+  let remaining = row.candidates;
+  while (remaining.length) {
+    const selected = selectCandidate(remaining, newInput);
+    const resolvedFormula = resolveNumericFormulaCandidate(selected, row.domainExamples);
+    const resolvedFit = resolveCandidateFit(resolvedFormula, row.domainExamples, exampleIndices);
+    if (resolvedFit) return resolvedFit;
+    remaining = remaining.filter(candidate => candidate !== selected);
+  }
+  return null;
+}
+
 function comparableTargets(program) {
   return memorisationForProgram(program).unverifiableTargets || [];
 }
 
 export function buildProgram(examples, newInput = undefined, version = 3) {
+  const exampleIndices = new Map(examples.map((example, index) => [example, index]));
   const outputEntries = outputEntriesForExamples(examples);
   const sourceEntries = mergedEntries(examples, example => example.input, { includeArrayLeaves: true });
   const targetCandidates = outputEntries.map(target => {
@@ -300,7 +353,7 @@ export function buildProgram(examples, newInput = undefined, version = 3) {
     return { target, domainExamples, inferenceExamples, fieldDomain, candidates };
   });
   const selected = targetCandidates
-    .map(row => resolveNumericFormulaCandidate(selectCandidate(row.candidates, newInput), row.domainExamples))
+    .map(row => selectTargetCandidate(row, newInput, exampleIndices))
     .filter(Boolean);
   const selectedByTarget = new Map(selected.map(item => [item.target, item]));
   const fieldDomains = targetCandidates.map(row => row.fieldDomain).filter(Boolean);

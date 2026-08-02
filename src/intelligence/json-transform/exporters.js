@@ -1629,8 +1629,10 @@ function opValueExpr(op, root = "input", opIndex = 0) {
   }
   if (op.op === "arraySum") {
     const rows = `(${pathToAccess(op.source, root)} ?? [])`;
-    const value = op.extract ? pathToAccess(op.extract, "row") : "row";
-    return `(() => { const arr = ${rows}; if (!Array.isArray(arr)) return 0; const values = arr.map(row => Number(${value})); return values.every(Number.isFinite) ? values.reduce((sum, number) => sum + number, 0) : ${invalidNumberExpr(op.source)}; })()`;
+    const value = op.factors?.length
+      ? op.factors.map(path => `Number(${pathToAccess(path, "row")})`).join(" * ")
+      : `Number(${op.extract ? pathToAccess(op.extract, "row") : "row"})`;
+    return `(() => { const arr = ${rows}; if (!Array.isArray(arr)) return 0; const values = arr.map(row => ${value}); return values.every(Number.isFinite) ? values.reduce((sum, number) => sum + number, 0) / ${literal(op.divisor || 1)} : ${invalidNumberExpr(op.source)}; })()`;
   }
   if (op.op === "arrayIndex") {
     const source = pathToAccess(op.source, root);
@@ -1829,7 +1831,12 @@ function jqValueExpression(op) {
   if (op.op === "arrayMap") return jqArrayPipeline(op, pathToJq(op.extract));
   if (op.op === "arrayProject") return jqArrayPipeline(op, jqProjectionObject(op.fields || []));
   if (op.op === "arrayCount") return `[${jqArrayRows(op)}] | length`;
-  if (op.op === "arraySum") return `[${pathToJq(op.source)}[] | ${op.extract ? pathToJq(op.extract) : "."} | tonumber] | add // 0`;
+  if (op.op === "arraySum") {
+    const value = op.factors?.length
+      ? op.factors.map(path => `(${pathToJq(path)} | tonumber)`).join(" * ")
+      : `(${op.extract ? pathToJq(op.extract) : "."} | tonumber)`;
+    return `([${pathToJq(op.source)}[] | ${value}] | add // 0) / ${literal(op.divisor || 1)}`;
+  }
   if (op.op === "arrayIndex") {
     const index = op.index === "last" ? -1 : op.index === "first" ? 0 : op.index;
     return `${pathToJq(op.source)}[${index}]${op.extract ? ` | ${pathToJq(op.extract)}` : ""}`;

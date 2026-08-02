@@ -186,6 +186,9 @@ export function explainOp(op = {}) {
     return `Count items in ${code(op.source)}${filter} and write the number to ${target}.`;
   }
   if (op.op === "arraySum") {
+    if (op.factors?.length) {
+      return `Multiply ${list(op.factors.map(code))} for each item in ${code(op.source)}, sum the products, divide by ${op.divisor || 1}, and write the result to ${target}.`;
+    }
     const extract = op.extract ? ` at ${code(op.extract)}` : "";
     return `Sum numeric values${extract} in ${code(op.source)} and write the result to ${target}.`;
   }

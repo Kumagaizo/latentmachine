@@ -225,8 +225,12 @@ function applyOp(op, input) {
   if (op.op === "arraySum") {
     const rows = getPath(input, op.source) || [];
     if (!Array.isArray(rows)) return 0;
-    const values = rows.map(row => Number(op.extract ? getPath(row, op.extract) : row));
-    return values.every(Number.isFinite) ? values.reduce((sum, value) => sum + value, 0) : `[invalid number ${op.source}]`;
+    const values = rows.map(row => op.factors
+      ? op.factors.map(path => Number(getPath(row, path))).reduce((product, value) => product * value, 1)
+      : Number(op.extract ? getPath(row, op.extract) : row));
+    return values.every(Number.isFinite)
+      ? values.reduce((sum, value) => sum + value, 0) / (op.divisor || 1)
+      : `[invalid number ${op.source}]`;
   }
   if (op.op === "arrayIndex") {
     const rows = getPath(input, op.source) || [];

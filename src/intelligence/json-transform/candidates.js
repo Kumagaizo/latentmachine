@@ -18,27 +18,45 @@ function normalizedPathLeaf(path) {
   return String(parsePath(path).at(-1) || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
+function normalizedBooleanLeaf(path) {
+  const leaf = String(parsePath(path).at(-1) || "").replace(/^(is|has|can|should|was|were)(?=[A-Z_\s-])/, "");
+  return leaf.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function candidateFit(examples, matches) {
+  if (matches.every(Boolean)) return null;
+  const supportCount = matches.filter(Boolean).length;
+  return {
+    supportCount,
+    rowCount: examples.length,
+    ratio: Number((supportCount / examples.length).toFixed(4)),
+  };
+}
+
 function inputArrayPaths(examples) {
   return [...new Set(examples.flatMap(example => arrayPaths(example.input)))];
 }
 
 function inferDirect(examples, targetPath, targetValues, sourceEntries) {
-  return sourceEntries
-    .filter(source => {
-      const matchCount = examples.filter((example, index) => deepEqual(getPath(example.input, source.path), targetValues[index])).length;
-      return matchCount === examples.length
-        || normalizedPathLeaf(source.path) === normalizedPathLeaf(targetPath)
-          && hasDominantSupport(matchCount, examples.length);
-    })
-    .map(source => candidate(
+  return sourceEntries.flatMap(source => {
+    const matches = examples.map((example, index) => deepEqual(getPath(example.input, source.path), targetValues[index]));
+    const matchCount = matches.filter(Boolean).length;
+    const pathMatches = normalizedPathLeaf(source.path) === normalizedPathLeaf(targetPath);
+    const booleanPathMatches = source.type === "boolean"
+      && targetValues.every(value => typeof value === "boolean")
+      && normalizedBooleanLeaf(source.path) === normalizedBooleanLeaf(targetPath);
+    if (matchCount !== examples.length && !((pathMatches || booleanPathMatches) && hasDominantSupport(matchCount, examples.length))) return [];
+    const fit = candidateFit(examples, matches);
+    return [candidate(
       "set",
       source.path === targetPath ? `Keep ${targetPath}` : `Move ${source.path} to ${targetPath}`,
       "Copy a value from the input structure to the target structure.",
       { pathMatch: source.path === targetPath, pathDistance: Math.abs(parsePath(source.path).length - parsePath(targetPath).length) },
-      { op: "set", source: source.path, target: targetPath },
+      { op: "set", source: source.path, target: targetPath, ...(fit ? { fit } : {}) },
       targetPath,
       source.path,
-    ));
+    )];
+  });
 }
 
 function inferCoerce(examples, targetPath, targetValues, sourceEntries) {
@@ -830,14 +848,34 @@ function inferValueMap(examples, targetPath, targetValues, sourceEntries) {
   if (targetValues.some(value => value && typeof value === "object")) return [];
   const candidates = [];
   for (const source of sourceEntries.filter(entry => !["array", "object"].includes(entry.type))) {
-    const map = {};
-    let valid = true;
+    const buckets = new Map();
     for (const [index, example] of examples.entries()) {
       const key = JSON.stringify(getPath(example.input, source.path));
-      if (Object.prototype.hasOwnProperty.call(map, key) && !deepEqual(map[key], targetValues[index])) valid = false;
-      map[key] = clone(targetValues[index]);
+      const outputKey = stableStringify(targetValues[index]);
+      const outputs = buckets.get(key) || new Map();
+      const output = outputs.get(outputKey) || { value: clone(targetValues[index]), count: 0 };
+      output.count += 1;
+      outputs.set(outputKey, output);
+      buckets.set(key, outputs);
     }
-    if (valid && Object.keys(map).length >= 2 && !examples.every((example, index) => deepEqual(getPath(example.input, source.path), targetValues[index]))) {
+    const map = {};
+    let dominant = true;
+    for (const [key, outputs] of buckets) {
+      const ranked = [...outputs.values()].sort((left, right) => right.count - left.count);
+      if (!ranked[0] || ranked[0].count === ranked[1]?.count) {
+        dominant = false;
+        break;
+      }
+      map[key] = ranked[0].value;
+    }
+    const matches = examples.map((example, index) => deepEqual(
+      map[JSON.stringify(getPath(example.input, source.path))],
+      targetValues[index],
+    ));
+    const matchCount = matches.filter(Boolean).length;
+    const exactIdentity = examples.every((example, index) => deepEqual(getPath(example.input, source.path), targetValues[index]));
+    if (dominant && Object.keys(map).length >= 2 && !exactIdentity && hasDominantSupport(matchCount, examples.length)) {
+      const fit = candidateFit(examples, matches);
       const sourceKey = pathLeaf(source.path);
       const targetKey = pathLeaf(targetPath);
       const sourceValues = examples.map(example => getPath(example.input, source.path));
@@ -853,7 +891,7 @@ function inferValueMap(examples, targetPath, targetValues, sourceEntries) {
         `Map values from ${source.path}`,
         "Use a learned lookup table from example values.",
         { idPenalty, numericToTextPenalty, templatedStringPenalty, nameMatch: nameBonus, unrelated: unrelatedPenalty, affinity },
-        { op: "valueMap", source: source.path, map, target: targetPath },
+        { op: "valueMap", source: source.path, map, target: targetPath, ...(fit ? { fit } : {}) },
         targetPath,
         source.path,
       ));
@@ -1190,22 +1228,55 @@ function inferArraySum(examples, targetPath, targetValues) {
       ? itemLeafPaths(objectRows).filter(path => objectRows.some(row => Number.isFinite(Number(getPath(row, path)))))
       : [null];
     for (const extract of extracts) {
-      const matchCount = examples.filter((example, index) => {
+      const matches = examples.map((example, index) => {
         const rows = getPath(example.input, arrayPath);
         if (!Array.isArray(rows)) return false;
         const values = rows.map(row => extract ? getPath(row, extract) : row).map(Number);
         return values.every(Number.isFinite) && values.reduce((sum, value) => sum + value, 0) === targetValues[index];
-      }).length;
+      });
+      const matchCount = matches.filter(Boolean).length;
       if (!hasDominantSupport(matchCount, examples.length)) continue;
+      const fit = candidateFit(examples, matches);
       candidates.push(candidate(
         "arraySum",
         `Sum ${extract || "values"} in ${arrayPath}`,
         "Sum numeric values across an input array.",
         { extract: !!extract },
-        { op: "arraySum", source: arrayPath, extract, target: targetPath },
+        { op: "arraySum", source: arrayPath, extract, target: targetPath, ...(fit ? { fit } : {}) },
         targetPath,
         arrayPath,
       ));
+    }
+    if (!objectRows.length || !hasPathToken(targetPath, /(amount|total|price|cost|revenue|subtotal|value)/)) continue;
+    const weightedExtracts = extracts
+      .filter(path => hasPathToken(path, /(qty|quantity|unit|price|cost|amount|total|cent|rate|value|weight|count)/))
+      .slice(0, 8);
+    for (let leftIndex = 0; leftIndex < weightedExtracts.length; leftIndex++) {
+      for (let rightIndex = leftIndex + 1; rightIndex < weightedExtracts.length; rightIndex++) {
+        const factors = [weightedExtracts[leftIndex], weightedExtracts[rightIndex]];
+        for (const divisor of [1, 100, 1000]) {
+          const matches = examples.map((example, index) => {
+            const rows = getPath(example.input, arrayPath);
+            if (!Array.isArray(rows)) return false;
+            const values = rows.map(row => factors.map(path => Number(getPath(row, path))));
+            if (!values.every(pair => pair.every(Number.isFinite))) return false;
+            const sum = values.reduce((total, pair) => total + pair[0] * pair[1], 0) / divisor;
+            return sum === targetValues[index];
+          });
+          const matchCount = matches.filter(Boolean).length;
+          if (!hasDominantSupport(matchCount, examples.length)) continue;
+          const fit = candidateFit(examples, matches);
+          candidates.push(candidate(
+            "arraySum",
+            `Sum ${factors.join(" × ")} in ${arrayPath}`,
+            "Multiply two numeric item fields, sum the products, and apply a stable divisor.",
+            { extract: true },
+            { op: "arraySum", source: arrayPath, factors, divisor, target: targetPath, ...(fit ? { fit } : {}) },
+            targetPath,
+            arrayPath,
+          ));
+        }
+      }
     }
   }
   return candidates;

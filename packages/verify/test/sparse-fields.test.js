@@ -134,23 +134,23 @@ function claimsFixture(count, { sparseNotes = true } = {}) {
 }
 
 const driftCases = [
-  ["case", (rows) => { rows[3].payer = "Aetna"; }],
-  ["unit", (rows, original) => { rows[4].amount = original[4].amount_cents; }],
-  ["derived-count", (rows) => { rows[5].diagnosisCount += 1; }],
-  ["unicode-normalisation", (rows) => { rows[6].patientName = rows[6].patientName.normalize("NFD"); }],
-  ["float-precision", (rows) => { rows[7].amount = Number(rows[7].amount.toFixed(1)); }],
-  ["timezone-date", (rows) => { rows[8].submittedDate = "2026-02-10"; }],
-  ["null-to-empty", (rows) => { rows[10].priorAuth = ""; }],
+  ["case", 3, (rows) => { rows[3].payer = "Aetna"; }],
+  ["unit", 4, (rows, original) => { rows[4].amount = original[4].amount_cents; }],
+  ["derived-count", 5, (rows) => { rows[5].diagnosisCount += 1; }],
+  ["unicode-normalisation", 6, (rows) => { rows[6].patientName = rows[6].patientName.normalize("NFD"); }],
+  ["float-precision", 7, (rows) => { rows[7].amount = Number(rows[7].amount.toFixed(1)); }],
+  ["timezone-date", 8, (rows) => { rows[8].submittedDate = "2026-02-10"; }],
+  ["null-to-empty", 10, (rows) => { rows[10].priorAuth = ""; }],
 ];
 
-for (const [name, mutate] of driftCases) {
+for (const [name, injectedRow, mutate] of driftCases) {
   const fixture = claimsFixture(40, { sparseNotes: false });
   const before = JSON.stringify(fixture.transformed);
   mutate(fixture.transformed, fixture.original);
   assert.notEqual(JSON.stringify(fixture.transformed), before, `${name} mutation must change the expected output`);
   const result = verify(fixture);
   assert.equal(result.verdict, "inconsistent", `${name} drift must remain inconsistent`);
-  assert.ok(result.flaggedRows.length > 0, `${name} drift must identify a row`);
+  assert.deepEqual(result.flaggedRows.map(row => row.index), [injectedRow], `${name} must flag only its injected row`);
 }
 
 console.log("sparse-fields.test.js passed");

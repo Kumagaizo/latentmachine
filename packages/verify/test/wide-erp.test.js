@@ -21,6 +21,7 @@ function transformedOrder(row) {
     email: row.customer.email,
     primaryEmail: row.contacts[0],
     totalQty: row.lines.reduce((sum, line) => sum + line.quantity, 0),
+    lineTotal: row.lines.reduce((sum, line) => sum + line.quantity * line.unit_cents, 0) / 100,
     lineCount: row.lines.length,
     netAmount: row.net_cents / 100,
     grossAmount: roundCurrency((row.net_cents / 100) * (1 + row.tax_rate_pct / 100)),
@@ -85,22 +86,28 @@ function percentageFixture(roundValue, count = 40) {
   const opByTarget = new Map(result.rule.program.ops.map(op => [op.target, op.op]));
   assert.equal(result.flaggedRows.length, 0);
   assert.equal(opByTarget.get("$.totalQty"), "arraySum");
+  assert.equal(opByTarget.get("$.lineTotal"), "arraySum");
   assert.equal(opByTarget.get("$.grossAmount"), "numericFormula");
   assert.equal(opByTarget.get("$.primaryEmail"), "arrayIndex");
   assert.equal(opByTarget.get("$.orderRef"), "stringReplace");
   const grossFormula = result.rule.program.ops.find(op => op.target === "$.grossAmount");
+  const lineTotalFormula = result.rule.program.ops.find(op => op.target === "$.lineTotal");
+  assert.deepEqual(lineTotalFormula.factors, ["$.quantity", "$.unit_cents"]);
+  assert.equal(lineTotalFormula.divisor, 100);
   assert.ok(grossFormula.rounding, "numericFormula must expose its rounding semantics");
   assert.ok(grossFormula.evaluationOrder, "numericFormula must expose its arithmetic association");
   assert.ok(result.memorisation.memorisedTargets.length <= 1, result.summary);
-  for (const target of ["$.orderRef", "$.totalQty", "$.grossAmount", "$.primaryEmail"]) {
+  for (const target of ["$.orderRef", "$.totalQty", "$.lineTotal", "$.grossAmount", "$.primaryEmail"]) {
     assert.ok(!result.memorisation.memorisedTargets.includes(target), `${target} must use a reusable rule`);
   }
   assert.deepEqual(transform({ rule: result.rule, input: fixture.original.slice(0, 3) }), fixture.transformed.slice(0, 3));
   const generatedSource = generateJavaScriptTransform({ rule: result.rule, status: result.ruleStatus });
   const generatedTransform = Function(`${generatedSource}; return transform;`)();
   assert.deepEqual(fixture.original.slice(0, 3).map(generatedTransform), fixture.transformed.slice(0, 3));
-  const reusableOps = result.rule.program.ops.filter(op => ["$.orderRef", "$.totalQty", "$.grossAmount", "$.primaryEmail"].includes(op.target));
-  assert.match(generateJqQuery({ ops: reusableOps }), /add|floor|split/);
+  const reusableOps = result.rule.program.ops.filter(op => ["$.orderRef", "$.totalQty", "$.lineTotal", "$.grossAmount", "$.primaryEmail"].includes(op.target));
+  const jq = generateJqQuery({ ops: reusableOps });
+  assert.match(jq, /add|floor|split/);
+  assert.match(jq, /tonumber\) \* \(/, "jq export must preserve weighted item multiplication");
 }
 
 {
@@ -166,6 +173,7 @@ function percentageFixture(roundValue, count = 40) {
 {
   const fixture = erpFixture(1000);
   const aggregationRow = 300;
+  const weightedRow = 400;
   const indexRow = 500;
   const compoundRow = 700;
   const replacementRow = 850;
@@ -175,6 +183,9 @@ function percentageFixture(roundValue, count = 40) {
     return Math.floor(raw * 100) / 100 !== roundCurrency(raw);
   });
   injectDrift(fixture, aggregationRow, "aggregation", (original, output) => { output.totalQty -= original.lines[0].quantity; });
+  injectDrift(fixture, weightedRow, "weighted-aggregation", (original, output) => {
+    output.lineTotal -= original.lines[0].quantity * original.lines[0].unit_cents / 100;
+  });
   injectDrift(fixture, indexRow, "array-index", (original, output) => { output.primaryEmail = original.contacts.at(-1); });
   injectDrift(fixture, compoundRow, "compound", (original, output) => {
     output.grossAmount = roundCurrency(output.grossAmount * (1 + original.tax_rate_pct / 100));
@@ -188,7 +199,7 @@ function percentageFixture(roundValue, count = 40) {
   });
   const result = verify(fixture);
   assert.equal(result.verdict, "inconsistent");
-  assert.deepEqual(result.flaggedRows.map(row => row.index), [aggregationRow, indexRow, compoundRow, roundingRow, replacementRow]);
+  assert.deepEqual(result.flaggedRows.map(row => row.index), [aggregationRow, weightedRow, indexRow, compoundRow, roundingRow, replacementRow]);
 }
 
 {

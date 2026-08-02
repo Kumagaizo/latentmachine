@@ -32,13 +32,15 @@ console.log(result.flaggedRows);
 
 `result.verdict` is `consistent`, `inconsistent`, or `unverifiable`. The third state means at least one field was fitted by a high-cardinality lookup or did not have enough in-domain examples to establish a reusable rule. Affected fields, lookup ratios, and support counts are available in `result.memorisation` and `result.summary`. Unverifiable rules never receive `confidence.label: "proven"`.
 
-`result.memorisation` distinguishes `ruleVerifiedTargets`, unchanged `passthroughTargets`, high-cardinality `memorisedTargets`, `insufficientSupportTargets`, and `incompleteLookupTargets`. `unverifiableTargets` combines all targets for which no reusable rule was established. Lookup diagnostics include total support and counts of repeated source values with consistent or conflicting outputs; they never expose raw values.
+`result.memorisation` distinguishes `ruleVerifiedTargets`, unchanged `passthroughTargets`, high-cardinality `memorisedTargets`, `insufficientSupportTargets`, and `incompleteLookupTargets`. `unverifiableTargets` combines all targets for which no reusable rule was established. `ruleDemotions` identifies a reusable rule that fitted at least 95% of a field domain, including its privacy-safe fit ratio and exact contradicting row indices. Lookup diagnostics include total support and counts of repeated source values with consistent or conflicting outputs; they never expose raw values.
 
 Optional output fields are evaluated only on rows where their source domain is present. When that domain is too small to prove a rule, the field is reported as unverifiable and is excluded from row flags; rows outside the field's domain are never treated as contradictions.
 
 For batches above 200 rows, Latentmachine generates candidate rules from a deterministic, output-diverse evidence sample and then validates the selected program against every row. `result.inference` discloses the evidence limit and full validation count. Rare low-cardinality output variants are retained in the evidence sample. A sampled lookup that does not cover the complete source domain is reported as unverifiable rather than producing false row flags.
 
 Learned `numericFormula` steps expose both `rounding` (`half-up`, `half-even`, `half-away`, `floor`, `ceil`, `trunc`, or `none`) and `evaluationOrder`. When the bounded evidence sample cannot distinguish equivalent arithmetic associations, the full batch resolves them in linear time before rows are classified. Global `stringReplace` rules are learned only for identifier-like fields with repeated literal delimiters; arbitrary regular expressions are not synthesised, and phone, date, and email guardrails keep precedence.
+
+`arraySum` rules may contain either one `extract` path or two item-relative `factors` plus a `divisor`. Weighted rules are considered only for amount-like targets, require multi-item evidence, and must satisfy the same dominant-support threshold before they can classify an exception.
 
 Executable rules retain lookup tables in memory. Before logging or serialising a diagnostic result, use the exported compaction helpers:
 

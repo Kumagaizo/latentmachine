@@ -74,6 +74,17 @@ export function memorisationForProgram(program) {
     && item.ratio >= MEMORISATION_RATIO_THRESHOLD
   ));
   const memorisedTargets = [...new Set(memorised.map(item => item.target).filter(Boolean))];
+  const ruleDemotions = (program?.ops || [])
+    .filter(op => op.fit?.contradictingRows?.length && !memorisedTargets.includes(op.target))
+    .map(op => ({
+      target: op.target,
+      demotedFrom: op.op,
+      source: op.source || op.base || null,
+      contradictingRows: op.fit.contradictingRows,
+      ruleFitRatio: op.fit.ratio,
+      supportCount: op.fit.supportCount,
+      rowCount: op.fit.rowCount,
+    }));
   const incompleteLookups = lookups.filter(item => item.sampled && item.unseenSourceCount > 0 && !memorisedTargets.includes(item.target));
   const incompleteLookupTargets = [...new Set(incompleteLookups.map(item => item.target).filter(Boolean))];
   const fieldDomains = (program?.fieldDomains || []).filter(domain => domain?.target);
@@ -115,6 +126,7 @@ export function memorisationForProgram(program) {
     threshold: MEMORISATION_RATIO_THRESHOLD,
     minimumRows: MEMORISATION_MINIMUM_ROWS,
     lookups,
+    ruleDemotions,
   };
 }
 

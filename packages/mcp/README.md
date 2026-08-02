@@ -31,7 +31,7 @@ If installed globally:
 
 ## Tools
 
-- `verify_data_transformation`: returns `consistent`, `inconsistent`, or field-attributed `unverifiable` for memorised, incomplete, or insufficiently supported rules. Candidate inference is bounded to 200 output-diverse examples, while every supplied row is still validated. Optional fields are checked only inside their inferred source domain; unverifiable fields cannot contribute row flags. Row details are capped and lookup table bodies are omitted.
+- `verify_data_transformation`: returns `consistent`, `inconsistent`, or field-attributed `unverifiable` for memorised, incomplete, or insufficiently supported rules. Candidate inference is bounded to 200 output-diverse examples, while every supplied row is still validated. Dominant reusable rules take precedence over memorised lookups at 95% or greater full-domain support, with exact contradicting rows reported in `memorisation.ruleDemotions`. Optional fields are checked only inside their inferred source domain; unverifiable fields cannot contribute row flags. Row details are capped and lookup table bodies are omitted.
 - `infer_transformation_rule`: infers a symbolic rule from input/output examples.
 - `apply_transformation_rule`: applies a previously inferred rule to new input.
 - `detect_data_format`: detects JSON, CSV, YAML, TOML, XML, `.env`, SQL INSERT, or unknown data.

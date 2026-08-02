@@ -64,30 +64,28 @@ function productionRows(count) {
   assert.notEqual(JSON.stringify(fixture.transformed[1544]), before, "large-batch unit mutation must change the expected output");
   const result = verify(fixture);
   assert.equal(result.verdict, "inconsistent");
-  assert.ok(result.flaggedRows.some(row => row.index === 1544));
+  assert.deepEqual(result.flaggedRows.map(row => row.index), [1544]);
   assert.equal(result.memorisation.memorisedTargets.includes("$.mrr"), false);
 }
 
 const driftCases = [
-  ["format", (rows) => { rows[1].joinDate = "01/02/2026"; }],
-  ["case", (rows) => { rows[2].status = "Active"; }],
-  ["unit", (rows, original) => { rows[3].mrr = original[3].mrr_cents; }],
-  ["type", (rows) => { rows[4].seats = String(rows[4].seats); }],
-  ["composition", (rows, original) => { rows[5].fullName = `${original[5].last_name}, ${original[5].first_name}`; }],
-  ["omission", (rows) => { delete rows[6].email; }],
-  ["corruption", (rows) => { rows[7].email = "silently-corrupted@example.com"; }],
+  ["format", 1, (rows) => { rows[1].joinDate = "01/02/2026"; }],
+  ["case", 2, (rows) => { rows[2].status = "Active"; }],
+  ["unit", 3, (rows, original) => { rows[3].mrr = original[3].mrr_cents; }],
+  ["type", 4, (rows) => { rows[4].seats = String(rows[4].seats); }],
+  ["composition", 5, (rows, original) => { rows[5].fullName = `${original[5].last_name}, ${original[5].first_name}`; }],
+  ["omission", 6, (rows) => { delete rows[6].email; }],
+  ["corruption", 7, (rows) => { rows[7].email = "silently-corrupted@example.com"; }],
 ];
 
-for (const [name, mutate] of driftCases) {
-  const fixture = productionRows(12);
+for (const [name, injectedRow, mutate] of driftCases) {
+  const fixture = productionRows(40);
   const before = JSON.stringify(fixture.transformed);
   mutate(fixture.transformed, fixture.original);
   assert.notEqual(JSON.stringify(fixture.transformed), before, `${name} mutation must change the expected output`);
   const result = verify(fixture);
-  assert.notEqual(result.verdict, "consistent", `${name} drift must not be reported consistent`);
-  if (result.verdict === "unverifiable") {
-    assert.ok(result.memorisation.memorisedTargets.length > 0, `${name} must name memorised targets`);
-  }
+  assert.equal(result.verdict, "inconsistent", `${name} drift must be detected precisely`);
+  assert.deepEqual(result.flaggedRows.map(row => row.index), [injectedRow], `${name} must flag only its injected row`);
 }
 
 {
