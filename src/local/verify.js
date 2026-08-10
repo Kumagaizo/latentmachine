@@ -215,7 +215,7 @@ function proofSummary(run = state.run) {
   const flaggedRowLabels = (run?.flagged || []).map(rowLabel);
   const totalRows = run?.originalRows?.length || 0;
   const flaggedCount = flaggedRows.length;
-  const passedRows = Math.max(0, totalRows - flaggedCount);
+  const passedRows = Number.isInteger(run?.matched) ? run.matched : Math.max(0, totalRows - flaggedCount);
   return {
     totalRows,
     passedRows,
@@ -231,7 +231,7 @@ function proofSummary(run = state.run) {
 function auditSummaryText(run = state.run) {
   const proof = proofSummary(run);
   if (!run || run.error) return "No verification run is available.";
-  if (run.verdict === "unverified") return memorisationText(run);
+  if (run.verdict === "unverified") return unverifiableText(run);
   if (run.result?.status !== "safe") {
     return `Verified ${plural(proof.totalRows, "row")}. The batch did not prove one safe rule (${run.result?.status || "blocked"}). ${proof.evidenceBasis}`;
   }
@@ -244,7 +244,7 @@ function auditSummaryText(run = state.run) {
 function verdictTextForRun(run) {
   if (!run || run.error) return "No verification run is available.";
   if (run.verdict === "safe") return "Consistent: every transformed row followed the inferred rule.";
-  if (run.verdict === "unverified") return `Unverifiable: ${memorisationText(run)}`;
+  if (run.verdict === "unverified") return `Unverifiable: ${unverifiableText(run)}`;
   if (run.result?.status !== "safe" && !run.flagged?.length) return `Blocked: the batch did not prove one safe rule (${run.result?.status || "blocked"}).`;
   return `Inconsistent: ${plural(run.flagged.length, "row")} did not follow the inferred rule.`;
 }
@@ -252,6 +252,18 @@ function verdictTextForRun(run) {
 function memorisationText(run) {
   const memo = run?.result?.rule?.memorisation || {};
   return memorisationSummary(memo);
+}
+
+function coherentClusterText(run) {
+  const clusters = run?.clusters || [];
+  if (clusters.length < 2) return "";
+  const support = clusters.map(cluster => cluster.support).join(" + ");
+  const unexplained = run.unexplained?.length ? ` ${plural(run.unexplained.length, "row")} remained unexplained.` : "";
+  return `${plural(run.originalRows.length, "row")} split across ${plural(clusters.length, "coherent rule cluster")} (${support}); no rule has majority support.${unexplained}`;
+}
+
+function unverifiableText(run) {
+  return coherentClusterText(run) || memorisationText(run);
 }
 
 function isTypingTarget(target) {
@@ -445,24 +457,27 @@ function formatChip(key) {
   </select>`;
 }
 
+function verifyFileImportControl(label, key) {
+  const help = `${label}. Accepted: JSON, XML, CSV, TSV, TOML, SQL, YAML, or ENV; ${formatBytes(FILE_IMPORT_MAX_BYTES)} max.`;
+  return `<input class="visually-hidden" id="verify-${esc(key)}-file" type="file" accept="${esc(VERIFY_IMPORT_ACCEPT)}" data-verify-file="${esc(key)}" aria-describedby="verify-${esc(key)}-file-help">
+    <label class="button is-subtle" for="verify-${esc(key)}-file" title="${esc(help)}">Import</label>
+    <span class="visually-hidden" id="verify-${esc(key)}-file-help">${esc(help)}</span>`;
+}
+
+function verifyEditorActions(label, key) {
+  return `${verifyFileImportControl(`Import ${label.toLowerCase()}`, key)}${formatChip(key)}`;
+}
+
 function editor(label, key) {
-  return `<div class="editor">
+  return `<div class="editor" data-verify-file-drop="${esc(key)}">
     <div class="editor-bar">
       <span>${esc(label)}</span>
       <div class="editor-actions" data-editor-actions="${esc(key)}">
-        ${formatChip(key)}
+        ${verifyEditorActions(label, key)}
       </div>
     </div>
     <textarea data-verify-editor="${esc(key)}" spellcheck="false" rows="14" aria-label="${esc(label)} data">${esc(state[key])}</textarea>
     ${paneMetaHtml(label, key)}
-  </div>`;
-}
-
-function verifyFileImportPanel(label, key) {
-  return `<div class="file-import verify-file-import" data-verify-file-drop="${esc(key)}">
-    <input class="visually-hidden" id="verify-${esc(key)}-file" type="file" accept="${esc(VERIFY_IMPORT_ACCEPT)}" data-verify-file="${esc(key)}">
-    <label class="button is-subtle" for="verify-${esc(key)}-file">${esc(label)}</label>
-    <span>.json, .xml, .csv, .tsv, .toml, .sql, .yaml, or .env, ${esc(formatBytes(FILE_IMPORT_MAX_BYTES))} max</span>
   </div>`;
 }
 
@@ -597,6 +612,7 @@ function suggestedExamplesHtml(result) {
 }
 
 function auditTimelineHtml(run) {
+  const coherentSplit = run.verdict === "unverified" && run.clusters?.length > 1;
   const steps = [
     {
       label: "Parsed",
@@ -615,10 +631,12 @@ function auditTimelineHtml(run) {
     },
     {
       label: "Flagged",
-      text: run.flagged.length
+      text: coherentSplit
+        ? `${plural(run.clusters.length, "coherent rule cluster")} found; no individual row was classified as defective.`
+        : run.flagged.length
         ? `${plural(run.flagged.length, "row")} diverged from the inferred output.`
         : "No rows diverged from the inferred output.",
-      tone: run.flagged.length ? "danger" : "safe",
+      tone: coherentSplit ? "warn" : run.flagged.length ? "danger" : "safe",
     },
   ];
   return `<section class="verify-timeline" aria-label="Audit timeline">
@@ -634,10 +652,15 @@ function auditTimelineHtml(run) {
 
 function evidenceSummaryHtml(run) {
   const proof = proofSummary(run);
-  const flaggedText = proof.flaggedCount
+  const coherentSplit = run.verdict === "unverified" && run.clusters?.length > 1;
+  const flaggedText = coherentSplit
+    ? `${plural(run.clusters.length, "coherent rule cluster")} explain the batch, so no row is accused without majority support.`
+    : proof.flaggedCount
     ? `Rows needing review: ${rowList(proof.flaggedRowLabels)}.`
     : "No rows needed review.";
-  const ruleEvidenceText = run.result?.status === "safe"
+  const ruleEvidenceText = coherentSplit
+    ? `${plural(proof.passedRows, "row")} support the strongest cluster; the remaining rows support coherent alternatives.`
+    : run.result?.status === "safe"
     ? `${plural(proof.ruleStepCount, "rule step")} produced the expected output for ${plural(proof.passedRows, "row")}.`
     : `The candidate rule status is ${run.result?.status || "not safe"}, so the batch needs stronger evidence before row-level replay can be trusted.`;
   return `<section class="rule-section verify-evidence-summary">
@@ -651,7 +674,7 @@ function evidenceSummaryHtml(run) {
         <span>2</span>
         <p>${esc(ruleEvidenceText)}</p>
       </div>
-      <div class="diagnosis-row is-${esc(proof.flaggedCount ? "danger" : "safe")}">
+      <div class="diagnosis-row is-${esc(coherentSplit ? "warn" : proof.flaggedCount ? "danger" : "safe")}">
         <span>3</span>
         <p>${esc(flaggedText)}</p>
       </div>
@@ -777,7 +800,7 @@ function cockpitHtml() {
 function resultMetricCards(run) {
   const flagged = run.flagged.length;
   const checked = run.originalRows.length;
-  const passed = Math.max(0, checked - flagged);
+  const passed = Number.isInteger(run.matched) ? run.matched : Math.max(0, checked - flagged);
   const cards = [
     ["Rows checked", checked.toLocaleString()],
     ["Rows passed", passed.toLocaleString()],
@@ -792,7 +815,7 @@ function resultMetricCards(run) {
 function consistentResultHtml(run) {
   const count = run.originalRows.length;
   return `<section class="result-card verify-result">
-    <aside class="status-pill is-safe verify-verdict" aria-live="polite">
+    <aside class="status-pill is-safe verify-verdict" aria-live="polite" tabindex="-1">
       <div class="inspection-head"><span>Verdict</span><strong>Consistent - all ${count} ${count === 1 ? "row follows" : "rows follow"} one rule</strong></div>
       ${cockpitGridHtml(run)}
     </aside>
@@ -825,7 +848,7 @@ function inconsistentResultHtml(run) {
     ...(diagnosis.guardrails || []),
   ];
   return `<section class="result-card verify-result">
-    <aside class="status-pill is-danger verify-verdict" aria-live="polite">
+    <aside class="status-pill is-danger verify-verdict" aria-live="polite" tabindex="-1">
       <div class="inspection-head"><span>Verdict</span><strong>${esc(verdictText)}</strong></div>
       ${cockpitGridHtml(run)}
     </aside>
@@ -850,11 +873,12 @@ function inconsistentResultHtml(run) {
 }
 
 function unverifiedResultHtml(run) {
+  const coherentSplit = run.clusters?.length > 1;
   return `<section class="result-card verify-result">
-    <aside class="status-pill is-warn verify-verdict" aria-live="polite">
-      <div class="inspection-head"><span>Verdict</span><strong>Unverifiable - the fitted rule memorises row values</strong></div>
+    <aside class="status-pill is-warn verify-verdict" aria-live="polite" tabindex="-1">
+      <div class="inspection-head"><span>Verdict</span><strong>${coherentSplit ? "Unverifiable - no rule has majority support" : "Unverifiable - the fitted rule memorises row values"}</strong></div>
       ${cockpitGridHtml(run)}
-      <p>${esc(memorisationText(run))}</p>
+      <p>${esc(unverifiableText(run))}</p>
     </aside>
     ${resultMetricCards(run)}
     ${auditTimelineHtml(run)}
@@ -902,13 +926,15 @@ async function runVerify() {
       originalRows: original.rows,
       transformedRows: transformed.rows,
       flagged: inference.flagged,
+      clusters: inference.clusters || [],
+      unexplained: inference.unexplained || [],
       originalFormat: original.format,
       outputFormat: transformed.format,
       transformedFormat: transformed.format,
       activeSample: state.activeSample || "",
-      verdict: inference.flagged.length
-        ? "danger"
-        : inference.result.status === "unverified" ? "unverified" : inference.result.status === "safe" ? "safe" : "danger",
+      verdict: inference.verdict === "unverifiable"
+        ? "unverified"
+        : inference.flagged.length ? "danger" : inference.result.status === "unverified" ? "unverified" : inference.result.status === "safe" ? "safe" : "danger",
       matched: inference.matched,
       trainedOn: inference.trainedOn || null,
       omitted: Number.isInteger(inference.omitted) ? inference.omitted : null,
@@ -920,7 +946,7 @@ async function runVerify() {
     state.run = { error: error?.message || "Verify could not parse or verify this transformation." };
   }
   state.busy = false;
-  render();
+  render(state.run.error ? ".verify-result" : ".verify-verdict");
 }
 
 function loadVerifySample(id) {
@@ -1032,8 +1058,12 @@ function reportForRun(run, { flaggedOnly = false } = {}) {
       flaggedRows: proof.flaggedRows,
       flaggedRowLabels: proof.flaggedRowLabels,
       evidenceBasis: proof.evidenceBasis,
+      clusters: run.clusters || [],
+      unexplainedRows: run.unexplained || [],
     },
     verdict: run.verdict,
+    clusters: run.clusters || [],
+    unexplainedRows: run.unexplained || [],
     activeSample: run.activeSample || null,
     formats: {
       original: run.originalFormat || state.formats.original,
@@ -1098,14 +1128,26 @@ function resultHtml() {
     return "";
   }
   if (state.run.error) {
-    return `<section class="result-card verify-result">${diagnosticHtml(state.run.error)}</section>`;
+    return `<section class="result-card verify-result" tabindex="-1">${diagnosticHtml(state.run.error)}</section>`;
   }
   if (state.run.verdict === "safe") return consistentResultHtml(state.run);
   if (state.run.verdict === "unverified") return unverifiedResultHtml(state.run);
   return inconsistentResultHtml(state.run);
 }
 
-function render() {
+function verifyExportMenu() {
+  if (!state.run || state.run.error) return "";
+  return `<details class="trace-export-menu" data-verify-export-menu>
+    <summary class="button">Export</summary>
+    <div>
+      <button type="button" data-copy-audit-summary><strong>${state.summaryCopied ? "Summary copied" : "Copy audit summary"}</strong><span>Plain-text overview for review.</span></button>
+      <button type="button" data-download-verify-report><strong>Download verification report</strong><span>Full machine-readable audit.</span></button>
+      ${state.run.flagged?.length ? `<button type="button" data-download-verify-flagged><strong>Download flagged rows</strong><span>Exceptions with supporting evidence.</span></button>` : ""}
+    </div>
+  </details>`;
+}
+
+function render(focusSelector = "") {
   verify.innerHTML = `<section class="app-shell">
     <header class="tool-header">
       <p class="section-label">Verify</p>
@@ -1122,11 +1164,6 @@ function render() {
       </select>
     </div>
 
-    <section class="verify-imports" aria-label="Import files">
-      ${verifyFileImportPanel("Import original", "original")}
-      ${verifyFileImportPanel("Import AI output", "transformed")}
-    </section>
-
     <section class="verify-inputs">
       ${editor("Original records", "original")}
       <div class="pair-arrow" aria-hidden="true">→</div>
@@ -1135,10 +1172,7 @@ function render() {
 
     <section class="action-bar verify-actions">
       <button class="button is-primary" type="button" data-run-verify ${state.busy ? "disabled" : ""}>${state.busy ? "Checking rows" : "Check every row"}</button>
-      <button class="button" type="button" data-share-verify>${state.copied ? "Link copied" : "Share"}</button>
-      ${state.run && !state.run.error ? `<button class="button" type="button" data-copy-audit-summary>${state.summaryCopied ? "Summary copied" : "Copy audit summary"}</button>` : ""}
-      ${state.run && !state.run.error ? `<button class="button" type="button" data-download-verify-report>Download verification report</button>` : ""}
-      ${state.run && !state.run.error && state.run.flagged?.length ? `<button class="button" type="button" data-download-verify-flagged>Download flagged rows</button>` : ""}
+      <div><button class="button" type="button" data-share-verify>${state.copied ? "Link copied" : "Share"}</button>${verifyExportMenu()}</div>
     </section>
 
     ${cockpitHtml()}
@@ -1148,6 +1182,7 @@ function render() {
 
     ${resultHtml()}
   </section>`;
+  if (focusSelector) requestAnimationFrame(() => verify.querySelector(focusSelector)?.focus());
 }
 
 function invalidateVerifyInput(key) {
@@ -1164,7 +1199,7 @@ function invalidateVerifyInput(key) {
   if (sampleSelect) sampleSelect.value = "";
 
   const actions = verify.querySelector(`[data-editor-actions="${key}"]`);
-  if (actions) actions.innerHTML = formatChip(key);
+  if (actions) actions.innerHTML = verifyEditorActions(key === "original" ? "Original records" : "AI output", key);
 
   const meta = verify.querySelector(`[data-pane-meta="${key}"]`);
   if (meta) meta.outerHTML = paneMetaHtml(key === "original" ? "Original records" : "AI output", key);
@@ -1172,8 +1207,7 @@ function invalidateVerifyInput(key) {
   const cockpit = verify.querySelector("[data-verify-cockpit]");
   if (cockpit) cockpit.outerHTML = cockpitHtml();
 
-  verify.querySelectorAll("[data-copy-audit-summary], [data-download-verify-report], [data-download-verify-flagged]")
-    .forEach(button => button.remove());
+  verify.querySelector("[data-verify-export-menu]")?.remove();
 
   verify.querySelectorAll(".verify-result").forEach(node => node.remove());
 
@@ -1206,15 +1240,15 @@ verify.addEventListener("change", event => {
   state.formats[key] = event.target.value;
   state.run = null;
   state.activeFlagIndex = 0;
-  render();
+  render(`[data-format-for="${key}"]`);
 });
 
 verify.addEventListener("click", event => {
-  if (event.target?.matches?.("[data-run-verify]")) return runVerify();
-  if (event.target?.matches?.("[data-share-verify]")) return shareVerifyState();
-  if (event.target?.matches?.("[data-copy-audit-summary]")) return copyAuditSummary();
-  if (event.target?.matches?.("[data-download-verify-report]")) return downloadVerifyReport(false);
-  if (event.target?.matches?.("[data-download-verify-flagged]")) return downloadVerifyReport(true);
+  if (event.target?.closest?.("[data-run-verify]")) return runVerify();
+  if (event.target?.closest?.("[data-share-verify]")) return shareVerifyState();
+  if (event.target?.closest?.("[data-copy-audit-summary]")) return copyAuditSummary();
+  if (event.target?.closest?.("[data-download-verify-report]")) return downloadVerifyReport(false);
+  if (event.target?.closest?.("[data-download-verify-flagged]")) return downloadVerifyReport(true);
   const reviewMode = event.target?.dataset?.reviewMode;
   if (reviewMode) {
     state.reviewMode = reviewMode;
@@ -1264,6 +1298,13 @@ verify.addEventListener("keydown", event => {
   if (commandKey && event.key === "Enter") {
     event.preventDefault();
     return runVerify();
+  }
+  const exportMenu = verify.querySelector("[data-verify-export-menu][open]");
+  if (event.key === "Escape" && exportMenu?.open) {
+    event.preventDefault();
+    exportMenu.open = false;
+    exportMenu.querySelector("summary")?.focus();
+    return;
   }
   if (isTypingTarget(event.target)) return;
   if (event.key === "Escape" && (state.reviewMode === "current" || state.shareNotice)) {

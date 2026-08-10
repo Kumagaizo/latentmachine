@@ -58,8 +58,10 @@ export const VERIFY_SAMPLES = [
   {
     id: "llm-drift",
     label: "LLM drift",
-    expectedFlagged: 3,
-    expectedFlaggedRows: [4, 5, 6],
+    expectedFlagged: 0,
+    expectedFlaggedRows: [],
+    expectedVerdict: "unverifiable",
+    expectedClusters: [3, 3],
     original: numberedRows(6, id => ({ id, date: `2026-01-${String(id).padStart(2, "0")}` })),
     transformed: numberedRows(6, id => ({
       id,

@@ -104,12 +104,16 @@ import { compactVerificationResult, SECURITY_LIMITS, verify } from "../src/index
   const fake = {
     verdict: "inconsistent",
     flaggedRows: Array.from({ length: 75 }, (_, index) => ({ index })),
+    unexplained: Array.from({ length: 75 }, (_, index) => index),
     rule: null,
   };
   const compact = compactVerificationResult(fake);
   assert.equal(compact.flaggedRows.length, 50);
   assert.equal(compact.flaggedRowCount, 75);
   assert.equal(compact.omittedFlaggedRows, 25);
+  assert.equal(compact.unexplained.length, 50);
+  assert.equal(compact.unexplainedRowCount, 75);
+  assert.equal(compact.omittedUnexplainedRows, 25);
 
   const bounded = compactVerificationResult(fake, { flaggedRowLimit: 10_000 });
   assert.equal(bounded.flaggedRowLimit, 100);

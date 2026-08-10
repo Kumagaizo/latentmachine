@@ -1,5 +1,6 @@
 const path = location.pathname.replace(/\/+$/, "") || "/";
 const themeButtons = Array.from(document.querySelectorAll("[data-theme-toggle]"));
+const siteMenus = Array.from(document.querySelectorAll(".site-menu"));
 
 function storedTheme() {
   try {
@@ -42,6 +43,20 @@ themeButtons.forEach(button => {
     } catch (error) {}
     syncThemeButtons();
   });
+});
+
+document.addEventListener("click", event => {
+  siteMenus.forEach(menu => {
+    if (menu.open && !menu.contains(event.target)) menu.open = false;
+  });
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key !== "Escape") return;
+  const menu = siteMenus.find(candidate => candidate.open);
+  if (!menu) return;
+  menu.open = false;
+  menu.querySelector("summary")?.focus();
 });
 
 syncThemeButtons();

@@ -45,9 +45,9 @@ export function verify({ original, transformed, format = "auto", legacyVerdict =
   const memorisation = result.result?.rule?.memorisation || result.result?.memorisation || null;
   const unverifiableTargets = memorisation?.unverifiableTargets || memorisation?.memorisedTargets || [];
   const hasUnverifiableTargets = unverifiableTargets.length > 0;
-  const actualVerdict = result.flagged.length > 0
+  const actualVerdict = result.verdict || (result.flagged.length > 0
     ? "inconsistent"
-    : hasUnverifiableTargets ? "unverifiable" : "consistent";
+    : hasUnverifiableTargets ? "unverifiable" : "consistent");
   const verdict = legacyVerdict && actualVerdict === "unverifiable" ? "consistent" : actualVerdict;
   if (legacyVerdict && actualVerdict === "unverifiable") {
     console.warn(`legacyVerdict is deprecated: mapped unverifiable to consistent for ${unverifiableTargets.join(", ")}.`);
@@ -64,6 +64,8 @@ export function verify({ original, transformed, format = "auto", legacyVerdict =
       validationRows: originalRows.length,
     },
     matchedRows: result.matched,
+    clusters: result.clusters || [],
+    unexplained: result.unexplained || [],
     flaggedRows: result.flagged.map((flag) => ({
       index: flag.i,
       input: flag.input,
@@ -76,10 +78,14 @@ export function verify({ original, transformed, format = "auto", legacyVerdict =
     memorisation,
     nearFit: memorisation?.nearFits?.[0] || null,
     summary: actualVerdict === "unverifiable"
-      ? memorisationSummary(memorisation)
+      ? result.clusters?.length > 1
+        ? `${originalRows.length} rows split across ${result.clusters.length} coherent rule clusters without a clear majority.`
+        : memorisationSummary(memorisation)
       : actualVerdict === "consistent"
         ? `${originalRows.length} rows followed one reusable deterministic rule.`
-        : `${result.flagged.length} of ${originalRows.length} rows contradicted the inferred rule.`,
+        : result.clusters?.length > 1
+          ? `${result.clusters.length} coherent rule clusters were found; ${result.flagged.length} rows fell outside the dominant cluster.`
+          : `${result.flagged.length} of ${originalRows.length} rows contradicted the inferred rule.`,
     detectedFormats: {
       original: typeof original === "string" ? detectFormat(original) : "json",
       transformed: typeof transformed === "string" ? detectFormat(transformed) : "json",

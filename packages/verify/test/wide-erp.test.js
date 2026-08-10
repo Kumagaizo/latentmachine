@@ -219,13 +219,14 @@ function percentageFixture(roundValue, count = 40) {
 {
   const original = Array.from({ length: 1000 }, (_, index) => ({ lookupKey: `key-${Math.floor(index / 2)}` }));
   const transformed = original.map(row => ({ opaqueLabel: `Label for ${row.lookupKey}` }));
+  const before = JSON.stringify(transformed[401]);
   transformed[401].opaqueLabel = "Conflicting label";
+  assert.notEqual(JSON.stringify(transformed[401]), before, "template drift must change the expected output");
   const result = verify({ original, transformed });
-  const lookup = result.memorisation.lookups.find(item => item.target === "$.opaqueLabel");
-  assert.equal(result.verdict, "unverifiable");
-  assert.equal(result.flaggedRows.length, 0, "unverifiable lookup conflicts must remain diagnostic rather than row accusations");
-  assert.equal(lookup?.conflictingSourceValues, 1);
-  assert.match(result.summary, /1 repeated source value had conflicting outputs/i);
+  assert.equal(result.verdict, "inconsistent");
+  assert.deepEqual(result.flaggedRows.map(row => row.index), [401], "consensus must recover the reusable label template");
+  assert.equal(result.rule.program.ops[0]?.op, "template");
+  assert.deepEqual(result.memorisation.memorisedTargets, []);
 }
 
 function timedVerify(count) {

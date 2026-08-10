@@ -92,6 +92,7 @@ export const TOOLS = [
       "Check whether a batch of AI-transformed data rows all follow one deterministic rule. " +
       "Takes the original records and transformed output, infers the majority rule, and returns a capped diagnostic summary. " +
       "Sparse optional fields are scoped to their source domain and may be unverifiable without flagging out-of-domain rows. " +
+      "Coherent alternative rules are reported as additive clusters with support and share; equal splits are not reported as row-level defects. " +
       "Candidate inference uses at most 200 output-diverse examples, then validates every supplied row. " +
       "Uses a deterministic symbolic engine, not an LLM.",
     inputSchema: {
@@ -417,9 +418,9 @@ export function handleVerify({ original, transformed, format = "auto", flagged_r
   const memorisation = result.result?.rule?.memorisation || null;
   const unverifiableTargets = memorisation?.unverifiableTargets || memorisation?.memorisedTargets || [];
   const hasUnverifiableTargets = unverifiableTargets.length > 0;
-  const verdict = result.flagged.length
+  const verdict = result.verdict || (result.flagged.length
     ? "inconsistent"
-    : hasUnverifiableTargets ? "unverifiable" : "consistent";
+    : hasUnverifiableTargets ? "unverifiable" : "consistent");
 
   return compactVerificationResult({
     verdict,
@@ -431,6 +432,8 @@ export function handleVerify({ original, transformed, format = "auto", flagged_r
       validationRows: originalRows.length,
     },
     matchedRows: result.matched,
+    clusters: result.clusters || [],
+    unexplained: result.unexplained || [],
     flaggedRows: result.flagged.map((flag) => ({
       index: flag.i,
       input: flag.input,
@@ -443,10 +446,14 @@ export function handleVerify({ original, transformed, format = "auto", flagged_r
     confidence: result.result?.confidence || null,
     memorisation,
     summary: verdict === "unverifiable"
-      ? memorisationSummary(memorisation)
+      ? result.clusters?.length > 1
+        ? `${originalRows.length} rows split across ${result.clusters.length} coherent rule clusters without a clear majority.`
+        : memorisationSummary(memorisation)
       : verdict === "consistent"
         ? `${originalRows.length} rows followed one reusable deterministic rule.`
-        : `${result.flagged.length} of ${originalRows.length} rows contradicted the inferred rule.`,
+        : result.clusters?.length > 1
+          ? `${result.clusters.length} coherent rule clusters were found; ${result.flagged.length} rows fell outside the dominant cluster.`
+          : `${result.flagged.length} of ${originalRows.length} rows contradicted the inferred rule.`,
   }, { flaggedRowLimit: flagged_row_limit });
 }
 

@@ -93,8 +93,8 @@ const result = verify({
 
 console.log(result.verdict);
 
-// "unverifiable" means one or more fields were fitted by a high-cardinality
-// lookup rather than a reusable rule. Inspect result.memorisation and summary.
+// "unverifiable" means the evidence cannot support one reusable majority rule.
+// Inspect result.clusters, result.memorisation, and result.summary.
 
 const contract = learnContract({ examples });
 const approved = approveContract(contract, {

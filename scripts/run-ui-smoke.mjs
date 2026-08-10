@@ -314,6 +314,17 @@ async function assertTransformWorkers() {
   assert.ok(inferWorker.includes("runBuiltTransform"), "built Infer worker must execute the shared transform runtime");
   assert.ok(verifyUi.includes('new Worker(new URL("./verify-worker.js", import.meta.url)'), "built Verify UI must use its background worker");
   assert.ok(verifyWorker.includes("inferVerifyRule"), "built Verify worker must execute the shared verification runtime");
+  for (const contract of [
+    'data-verify-file-drop="${esc(key)}"',
+    'data-verify-export-menu',
+    'render(state.run.error ? ".verify-result" : ".verify-verdict")',
+    'render(`[data-format-for="${key}"]`)',
+    'inference.verdict === "unverifiable"',
+    'clusters: inference.clusters || []',
+  ]) {
+    assert.ok(verifyUi.includes(contract), `built Verify UI must include ${contract}`);
+  }
+  assert.ok(!verifyUi.includes('class="verify-imports"'), "built Verify UI must keep import controls in editor bars");
   for (const source of [inferWorker, verifyWorker]) {
     for (const forbidden of ["fetch(", "XMLHttpRequest", "WebSocket"]) {
       assert.ok(!source.includes(forbidden), `built transform workers must not include ${forbidden}`);
@@ -354,6 +365,21 @@ async function assertSignalProductSurface() {
 async function assertContractProductSurface() {
   const contractUi = await readFile(path.join(dist, "src/local/contract.js"), "utf8");
   const contractStyles = await readFile(path.join(dist, "src/local/styles.css"), "utf8");
+  assert.match(
+    contractUi,
+    /tabindex="\$\{selected \? "0" : "-1"\}" data-progress-stage="\$\{stage\.id\}"/,
+    "built Contract Studio progress tabs must close tabindex before data-progress-stage",
+  );
+  assert.doesNotMatch(
+    contractUi,
+    /tabindex="\$\{selected \? "0" : "-1"\}\s+data-progress-stage=/,
+    "built Contract Studio progress tabs must not emit a quoted data-progress-stage attribute name",
+  );
+  assert.doesNotMatch(
+    contractUi,
+    /\b[a-zA-Z_:][\w:.-]*="\$\{[^}\n]+\}(?=\s+[a-zA-Z_:][\w:.-]*=)/,
+    "built Contract Studio must close interpolated attributes before the next attribute name",
+  );
   for (const contract of [
     "Transformation contracts learned from examples.",
     "Turn examples into a transformation contract.",
@@ -387,6 +413,12 @@ async function assertContractProductSurface() {
   }
 }
 
+async function assertNoLeftEdgeBorders() {
+  const styles = await readFile(path.join(dist, "src/local/styles.css"), "utf8");
+  assert.doesNotMatch(styles, /\bborder-(?:left|inline-start)\b/, "built UI must not use left-edge borders");
+  assert.doesNotMatch(styles, /box-shadow:[^;}]*\binset\s+[1-9]/, "built UI must not use left-edge inset shadows");
+}
+
 for (const page of pages) await assertPage(page);
 await assertRuntimeModulesImport();
 await assertRuntimeBehavior();
@@ -394,9 +426,10 @@ await assertTransformWorkers();
 await assertTraceProductSurface();
 await assertSignalProductSurface();
 await assertContractProductSurface();
+await assertNoLeftEdgeBorders();
 
 console.log(JSON.stringify({
-  passed: pages.length + 6,
+  passed: pages.length + 7,
   checks: [
     ...pages.map(page => `${page.file} shell and module scripts`),
     "built runtime modules import without benchmark barrels",
@@ -405,5 +438,6 @@ console.log(JSON.stringify({
     "built Trace UI ships format, record-set, evidence, export, accessibility, and worker-progress contracts",
     "built Signal landing and UI ship navigation, visualization, local analysis, routing, source-ledger, evidence, export-review, and worker-progress contracts",
     "built Contract Studio ships the five-stage local workflow, runtime review, export, share warning, accessibility, and responsive contracts",
+    "built UI contains no left-edge borders or inset accent bars",
   ],
 }, null, 2));

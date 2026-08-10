@@ -240,14 +240,16 @@ const csv = serializeWithFormat(data, "csv");
           <h3>Return values</h3>
           <p><code>verify()</code> returns:</p>
           <ul>
-            <li><code>verdict</code>: <code>"consistent"</code>, <code>"inconsistent"</code>, or <code>"unverifiable"</code> when a high-cardinality lookup or insufficient field support cannot establish a reusable rule.</li>
+            <li><code>verdict</code>: <code>"consistent"</code>, <code>"inconsistent"</code>, or <code>"unverifiable"</code> when the evidence cannot establish one reusable majority rule.</li>
             <li><code>totalRows</code>: number of rows checked.</li>
             <li><code>matchedRows</code>: rows that followed the majority rule.</li>
             <li><code>flaggedRows</code>: <code>{ index, input, expected, actual }</code> for rows that broke the pattern.</li>
+            <li><code>clusters</code>: up to three coherent alternative rules with their support and batch share. Equal splits are unverifiable and do not accuse individual rows.</li>
+            <li><code>unexplained</code>: bounded row indices not covered by the reported clusters.</li>
             <li><code>inference</code>: the bounded evidence strategy, maximum evidence rows, whether sampling occurred, and the number of rows fully validated.</li>
             <li><code>ruleStatus</code>: <code>safe</code>, <code>unverified</code>, <code>ambiguous</code>, <code>contradictory</code>, <code>unsafe</code>, or <code>insufficient</code>.</li>
             <li><code>confidence</code>: the evidence label, checks, and reasons; memorised lookups never receive <code>proven</code>.</li>
-            <li><code>nearFit</code>: the strongest non-accusing low-cardinality rule candidate that fitted at least 80% but less than the 95% promotion threshold, including exact full-batch contradiction indices; otherwise <code>null</code>.</li>
+            <li><code>nearFit</code>: the strongest lower-support candidate from the initial full-batch fit. Verify may refit a safe candidate on conforming evidence and replay it against every row before classifying a majority and its exceptions.</li>
             <li><code>memorisation</code>: lookup ratios, full support counts, repeated-source consistency counts, <code>ruleDemotions</code> with exact contradicting row indices, all <code>nearFits</code>, <code>ruleVerifiedTargets</code>, unchanged <code>passthroughTargets</code>, <code>memorisedTargets</code>, <code>insufficientSupportTargets</code>, <code>incompleteLookupTargets</code>, and the combined <code>unverifiableTargets</code>. Optional fields are checked only inside their inferred source domain, and unverifiable fields cannot contribute row flags.</li>
             <li><code>summary</code>: a human-readable, field-attributed verdict explanation.</li>
           </ul>

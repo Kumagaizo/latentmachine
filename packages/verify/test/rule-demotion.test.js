@@ -47,11 +47,11 @@ for (const count of [20, 40, 1000]) {
   const fixture = enumFixture(40);
   injectEnumDrift(fixture, [2, 5, 8, 11]);
   const result = verify(fixture);
-  assert.equal(result.verdict, "unverifiable", "a rule below 95% support must not accuse individual rows");
-  assert.deepEqual(result.flaggedRows, []);
+  assert.equal(result.verdict, "inconsistent", "consensus recovery must localise systematic drift below the old 95% cliff");
+  assert.deepEqual(result.flaggedRows.map(row => row.index), [2, 5, 8, 11]);
   assert.deepEqual(result.memorisation.ruleDemotions, []);
-  assert.deepEqual(result.memorisation.nearFits[0].contradictingRows, [2, 5, 8, 11]);
-  assert.ok(result.memorisation.memorisedTargets.includes("$.status"));
+  assert.deepEqual(result.memorisation.nearFits, []);
+  assert.deepEqual(result.memorisation.memorisedTargets, []);
 }
 
 {
@@ -128,13 +128,13 @@ for (const count of [20, 40, 1000]) {
 for (const [cleanRows, driftCount, promoted] of [
   [40, 1, true],
   [40, 2, true],
-  [40, 3, false],
+  [40, 3, true],
   [80, 3, true],
   [100, 5, true],
-  [40, 10, false],
+  [40, 10, true],
   [300, 10, true],
   [1000, 50, true],
-  [1000, 90, false],
+  [1000, 90, true],
 ]) {
   const fixture = enumFixture(cleanRows + driftCount);
   const driftRows = Array.from({ length: driftCount }, (_, index) => cleanRows + index);

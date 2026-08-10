@@ -40,13 +40,17 @@ export function compactVerificationResult(result, { flaggedRowLimit = DEFAULT_FL
   const requestedLimit = Number.isInteger(flaggedRowLimit) ? flaggedRowLimit : DEFAULT_FLAGGED_ROW_LIMIT;
   const limit = Math.max(0, Math.min(MAX_FLAGGED_ROW_LIMIT, requestedLimit));
   const flaggedRows = result.flaggedRows || [];
+  const unexplained = result.unexplained || [];
   return {
     ...result,
     flaggedRows: flaggedRows.slice(0, limit),
     flaggedRowCount: flaggedRows.length,
     omittedFlaggedRows: Math.max(0, flaggedRows.length - limit),
     flaggedRowLimit: limit,
+    unexplained: unexplained.slice(0, limit),
+    unexplainedRowCount: unexplained.length,
+    omittedUnexplainedRows: Math.max(0, unexplained.length - limit),
     rule: compactRuleArtifact(result.rule),
-    note: "Flagged row details are capped. Lookup table bodies are omitted from this diagnostic response; counts cover the complete rule.",
+    note: "Flagged and unexplained row details are capped. Lookup table bodies are omitted from this diagnostic response; counts cover the complete rule.",
   };
 }

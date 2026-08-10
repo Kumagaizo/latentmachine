@@ -30,9 +30,11 @@ console.log(result.verdict);
 console.log(result.flaggedRows);
 ```
 
-`result.verdict` is `consistent`, `inconsistent`, or `unverifiable`. The third state means at least one field was fitted by a high-cardinality lookup or did not have enough in-domain examples to establish a reusable rule. Affected fields, lookup ratios, and support counts are available in `result.memorisation` and `result.summary`. Unverifiable rules never receive `confidence.label: "proven"`.
+`result.verdict` is `consistent`, `inconsistent`, or `unverifiable`. The third state means the evidence cannot establish one reusable majority rule: a field may rely on a high-cardinality lookup, lack enough in-domain examples, or the batch may split evenly across coherent alternative rules. Affected fields and lookup evidence are available in `result.memorisation`; alternative-rule support is available in `result.clusters`. Unverifiable rules never receive `confidence.label: "proven"`.
 
-`result.memorisation` distinguishes `ruleVerifiedTargets`, unchanged `passthroughTargets`, high-cardinality `memorisedTargets`, `insufficientSupportTargets`, and `incompleteLookupTargets`. `unverifiableTargets` combines all targets for which no reusable rule was established. `ruleDemotions` identifies a reusable rule that fitted at least 95% of a field domain, including its privacy-safe fit ratio and exact contradicting row indices. Low-cardinality mapping candidates that fit 80% to less than 95% remain non-accusing and are exposed in `memorisation.nearFits`; the strongest is also returned as `result.nearFit`. Each near-fit reports both thresholds, full-domain support, and exact contradicting row indices without exposing source values. Lookup diagnostics include total support and counts of repeated source values with consistent or conflicting outputs; they never expose raw values.
+`result.clusters` reports up to three coherent rules with their support and batch share. When one cluster has majority support, rows outside it are flagged after full-batch replay. When coherent clusters split the batch without a majority, the verdict is `unverifiable` and no individual row is accused. `result.unexplained` contains the bounded list of row indices not covered by those clusters.
+
+`result.memorisation` distinguishes `ruleVerifiedTargets`, unchanged `passthroughTargets`, high-cardinality `memorisedTargets`, `insufficientSupportTargets`, and `incompleteLookupTargets`. `unverifiableTargets` combines all targets for which no reusable rule was established. `ruleDemotions` records candidates promoted by the original high-support path. `nearFits` records lower-support candidates discovered during the initial full-batch fit; Verify may deterministically refit a safe candidate on conforming evidence and replay it against every row before deciding whether the batch has a majority rule. Diagnostics include exact contradiction indices without exposing source values, and lookup diagnostics never expose raw values.
 
 Optional output fields are evaluated only on rows where their source domain is present. When that domain is too small to prove a rule, the field is reported as unverifiable and is excluded from row flags; rows outside the field's domain are never treated as contradictions.
 
@@ -172,7 +174,7 @@ latentmachine contract diff contract-v1.json contract-v2.json
 
 JSON is written to stdout by default. Use `--format human` for concise terminal output. Diagnostics go to stderr.
 
-The verification command exits with code `1` for both `inconsistent` and `unverifiable`. Use `--allow-unverifiable` only when a CI workflow intentionally accepts the latter. JSON verification output caps flagged-row details and omits lookup table bodies.
+The verification command exits with code `1` for both `inconsistent` and `unverifiable`. Use `--allow-unverifiable` only when a CI workflow intentionally accepts the latter. JSON verification output caps flagged and unexplained row details and omits lookup table bodies.
 
 Contract command exit codes:
 

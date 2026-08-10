@@ -83,6 +83,10 @@ try {
   assert.equal(installedPackage.exports["./contracts"], "./src/contracts.js");
 
   const installedFiles = filesUnder(installedRoot);
+  assert.ok(
+    installedFiles.includes("src/_engine/intelligence/json-transform/memorisation.js"),
+    "packed engine must include memorisation diagnostics",
+  );
   assert.equal(installedFiles.some(path => /(^|\/)(notes|fixtures|test)(\/|$)/.test(path)), false);
   for (const path of installedFiles.filter(path => path.endsWith(".js"))) {
     assert.equal(

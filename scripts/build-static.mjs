@@ -63,7 +63,7 @@ async function copyFile(source, destination) {
   const extension = path.extname(source).toLowerCase();
   const text = await readFile(source, extension === ".html" || extension === ".css" ? "utf8" : undefined);
   const output = extension === ".html"
-    ? await renderHtml(text, source)
+    ? compactHtml(await renderHtml(text, source))
     : extension === ".css"
       ? minifyCss(text)
       : text;
@@ -236,12 +236,37 @@ function restoreCssStrings(text, strings) {
   return text.replace(/___CSS_STRING_(\d+)___/g, (_, index) => strings[Number(index)] || "");
 }
 
+function compactHtml(text) {
+  const blocks = [];
+  const preserved = text.replace(/<(pre|textarea|script|style)\b[\s\S]*?<\/\1>/gi, block => {
+    const placeholder = `___HTML_BLOCK_${blocks.length}___`;
+    blocks.push(block);
+    return placeholder;
+  });
+  return preserved
+    .replace(/<!--(?!\[if\b)[\s\S]*?-->/gi, "")
+    .replace(/^[\t ]*\r?\n/gm, "")
+    .replace(/___HTML_BLOCK_(\d+)___/g, (_, index) => blocks[Number(index)] || "");
+}
+
+async function compactBuiltHtml(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  for (const entry of entries) {
+    const target = path.join(directory, entry.name);
+    if (entry.isDirectory()) await compactBuiltHtml(target);
+    else if (entry.isFile() && path.extname(entry.name).toLowerCase() === ".html") {
+      await writeFile(target, compactHtml(await readFile(target, "utf8")));
+    }
+  }
+}
+
 function minifyCss(text) {
   const preserved = preserveCssStrings(text);
   const minified = preserved.text
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/\s+/g, " ")
     .replace(/\s*([{}:;,>~])\s*/g, "$1")
+    .replace(/(^|[^\w])0+\.(\d+)/g, "$1.$2")
     .replace(/;}/g, "}")
     .trim();
 
@@ -272,5 +297,7 @@ await buildArticles.build(root, outDir);
 
 const buildSitemap = await import("./build-sitemap.mjs");
 await buildSitemap.build(root, outDir);
+
+await compactBuiltHtml(outDir);
 
 console.log(`Built static site in ${path.relative(root, outDir)}`);

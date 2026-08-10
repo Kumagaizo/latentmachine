@@ -600,7 +600,7 @@ function progressHtml() {
   return `<nav class="contract-progress" role="tablist" aria-label="Contract progress">${STAGES.map((stage, index) => {
     const available = stageAvailable(stage.id);
     const selected = state.stage === stage.id;
-    return `<button type="button" role="tab" aria-selected="${selected}" tabindex="${selected ? "0" : "-1"} data-progress-stage="${stage.id}" class="${selected ? "is-active" : ""} ${index < current ? "is-complete" : ""}" ${available ? "" : "disabled"}><span>${index + 1}</span>${esc(stage.label)}</button>`;
+    return `<button type="button" role="tab" aria-selected="${selected}" tabindex="${selected ? "0" : "-1"}" data-progress-stage="${stage.id}" class="${selected ? "is-active" : ""} ${index < current ? "is-complete" : ""}" ${available ? "" : "disabled"}><span>${index + 1}</span>${esc(stage.label)}</button>`;
   }).join("")}</nav>`;
 }
 
