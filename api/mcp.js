@@ -92,7 +92,7 @@ export const TOOLS = [
       "Check whether a batch of AI-transformed data rows all follow one deterministic rule. " +
       "Takes the original records and transformed output, infers the majority rule, and returns a capped diagnostic summary. " +
       "Sparse optional fields are scoped to their source domain and may be unverifiable without flagging out-of-domain rows. " +
-      "Coherent alternative rules are reported as additive clusters with support and share; equal splits are not reported as row-level defects. " +
+      "Coherent alternative rules are reported as additive clusters with privacy-safe path signatures, support, and share; equal splits are not reported as row-level defects. " +
       "Candidate inference uses at most 200 output-diverse examples, then validates every supplied row. " +
       "Uses a deterministic symbolic engine, not an LLM.",
     inputSchema: {

@@ -84,6 +84,48 @@ for (const count of [30, 60, 90, 150]) {
   assertExact(verify(reordered), [injectedRow], `array-reordered n=${count}`);
 }
 
+for (const count of [30, 60, 150]) {
+  const injectedRow = Math.floor(count * 0.61);
+  const original = Array.from({ length: count }, (_, index) => ({
+    firstAmount: 100035 + index * 7919,
+    secondAmount: 300017 + index * 3571,
+  }));
+  const fixture = {
+    original,
+    transformed: original.map(row => ({
+      firstTotal: row.firstAmount / 100,
+      secondTotal: row.secondAmount / 100,
+    })),
+  };
+  inject(fixture, injectedRow, row => {
+    row.firstTotal = String(row.firstTotal);
+    row.secondTotal = String(row.secondTotal);
+  });
+  const result = verify(fixture);
+  assert.equal(result.verdict, "inconsistent", `multi-target recovery n=${count}`);
+  assertExact(result, [injectedRow], `multi-target recovery n=${count}`);
+}
+
+{
+  const original = Array.from({ length: 80 }, (_, index) => ({ id: `row-${index}` }));
+  const transformed = original.map((_, index) => ({
+    first: `Private-${index * 7919}`,
+    second: `Opaque-${index * 3571}`,
+  }));
+  const result = verify({ original, transformed });
+  assert.equal(result.verdict, "unverifiable", "multi-target opaque lookups must remain unverifiable");
+  assert.deepEqual(result.flaggedRows, []);
+}
+
+{
+  const original = Array.from({ length: 8 }, (_, index) => ({ id: index + 1, name: `Customer ${index + 1}` }));
+  const transformed = original.map(row => ({ customerId: row.id, name: row.name }));
+  [transformed[3], transformed[4]] = [transformed[4], transformed[3]];
+  const result = verify({ original, transformed });
+  assert.equal(result.verdict, "unverifiable", "a row permutation must not be reported as independent field defects");
+  assert.deepEqual(result.flaggedRows, []);
+}
+
 for (let seed = 0; seed < 10; seed += 1) {
   for (const defectCount of [1, 2, 3, 5, 6, 8, 10, 30]) {
     const injectedRows = spacedRows(100, defectCount, seed);
@@ -101,6 +143,9 @@ for (const share of [0.15, 0.35, 0.5]) {
   const alternateRows = spacedRows(200, Math.round(200 * share), 11);
   const result = verify(nameFixture(200, alternateRows, 11));
   assert.deepEqual(result.clusters.map(cluster => cluster.support), [200 - alternateRows.length, alternateRows.length]);
+  assert.deepEqual(result.clusters.map(cluster => cluster.label), ["Rule 1", "Rule 2"]);
+  assert.notEqual(result.clusters[0].signature, result.clusters[1].signature, "cluster signatures must distinguish source order");
+  assert.ok(result.clusters.every(cluster => !JSON.stringify(cluster).includes("First11")), "cluster metadata must not expose row values");
   assert.ok(result.flaggedRows.length < 200, `${share * 100}% split must not flag the whole batch`);
   if (share === 0.5) {
     assert.equal(result.verdict, "unverifiable");

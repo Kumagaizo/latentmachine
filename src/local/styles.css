@@ -340,7 +340,7 @@ a {
   min-height: 30px;
   border-radius: 999px;
   color: var(--text-tertiary);
-  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  transition: background 160ms ease, color 160ms ease;
 }
 
 .theme-toggle-option.is-light {
@@ -528,7 +528,7 @@ a {
 .inspection-grid span {
   color: var(--text-tertiary);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.6875rem;
   line-height: 1;
   text-transform: uppercase;
 }
@@ -658,7 +658,6 @@ a {
   border: 1px solid var(--border);
   border-radius: calc(var(--preset-control-radius) + var(--preset-box-padding));
   background: var(--surface-soft);
-  box-shadow: var(--shadow);
 }
 
 .preset-groups {
@@ -689,13 +688,12 @@ a {
   padding: 0 13px;
   font-size: 0.76rem;
   text-align: center;
-  transition: background 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
 .preset-groups button.is-active {
   border-color: var(--border);
   background: var(--surface);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   color: var(--text-primary);
 }
 
@@ -1015,7 +1013,6 @@ a {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
-  box-shadow: var(--shadow);
 }
 
 .example-card {
@@ -1023,7 +1020,7 @@ a {
   gap: 16px;
   border-bottom: 1px solid var(--border);
   padding: 0 0 24px;
-  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+  transition: border-color 180ms ease, background 180ms ease;
 }
 
 .examples .example-card:last-child {
@@ -1271,10 +1268,6 @@ select.format-chip {
   cursor: pointer;
   max-width: 100%;
   background-color: transparent;
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position: calc(100% - 11px) 52%, calc(100% - 7px) 52%;
-  background-size: 4px 4px, 4px 4px;
-  background-repeat: no-repeat;
   padding-right: 28px;
   text-overflow: ellipsis;
 }
@@ -1441,16 +1434,10 @@ select.format-chip option,
 }
 
 .preview-mode {
-  appearance: none;
-  -webkit-appearance: none;
   min-height: 30px;
   border: 1px solid var(--editor-border);
   border-radius: 8px;
   background: transparent;
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position: calc(100% - 11px) 52%, calc(100% - 7px) 52%;
-  background-size: 4px 4px, 4px 4px;
-  background-repeat: no-repeat;
   color: var(--editor-muted);
   cursor: pointer;
   font-family: var(--font-mono);
@@ -1542,7 +1529,7 @@ select.format-chip option,
 .format-fixes .button {
   min-height: 28px;
   padding: 5px 8px;
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .array-note {
@@ -1663,7 +1650,7 @@ select.format-chip option,
   border: 1px solid currentColor;
   border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .batch-preview-row {
@@ -1879,7 +1866,7 @@ select.format-chip option,
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 3px 6px;
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
   line-height: 1;
   white-space: nowrap;
 }
@@ -2454,7 +2441,7 @@ select.format-chip option,
 
 .memory-spec span {
   color: var(--text-tertiary);
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
   text-transform: uppercase;
 }
 
@@ -2462,7 +2449,7 @@ select.format-chip option,
   overflow: hidden;
   color: var(--text-tertiary);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2521,7 +2508,7 @@ select.format-chip option,
   gap: 3px;
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
@@ -2529,7 +2516,7 @@ select.format-chip option,
 .memory-details span {
   color: var(--text-tertiary);
   font-family: var(--font-ui);
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
   text-transform: uppercase;
 }
 
@@ -2701,7 +2688,6 @@ select.format-chip option,
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
-  box-shadow: 0 18px 44px rgba(32, 33, 36, 0.08), var(--shadow);
 }
 
 .landing .hero-visual .demo-window,
@@ -2732,7 +2718,7 @@ select.format-chip option,
 .landing .demo-strip p {
   color: var(--text-tertiary);
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.6875rem;
   text-transform: uppercase;
 }
 
@@ -2752,7 +2738,7 @@ select.format-chip option,
   color: var(--text-secondary);
   padding: 12px;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2778,7 +2764,7 @@ select.format-chip option,
 .landing .demo-rule > span:not(.demo-status) {
   color: var(--text-tertiary);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   text-transform: uppercase;
 }
 
@@ -2831,7 +2817,7 @@ select.format-chip option,
   min-height: 0;
   border-color: color-mix(in srgb, var(--safe-accent) 24%, transparent);
   padding: 4px 8px;
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
 }
 
 .landing .demo-actions {
@@ -2847,7 +2833,7 @@ select.format-chip option,
   overflow: hidden;
   color: var(--text-tertiary);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2868,7 +2854,7 @@ select.format-chip option,
   color: var(--safe);
   padding: 0 12px;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   letter-spacing: 0;
   line-height: 1.2;
   text-align: center;
@@ -3197,7 +3183,7 @@ select.format-chip option,
 .landing .trace-preview-foot {
   color: var(--text-tertiary);
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.6875rem;
 }
 
 .landing .trace-preview-body {
@@ -3297,7 +3283,7 @@ select.format-chip option,
   min-width: 0;
   min-height: 26px;
   padding: 0 10px;
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
 }
 
 .landing .trace-preview-foot code {
@@ -3463,7 +3449,7 @@ select.format-chip option,
   background: var(--safe-bg);
   color: var(--safe);
   padding: 3px 7px;
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .match-preview .rule-lines span {
@@ -3609,7 +3595,6 @@ select.format-chip option,
 
 .jq-mode-card.is-active {
   background: var(--surface);
-  box-shadow: var(--shadow);
   color: var(--text-primary);
 }
 
@@ -4026,6 +4011,7 @@ a.section-label:hover {
   width: 100%;
   max-width: none;
   border-radius: 14px;
+  box-shadow: none;
   padding: 14px;
   transform: none;
 }
@@ -4104,7 +4090,7 @@ a.section-label:hover {
   color: var(--editor-muted);
   padding: 3px 8px;
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.6875rem;
   line-height: 1;
 }
 
@@ -4126,7 +4112,7 @@ a.section-label:hover {
 .verify-metric span {
   color: var(--text-tertiary);
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
   line-height: 1;
   text-transform: uppercase;
 }
@@ -4163,7 +4149,7 @@ a.section-label:hover {
   background: rgba(154, 160, 166, 0.12);
   color: var(--text-tertiary);
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
 }
 
 .verify-timeline-step.is-safe > span {
@@ -4226,7 +4212,7 @@ a.section-label:hover {
   margin-top: 3px;
   color: var(--text-tertiary);
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
 }
 
 .verify-review-nav {
@@ -4256,7 +4242,7 @@ a.section-label:hover {
   background: transparent;
   color: var(--editor-muted);
   padding: 3px 8px;
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .format-diagnostic.is-safe {
@@ -4270,6 +4256,7 @@ a.section-label:hover {
   width: 100%;
   max-width: none;
   border-radius: 12px;
+  box-shadow: none;
   padding: 12px;
   transform: none;
 }
@@ -4321,7 +4308,7 @@ a.section-label:hover {
   background: var(--surface);
   padding: 3px 8px;
   color: var(--text-secondary);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .verify-failure-groups {
@@ -4353,7 +4340,7 @@ a.section-label:hover {
 .verify-failure-group small {
   color: var(--text-tertiary);
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
   line-height: 1.25;
   text-transform: uppercase;
 }
@@ -4398,7 +4385,7 @@ a.section-label:hover {
 .verify-diff-row.is-head span {
   color: var(--text-tertiary);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.6875rem;
   text-transform: uppercase;
 }
 
@@ -4451,7 +4438,6 @@ a.section-label:hover {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
-  box-shadow: var(--shadow);
   padding: 14px;
 }
 
@@ -4478,17 +4464,14 @@ a.section-label:hover {
   0% {
     opacity: 0.84;
     transform: translateY(10px) scale(0.985);
-    box-shadow: 0 10px 22px rgba(32, 33, 36, 0.06), var(--shadow);
   }
   52% {
     opacity: 1;
     transform: translateY(-1px) scale(1);
-    box-shadow: 0 16px 38px rgba(32, 33, 36, 0.1), var(--shadow);
   }
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
-    box-shadow: 0 14px 34px rgba(32, 33, 36, 0.09), var(--shadow);
   }
 }
 
@@ -4509,14 +4492,12 @@ a.section-label:hover {
 @keyframes correction-flash {
   0% {
     border-color: color-mix(in srgb, var(--safe-accent) 62%, transparent);
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--safe-accent) 28%, transparent), var(--shadow);
   }
   45% {
     border-color: color-mix(in srgb, var(--safe-accent) 38%, transparent);
   }
   100% {
     border-color: var(--border);
-    box-shadow: var(--shadow);
   }
 }
 
@@ -4664,7 +4645,7 @@ a.section-label:hover {
 
   .landing .demo-panel pre,
   .landing .demo-rule code {
-    font-size: 0.68rem;
+    font-size: 0.6875rem;
     line-height: 1.55;
   }
 
@@ -5094,7 +5075,7 @@ a.section-label:hover {
 .trace-page .editor-bar > span,
 .trace-page .format-chip {
   color: var(--trace-label);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0;
 }
@@ -5263,7 +5244,7 @@ a.section-label:hover {
 .trace-drop-hint {
   margin: 0;
   color: var(--trace-muted);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
 }
 
 .trace-source-foot label {
@@ -5271,7 +5252,7 @@ a.section-label:hover {
   align-items: center;
   gap: 0.4rem;
   color: var(--trace-muted);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
 }
 
 .trace-source-foot select {
@@ -5322,7 +5303,7 @@ a.section-label:hover {
 }
 
 .trace-key-fields legend,
-.trace-key-fields p { color: var(--text-tertiary); font-size: 0.64rem; }
+.trace-key-fields p { color: var(--text-tertiary); font-size: 0.6875rem; }
 .trace-key-fields p { grid-column: 1 / -1; margin: 0; }
 .trace-key-fields label { display: flex; align-items: center; grid-template-columns: none; }
 
@@ -5458,7 +5439,7 @@ a.section-label:hover {
 .trace-export-menu button span {
   margin-top: 3px;
   color: var(--text-tertiary);
-  font-size: 0.64rem;
+  font-size: 0.6875rem;
   line-height: 1.35;
 }
 
@@ -5476,7 +5457,7 @@ a.section-label:hover {
   gap: 0.45rem 1rem;
   padding-bottom: 1rem;
   color: var(--text-tertiary);
-  font: 0.68rem/1.4 var(--font-mono);
+  font: 0.6875rem/1.4 var(--font-mono);
 }
 
 .trace-copy-id {
@@ -5525,7 +5506,7 @@ a.section-label:hover {
 .trace-metric small {
   display: block;
   color: var(--text-tertiary);
-  font-size: 0.65rem;
+  font-size: 0.6875rem;
 }
 
 .trace-metric strong {
@@ -5585,7 +5566,7 @@ a.section-label:hover {
   display: flex;
   justify-content: space-between;
   color: var(--text-tertiary);
-  font-size: 0.64rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -5604,16 +5585,16 @@ a.section-label:hover {
 
 .trace-overview .trace-metric strong { font-size: 0.92rem; }
 .trace-overview .trace-section-head h2 { font-size: 0.9rem; }
-.trace-overview .trace-section-head > p { font-size: 0.68rem; }
+.trace-overview .trace-section-head > p { font-size: 0.6875rem; }
 .trace-overview .trace-insight { padding: 0.8rem; }
-.trace-overview .trace-insight-heading { font-size: 0.56rem; }
+.trace-overview .trace-insight-heading { font-size: 0.6875rem; }
 .trace-overview .trace-insight h3 { font-size: 0.78rem; }
-.trace-overview .trace-insight > p { font-size: 0.68rem; line-height: 1.48; }
-.trace-overview .trace-path { font-size: 0.6rem; }
+.trace-overview .trace-insight > p { font-size: 0.6875rem; line-height: 1.48; }
+.trace-overview .trace-path { font-size: 0.6875rem; }
 .trace-overview .trace-record-action,
-.trace-overview .trace-insight details { font-size: 0.61rem; }
+.trace-overview .trace-insight details { font-size: 0.6875rem; }
 .trace-overview .trace-profile-card > span { font-size: 0.72rem; }
-.trace-overview .trace-profile-card > small { font-size: 0.58rem; }
+.trace-overview .trace-profile-card > small { font-size: 0.6875rem; }
 
 .trace-path {
   max-width: 100%;
@@ -5622,7 +5603,7 @@ a.section-label:hover {
   overflow: hidden;
   background: transparent;
   color: var(--safe);
-  font: 0.66rem var(--font-mono);
+  font: 0.6875rem var(--font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -5635,7 +5616,7 @@ a.section-label:hover {
   border-radius: 4px;
   background: var(--surface);
   color: var(--text-secondary);
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
 }
 
 .trace-record-action:hover,
@@ -5647,7 +5628,7 @@ a.section-label:hover {
 .trace-insight details {
   margin-top: 0.7rem;
   color: var(--text-tertiary);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .trace-all-observations {
@@ -5699,7 +5680,7 @@ a.section-label:hover {
 }
 
 .trace-profile-card > span { font-size: 0.8rem; font-weight: 600; }
-.trace-profile-card > small { margin-top: 0.2rem; color: var(--text-tertiary); font-size: 0.64rem; }
+.trace-profile-card > small { margin-top: 0.2rem; color: var(--text-tertiary); font-size: 0.6875rem; }
 
 .trace-spark {
   width: 100%;
@@ -5721,7 +5702,7 @@ a.section-label:hover {
   grid-template-columns: minmax(3rem, 0.8fr) 1.5fr auto;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.63rem;
+  font-size: 0.6875rem;
 }
 
 .trace-bars span { overflow: hidden; color: var(--text-secondary); text-overflow: ellipsis; white-space: nowrap; }
@@ -5732,7 +5713,7 @@ a.section-label:hover {
   display: grid;
   gap: 0.25rem;
   color: var(--text-tertiary);
-  font-size: 0.65rem;
+  font-size: 0.6875rem;
 }
 
 .trace-search input {
@@ -5756,7 +5737,7 @@ a.section-label:hover {
   display: grid;
   gap: 0.25rem;
   color: var(--text-tertiary);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
 }
 
 .trace-filter-tools select,
@@ -5768,7 +5749,7 @@ a.section-label:hover {
   border-radius: 5px;
   background: var(--surface);
   color: var(--text-secondary);
-  font: 0.65rem var(--font-ui);
+  font: 0.6875rem var(--font-ui);
 }
 
 .trace-column-picker { position: relative; }
@@ -5786,7 +5767,7 @@ a.section-label:hover {
   border-radius: 5px;
   background: var(--surface-soft);
   color: var(--text-secondary);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .trace-active-filter button {
@@ -5845,9 +5826,9 @@ a.section-label:hover {
 .trace-table tbody tr:last-child td { border-bottom: 0; }
 .trace-table tbody tr:hover td { background: var(--surface-soft); }
 .trace-table button { display: grid; gap: 0.15rem; max-width: 16rem; padding: 0; background: transparent; text-align: left; }
-.trace-table code { display: block; overflow: hidden; color: var(--text-tertiary); font-size: 0.62rem; text-overflow: ellipsis; }
+.trace-table code { display: block; overflow: hidden; color: var(--text-tertiary); font-size: 0.6875rem; text-overflow: ellipsis; }
 .trace-role,
-.trace-change { display: inline-block; padding: 0.2rem 0.35rem; border: 1px solid var(--border); border-radius: 4px; color: var(--text-secondary); font-size: 0.61rem; }
+.trace-change { display: inline-block; padding: 0.2rem 0.35rem; border: 1px solid var(--border); border-radius: 4px; color: var(--text-secondary); font-size: 0.6875rem; }
 .trace-change.is-added { color: var(--safe); }
 .trace-change.is-removed,
 .trace-change.is-type-changed { color: var(--danger); }
@@ -5859,7 +5840,7 @@ a.section-label:hover {
   align-items: center;
   gap: 0.35rem;
   color: var(--text-tertiary);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
 }
 
 .trace-field-detail {
@@ -5871,31 +5852,31 @@ a.section-label:hover {
 }
 
 .trace-field-detail h2 { margin: 0.2rem 0; font-size: 1.2rem; }
-.trace-field-detail > code { color: var(--text-tertiary); font-size: 0.66rem; }
+.trace-field-detail > code { color: var(--text-tertiary); font-size: 0.6875rem; }
 .trace-field-detail > h3 { margin: 1.2rem 0 0.6rem; font-size: 0.76rem; }
 .trace-detail-close { position: absolute; top: 0.55rem; right: 0.65rem; background: transparent; color: var(--text-tertiary); font-size: 1.2rem; }
 .trace-detail-actions,
 .trace-row-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.75rem; }
 .trace-detail-actions button,
-.trace-row-actions button { padding: 0.3rem 0.45rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text-secondary); font: 0.62rem var(--font-ui); cursor: pointer; }
+.trace-row-actions button { padding: 0.3rem 0.45rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text-secondary); font: 0.6875rem var(--font-ui); cursor: pointer; }
 .trace-detail-actions button:hover,
 .trace-detail-actions button:focus-visible,
 .trace-row-actions button:hover,
 .trace-row-actions button:focus-visible { border-color: var(--border-focus); color: var(--text-primary); }
-.trace-row-actions { justify-content: flex-end; margin: 0; color: var(--text-tertiary); font-size: 0.68rem; }
+.trace-row-actions { justify-content: flex-end; margin: 0; color: var(--text-tertiary); font-size: 0.6875rem; }
 .trace-detail-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 1rem; }
 .trace-detail-metrics .trace-metric:nth-child(2) { border-right: 0; }
 .trace-detail-metrics .trace-metric:nth-child(-n + 2) { border-bottom: 1px solid var(--border); }
 .trace-detail-chart { margin-top: 1rem; }
-.trace-detail-chart p { margin: 0.25rem 0; color: var(--text-tertiary); font-size: 0.65rem; }
+.trace-detail-chart p { margin: 0.25rem 0; color: var(--text-tertiary); font-size: 0.6875rem; }
 .trace-examples { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-.trace-examples code { max-width: 100%; padding: 0.3rem 0.4rem; overflow: hidden; border: 1px solid var(--border); border-radius: 4px; color: var(--text-secondary); font-size: 0.62rem; text-overflow: ellipsis; }
+.trace-examples code { max-width: 100%; padding: 0.3rem 0.4rem; overflow: hidden; border: 1px solid var(--border); border-radius: 4px; color: var(--text-secondary); font-size: 0.6875rem; text-overflow: ellipsis; }
 .trace-record-samples { display: grid; gap: 0.4rem; }
 .trace-record-samples details,
 .trace-record-detail { padding: 0.65rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-soft); }
-.trace-record-samples summary { color: var(--text-secondary); font-size: 0.66rem; cursor: pointer; }
+.trace-record-samples summary { color: var(--text-secondary); font-size: 0.6875rem; cursor: pointer; }
 .trace-record-samples pre,
-.trace-record-detail pre { max-height: 24rem; margin: 0.6rem 0 0; overflow: auto; color: var(--text-secondary); font: 0.65rem/1.55 var(--font-mono); white-space: pre-wrap; }
+.trace-record-detail pre { max-height: 24rem; margin: 0.6rem 0 0; overflow: auto; color: var(--text-secondary); font: 0.6875rem/1.55 var(--font-mono); white-space: pre-wrap; }
 .trace-record-detail { position: relative; margin-top: 0.75rem; }
 .trace-record-detail > button { position: absolute; top: 0.45rem; right: 0.55rem; background: transparent; color: var(--text-tertiary); font-size: 1rem; }
 .trace-field-detail .trace-insight { margin-top: 0.5rem; }
@@ -5928,7 +5909,7 @@ a.section-label:hover {
   gap: 0.75rem;
   margin-bottom: 0.5rem;
   color: var(--text-tertiary);
-  font-size: 0.63rem;
+  font-size: 0.6875rem;
   cursor: pointer;
 }
 
@@ -5953,7 +5934,7 @@ a.section-label:hover {
 .trace-structure-tools > button { cursor: pointer; }
 .trace-structure-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; border-top: 1px solid var(--border); }
 .trace-structure-row > button { border-top: 0; }
-.trace-structure-row > button:last-child { width: auto; color: var(--text-tertiary); font-size: 0.61rem; }
+.trace-structure-row > button:last-child { width: auto; color: var(--text-tertiary); font-size: 0.6875rem; }
 
 .trace-structure button small { color: var(--text-tertiary); }
 
@@ -6039,7 +6020,7 @@ a.section-label:hover {
   padding: 0.7rem;
   border-right: 1px solid var(--editor-border);
   color: var(--editor-muted);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
 }
 
 .signal-preview-summary span:last-child {
@@ -6076,14 +6057,14 @@ a.section-label:hover {
 .signal-preview-lines code {
   overflow: hidden;
   color: var(--editor-text);
-  font: 0.61rem var(--font-mono);
+  font: 0.6875rem var(--font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .signal-preview-lines small {
   color: var(--editor-muted);
-  font-size: 0.56rem;
+  font-size: 0.6875rem;
 }
 
 .signal-preview-lines .is-attention {
@@ -6107,12 +6088,12 @@ a.section-label:hover {
 
 .signal-preview-evidence span {
   color: var(--editor-muted);
-  font-size: 0.58rem;
+  font-size: 0.6875rem;
 }
 
 .signal-preview-evidence code {
   color: var(--editor-text);
-  font: 0.58rem/1.5 var(--font-mono);
+  font: 0.6875rem/1.5 var(--font-mono);
 }
 
 .signal-page {
@@ -6137,7 +6118,7 @@ a.section-label:hover {
 .signal-presets > span {
   margin-right: 0.2rem;
   color: var(--text-tertiary);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .signal-presets button {
@@ -6147,7 +6128,7 @@ a.section-label:hover {
   border-radius: 999px;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .signal-presets button:hover,
@@ -6196,7 +6177,7 @@ a.section-label:hover {
 .signal-input-foot > span,
 .signal-input-head label span {
   color: var(--editor-muted);
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
 }
 
 .signal-input-head strong {
@@ -6211,7 +6192,7 @@ a.section-label:hover {
   background: var(--editor-bg);
   color: var(--editor-text);
   padding: 0 0.45rem;
-  font: 0.68rem var(--font-ui);
+  font: 0.6875rem var(--font-ui);
 }
 
 .signal-input-card > textarea {
@@ -6250,7 +6231,7 @@ a.section-label:hover {
   border-top: 1px solid var(--editor-border);
   color: var(--editor-muted);
   padding: 0 0.9rem;
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .signal-settings summary {
@@ -6300,7 +6281,7 @@ a.section-label:hover {
 
 .signal-runbar > span {
   color: var(--editor-muted);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .signal-route-notice {
@@ -6312,7 +6293,6 @@ a.section-label:hover {
   border: 1px solid var(--border);
   border-radius: 9px;
   background: var(--surface);
-  box-shadow: var(--shadow);
 }
 
 .signal-route-notice h2 {
@@ -6337,7 +6317,6 @@ a.section-label:hover {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
-  box-shadow: var(--shadow);
 }
 
 .signal-result-head {
@@ -6363,7 +6342,7 @@ a.section-label:hover {
 
 .signal-result-head span {
   color: var(--text-tertiary);
-  font: 0.63rem var(--font-mono);
+  font: 0.6875rem var(--font-mono);
 }
 
 .signal-result-head strong {
@@ -6420,7 +6399,7 @@ a.section-label:hover {
 .signal-metrics span {
   min-height: 2em;
   color: var(--text-tertiary);
-  font-size: 0.58rem;
+  font-size: 0.6875rem;
   line-height: 1.25;
 }
 
@@ -6437,7 +6416,7 @@ a.section-label:hover {
 
 .signal-limitations p {
   color: var(--text-tertiary);
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
   line-height: 1.45;
 }
 
@@ -6482,7 +6461,7 @@ a.section-label:hover {
   display: grid;
   gap: 0.2rem;
   color: var(--text-tertiary);
-  font-size: 0.58rem;
+  font-size: 0.6875rem;
 }
 
 .signal-filters select,
@@ -6494,7 +6473,7 @@ a.section-label:hover {
   background: var(--surface-soft);
   color: var(--text-secondary);
   padding: 0 0.45rem;
-  font: 0.64rem var(--font-ui);
+  font: 0.6875rem var(--font-ui);
 }
 
 .signal-filters input {
@@ -6508,7 +6487,7 @@ a.section-label:hover {
   padding: 0.5rem 1rem;
   border-bottom: 1px solid var(--border);
   color: var(--text-tertiary);
-  font-size: 0.6rem;
+  font-size: 0.6875rem;
 }
 
 .signal-ledger-body {
@@ -6571,7 +6550,7 @@ a.section-label:hover {
   min-height: 1.25rem;
   padding-left: 2.4rem;
   color: var(--text-tertiary);
-  font: 0.54rem var(--font-mono);
+  font: 0.6875rem var(--font-mono);
   opacity: 0.45;
 }
 
@@ -6592,7 +6571,7 @@ a.section-label:hover {
   background: transparent;
   color: var(--text-tertiary);
   padding: 0;
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
 }
 
 .signal-pin:hover,
@@ -6615,7 +6594,7 @@ a.section-label:hover {
 
 .signal-line-number {
   color: var(--text-tertiary);
-  font: 0.58rem/1.55 var(--font-mono);
+  font: 0.6875rem/1.55 var(--font-mono);
   text-align: right;
 }
 
@@ -6644,7 +6623,7 @@ a.section-label:hover {
 .signal-line-content > code {
   overflow-wrap: anywhere;
   color: var(--text-primary);
-  font: 0.66rem/1.55 var(--font-mono);
+  font: 0.6875rem/1.55 var(--font-mono);
   white-space: pre-wrap;
 }
 
@@ -6664,7 +6643,7 @@ a.section-label:hover {
   border-radius: 999px;
   color: var(--text-tertiary);
   padding: 0 0.4rem;
-  font: 0.52rem var(--font-ui);
+  font: 0.6875rem var(--font-ui);
 }
 
 .signal-role.is-failure,
@@ -6688,7 +6667,7 @@ a.section-label:hover {
 
 .signal-cluster {
   color: var(--text-tertiary);
-  font: 0.5rem var(--font-mono);
+  font: 0.6875rem var(--font-mono);
 }
 
 .signal-no-lines {
@@ -6708,7 +6687,7 @@ a.section-label:hover {
   min-height: 3rem;
   border-top: 1px solid var(--border);
   color: var(--text-tertiary);
-  font-size: 0.64rem;
+  font-size: 0.6875rem;
 }
 
 .signal-pagination button {
@@ -6748,7 +6727,7 @@ a.section-label:hover {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0 0.55rem;
-  font-size: 0.58rem;
+  font-size: 0.6875rem;
 }
 
 .signal-evidence-drawer > pre {
@@ -6759,7 +6738,7 @@ a.section-label:hover {
   background: var(--surface);
   color: var(--text-primary);
   padding: 0.75rem;
-  font: 0.64rem/1.55 var(--font-mono);
+  font: 0.6875rem/1.55 var(--font-mono);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -6776,7 +6755,7 @@ a.section-label:hover {
 
 .signal-confidence span {
   color: var(--text-secondary);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   text-transform: capitalize;
 }
 
@@ -6788,7 +6767,7 @@ a.section-label:hover {
 .signal-confidence small {
   grid-column: 1 / -1;
   color: var(--text-tertiary);
-  font-size: 0.56rem;
+  font-size: 0.6875rem;
   line-height: 1.4;
 }
 
@@ -6811,14 +6790,14 @@ a.section-label:hover {
 
 .signal-evidence-drawer li {
   color: var(--text-secondary);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
   line-height: 1.5;
 }
 
 .signal-evidence-drawer li > span {
   display: block;
   color: var(--text-tertiary);
-  font-size: 0.5rem;
+  font-size: 0.6875rem;
   text-transform: uppercase;
 }
 
@@ -6833,7 +6812,7 @@ a.section-label:hover {
   align-items: center;
   gap: 0.45rem;
   color: var(--text-tertiary);
-  font-size: 0.54rem;
+  font-size: 0.6875rem;
 }
 
 .signal-score-components i {
@@ -6854,7 +6833,7 @@ a.section-label:hover {
   border-top: 1px solid var(--border);
   padding-top: 0.7rem;
   color: var(--text-tertiary);
-  font-size: 0.6rem;
+  font-size: 0.6875rem;
 }
 
 .signal-evidence-drawer summary {
@@ -6867,7 +6846,7 @@ a.section-label:hover {
   display: block;
   overflow-wrap: anywhere;
   color: var(--text-primary);
-  font: 0.58rem/1.5 var(--font-mono);
+  font: 0.6875rem/1.5 var(--font-mono);
 }
 
 .signal-evidence-drawer details p {
@@ -6889,14 +6868,14 @@ a.section-label:hover {
   background: var(--surface);
   color: var(--safe);
   padding: 0.5rem;
-  font-size: 0.58rem;
+  font-size: 0.6875rem;
   text-align: left;
 }
 
 .signal-related span {
   overflow: hidden;
   color: var(--text-tertiary);
-  font: 0.54rem var(--font-mono);
+  font: 0.6875rem var(--font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -6908,7 +6887,7 @@ a.section-label:hover {
 
 .signal-uncertainty > p {
   color: var(--text-tertiary);
-  font-size: 0.58rem;
+  font-size: 0.6875rem;
   line-height: 1.45;
 }
 
@@ -6919,7 +6898,6 @@ a.section-label:hover {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
-  box-shadow: var(--shadow);
 }
 
 .signal-pack > header {
@@ -6964,7 +6942,7 @@ a.section-label:hover {
   align-items: center;
   gap: 0.45rem;
   color: var(--text-secondary);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .signal-pack-options select {
@@ -6993,7 +6971,7 @@ a.section-label:hover {
 
 .signal-pack-counts span {
   color: var(--text-tertiary);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
 }
 
 .signal-review-check {
@@ -7020,7 +6998,7 @@ a.section-label:hover {
   background: var(--editor-bg);
   color: var(--editor-text);
   padding: 1rem;
-  font: 0.62rem/1.65 var(--font-mono);
+  font: 0.6875rem/1.65 var(--font-mono);
   white-space: pre-wrap;
 }
 
@@ -7230,7 +7208,6 @@ a.section-label:hover {
   border-radius: 10px;
   background: var(--surface);
   padding: 10px 12px;
-  box-shadow: var(--shadow);
 }
 
 .contract-local-status > span {
@@ -7248,7 +7225,7 @@ a.section-label:hover {
 
 .contract-local-status small {
   color: var(--text-tertiary);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
 }
 
 .contract-progress {
@@ -7259,7 +7236,6 @@ a.section-label:hover {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
-  box-shadow: var(--shadow);
 }
 
 .contract-progress button {
@@ -7289,7 +7265,7 @@ a.section-label:hover {
   flex: 0 0 auto;
   border: 1px solid var(--border-focus);
   border-radius: 999px;
-  font: 0.6rem var(--font-mono);
+  font: 0.6875rem var(--font-mono);
 }
 
 .contract-progress button.is-complete {
@@ -7330,7 +7306,6 @@ a.section-label:hover {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
-  box-shadow: var(--shadow);
 }
 
 .contract-workspace {
@@ -7358,7 +7333,7 @@ a.section-label:hover {
 .contract-summary span,
 .contract-summary small {
   color: var(--text-tertiary);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
 }
 
 .contract-summary strong {
@@ -7369,7 +7344,7 @@ a.section-label:hover {
 .contract-summary code {
   overflow: hidden;
   color: var(--text-secondary);
-  font: 0.64rem var(--font-mono);
+  font: 0.6875rem var(--font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -7451,7 +7426,7 @@ a.section-label:hover {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0 10px;
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
 }
 
 .contract-status.is-safe {
@@ -7513,7 +7488,7 @@ a.section-label:hover {
 .contract-runtime-runbar > span {
   margin-left: auto;
   color: var(--text-tertiary);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .contract-operation-list {
@@ -7546,7 +7521,7 @@ a.section-label:hover {
   border-radius: 5px;
   background: var(--ink);
   color: var(--editor-text);
-  font: 0.58rem var(--font-mono);
+  font: 0.6875rem var(--font-mono);
 }
 
 .contract-operation strong {
@@ -7557,14 +7532,14 @@ a.section-label:hover {
 .contract-operation > code {
   overflow: auto;
   color: var(--text-secondary);
-  font: 0.64rem/1.5 var(--font-mono);
+  font: 0.6875rem/1.5 var(--font-mono);
   white-space: pre-wrap;
 }
 
 .contract-operation details {
   grid-column: 2;
   color: var(--text-tertiary);
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
 }
 
 .contract-operation summary,
@@ -7596,7 +7571,7 @@ a.section-label:hover {
 
 .contract-subsection-head > span {
   color: var(--text-tertiary);
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
 }
 
 .contract-plain-list,
@@ -7622,7 +7597,7 @@ a.section-label:hover {
 .contract-plain-list code,
 .contract-diff-list code {
   color: var(--text-primary);
-  font: 0.64rem var(--font-mono);
+  font: 0.6875rem var(--font-mono);
 }
 
 .contract-muted,
@@ -7699,7 +7674,7 @@ a.section-label:hover {
   display: block;
   margin-top: 8px;
   color: var(--text-tertiary);
-  font: 0.62rem var(--font-mono);
+  font: 0.6875rem var(--font-mono);
 }
 
 .contract-challenge-grid pre,
@@ -7708,7 +7683,7 @@ a.section-label:hover {
   max-height: 220px;
   overflow: auto;
   color: var(--text-secondary);
-  font: 0.64rem/1.5 var(--font-mono);
+  font: 0.6875rem/1.5 var(--font-mono);
   white-space: pre-wrap;
 }
 
@@ -7730,7 +7705,7 @@ a.section-label:hover {
   display: block;
   margin-bottom: 6px;
   color: var(--text-tertiary);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
 }
 
 .contract-answer textarea {
@@ -7751,7 +7726,7 @@ a.section-label:hover {
 
 .contract-policy-choices > span {
   color: var(--text-tertiary);
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
 }
 
 .contract-guardrail-groups {
@@ -7809,7 +7784,7 @@ a.section-label:hover {
 .contract-guardrail small,
 .contract-guardrail em {
   color: var(--text-tertiary);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
   font-style: normal;
   line-height: 1.45;
 }
@@ -7826,7 +7801,7 @@ a.section-label:hover {
   border-bottom: 1px solid var(--border);
   padding: 10px 0;
   color: var(--text-secondary);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .contract-policy-field:last-child {
@@ -7840,7 +7815,7 @@ a.section-label:hover {
   background: var(--surface);
   color: var(--text-primary);
   padding: 6px 8px;
-  font-size: 0.66rem;
+  font-size: 0.6875rem;
 }
 
 .contract-mutation-summary {
@@ -7868,12 +7843,12 @@ a.section-label:hover {
 
 .contract-mutation-summary span {
   color: var(--text-tertiary);
-  font-size: 0.64rem;
+  font-size: 0.6875rem;
 }
 
 .contract-mutation-details {
   color: var(--text-secondary);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .contract-mutation-details ul {
@@ -7913,7 +7888,7 @@ a.section-label:hover {
   gap: 12px;
   border-top: 1px solid var(--border);
   padding: 8px 0;
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
 }
 
 .contract-approval-grid dt {
@@ -7937,7 +7912,7 @@ a.section-label:hover {
 .contract-fingerprint span,
 .contract-fingerprint small {
   color: var(--text-tertiary);
-  font-size: 0.62rem;
+  font-size: 0.6875rem;
 }
 
 .contract-fingerprint code {
@@ -7972,7 +7947,7 @@ a.section-label:hover {
   background: transparent;
   color: var(--text-tertiary);
   padding: 0 10px;
-  font-size: 0.64rem;
+  font-size: 0.6875rem;
 }
 
 .contract-mode button:last-child {
@@ -8054,7 +8029,7 @@ a.section-label:hover {
 
 .contract-runtime-totals span {
   color: var(--text-tertiary);
-  font-size: 0.6rem;
+  font-size: 0.6875rem;
 }
 
 .contract-runtime-result > .contract-callout,
@@ -8083,7 +8058,7 @@ a.section-label:hover {
   gap: 10px;
   min-height: 38px;
   cursor: pointer;
-  font-size: 0.65rem;
+  font-size: 0.6875rem;
 }
 
 .contract-runtime-record summary span {
@@ -8115,7 +8090,7 @@ a.section-label:hover {
   grid-template-columns: 120px minmax(0, 1fr);
   gap: 10px;
   color: var(--text-secondary);
-  font-size: 0.64rem;
+  font-size: 0.6875rem;
 }
 
 .contract-runtime-record li code {
@@ -8314,4 +8289,19 @@ a.section-label:hover {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+select:not([multiple]) {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 11px) 52%, calc(100% - 7px) 52%;
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+  padding-right: 28px;
+  cursor: pointer;
+}
+
+select:not([multiple]):focus-visible {
+  border-color: var(--border-focus);
 }

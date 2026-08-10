@@ -238,6 +238,9 @@ function auditSummaryText(run = state.run) {
   if (!proof.flaggedCount) {
     return `Verified ${plural(proof.totalRows, "row")}. All rows followed the inferred ${plural(proof.ruleStepCount, "rule step")}.`;
   }
+  if (run.clusters?.length > 1) {
+    return `Verified ${plural(proof.totalRows, "row")}. ${clusterBreakdownText(run)}. ${plural(proof.flaggedCount, "row")} outside the majority rule need review: ${rowList(proof.flaggedRowLabels)}.`;
+  }
   return `Verified ${plural(proof.totalRows, "row")}. ${plural(proof.passedRows, "row")} followed the inferred rule; ${plural(proof.flaggedCount, "row")} need review: ${rowList(proof.flaggedRowLabels)}.`;
 }
 
@@ -246,6 +249,7 @@ function verdictTextForRun(run) {
   if (run.verdict === "safe") return "Consistent: every transformed row followed the inferred rule.";
   if (run.verdict === "unverified") return `Unverifiable: ${unverifiableText(run)}`;
   if (run.result?.status !== "safe" && !run.flagged?.length) return `Blocked: the batch did not prove one safe rule (${run.result?.status || "blocked"}).`;
+  if (run.clusters?.length > 1) return `Inconsistent: ${plural(run.flagged.length, "row")} followed a coherent alternative rule outside the majority cluster.`;
   return `Inconsistent: ${plural(run.flagged.length, "row")} did not follow the inferred rule.`;
 }
 
@@ -254,12 +258,19 @@ function memorisationText(run) {
   return memorisationSummary(memo);
 }
 
+function clusterBreakdownText(run) {
+  return (run?.clusters || []).map((cluster, index) => {
+    const label = cluster.label || `Rule ${index + 1}`;
+    const signature = cluster.signature || cluster.rule || "unknown rule";
+    return `${label}: ${signature} · ${plural(cluster.support, "row")}`;
+  }).join("; ");
+}
+
 function coherentClusterText(run) {
   const clusters = run?.clusters || [];
   if (clusters.length < 2) return "";
-  const support = clusters.map(cluster => cluster.support).join(" + ");
   const unexplained = run.unexplained?.length ? ` ${plural(run.unexplained.length, "row")} remained unexplained.` : "";
-  return `${plural(run.originalRows.length, "row")} split across ${plural(clusters.length, "coherent rule cluster")} (${support}); no rule has majority support.${unexplained}`;
+  return `${plural(run.originalRows.length, "row")} split across ${plural(clusters.length, "coherent rule cluster")}: ${clusterBreakdownText(run)}. No rule has majority support.${unexplained}`;
 }
 
 function unverifiableText(run) {
@@ -652,14 +663,15 @@ function auditTimelineHtml(run) {
 
 function evidenceSummaryHtml(run) {
   const proof = proofSummary(run);
+  const clustered = run.clusters?.length > 1;
   const coherentSplit = run.verdict === "unverified" && run.clusters?.length > 1;
   const flaggedText = coherentSplit
     ? `${plural(run.clusters.length, "coherent rule cluster")} explain the batch, so no row is accused without majority support.`
     : proof.flaggedCount
     ? `Rows needing review: ${rowList(proof.flaggedRowLabels)}.`
     : "No rows needed review.";
-  const ruleEvidenceText = coherentSplit
-    ? `${plural(proof.passedRows, "row")} support the strongest cluster; the remaining rows support coherent alternatives.`
+  const ruleEvidenceText = clustered
+    ? `${clusterBreakdownText(run)}. ${coherentSplit ? "No cluster has majority support." : "The largest cluster is the majority rule."}`
     : run.result?.status === "safe"
     ? `${plural(proof.ruleStepCount, "rule step")} produced the expected output for ${plural(proof.passedRows, "row")}.`
     : `The candidate rule status is ${run.result?.status || "not safe"}, so the batch needs stronger evidence before row-level replay can be trusted.`;

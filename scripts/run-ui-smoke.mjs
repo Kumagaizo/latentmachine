@@ -77,10 +77,18 @@ const pages = [
     noscript: true,
   },
 ];
+const primaryNav = ["/verify", "/infer", "/trace", "/signal", "/contract", "/developers", "/latentlog"];
 
 async function assertFile(relativePath) {
   const info = await stat(path.join(dist, relativePath));
   assert.equal(info.isFile(), true, `${relativePath} must exist in dist`);
+}
+
+async function assertTextFloor() {
+  const css = await readFile(path.join(dist, "src/local/styles.css"), "utf8");
+  for (const match of css.matchAll(/font(?:-size)?\s*:\s*(0?\.\d+)rem/g)) {
+    assert.ok(Number(match[1]) >= 0.6875, `built UI text must not render below 11px: ${match[0]}`);
+  }
 }
 
 function scriptPathFromSrc(src) {
@@ -92,6 +100,10 @@ async function assertPage(page) {
   const html = await readFile(path.join(dist, page.file), "utf8");
 
   assert.doesNotMatch(html, /<!--@partial:/, `${page.file} must have injected partials`);
+  for (const href of primaryNav) {
+    assert.ok(html.includes(`<a class="site-link" href="${href}">`), `${page.file} must expose ${href} in primary navigation`);
+  }
+  assert.doesNotMatch(html, /<a class="site-link" href="\/#/, `${page.file} primary navigation must not jump away to home-page anchors`);
 
   for (const mount of page.mounts) {
     assert.match(html, new RegExp(`id=["']${mount}["']`), `${page.file} must expose #${mount}`);
@@ -417,6 +429,7 @@ async function assertNoLeftEdgeBorders() {
   const styles = await readFile(path.join(dist, "src/local/styles.css"), "utf8");
   assert.doesNotMatch(styles, /\bborder-(?:left|inline-start)\b/, "built UI must not use left-edge borders");
   assert.doesNotMatch(styles, /box-shadow:[^;}]*\binset\s+[1-9]/, "built UI must not use left-edge inset shadows");
+  assert.equal((styles.match(/box-shadow:\s*var\(--shadow\)/g) || []).length, 4, "generic elevation must stay limited to floating status, loading, and menus");
 }
 
 for (const page of pages) await assertPage(page);
@@ -427,9 +440,10 @@ await assertTraceProductSurface();
 await assertSignalProductSurface();
 await assertContractProductSurface();
 await assertNoLeftEdgeBorders();
+await assertTextFloor();
 
 console.log(JSON.stringify({
-  passed: pages.length + 7,
+  passed: pages.length + 8,
   checks: [
     ...pages.map(page => `${page.file} shell and module scripts`),
     "built runtime modules import without benchmark barrels",
@@ -438,6 +452,7 @@ console.log(JSON.stringify({
     "built Trace UI ships format, record-set, evidence, export, accessibility, and worker-progress contracts",
     "built Signal landing and UI ship navigation, visualization, local analysis, routing, source-ledger, evidence, export-review, and worker-progress contracts",
     "built Contract Studio ships the five-stage local workflow, runtime review, export, share warning, accessibility, and responsive contracts",
-    "built UI contains no left-edge borders or inset accent bars",
+    "built UI keeps navigation direct and elevation limited to floating surfaces",
+    "built UI keeps every rem-based text declaration at or above 11px",
   ],
 }, null, 2));

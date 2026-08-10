@@ -244,7 +244,7 @@ const csv = serializeWithFormat(data, "csv");
             <li><code>totalRows</code>: number of rows checked.</li>
             <li><code>matchedRows</code>: rows that followed the majority rule.</li>
             <li><code>flaggedRows</code>: <code>{ index, input, expected, actual }</code> for rows that broke the pattern.</li>
-            <li><code>clusters</code>: up to three coherent alternative rules with their support and batch share. Equal splits are unverifiable and do not accuse individual rows.</li>
+            <li><code>clusters</code>: up to three coherent alternative rules with a result-local label, privacy-safe source-to-target signature, support, and batch share. Equal splits are unverifiable and do not accuse individual rows.</li>
             <li><code>unexplained</code>: bounded row indices not covered by the reported clusters.</li>
             <li><code>inference</code>: the bounded evidence strategy, maximum evidence rows, whether sampling occurred, and the number of rows fully validated.</li>
             <li><code>ruleStatus</code>: <code>safe</code>, <code>unverified</code>, <code>ambiguous</code>, <code>contradictory</code>, <code>unsafe</code>, or <code>insufficient</code>.</li>

@@ -37,6 +37,13 @@ function isMemorised(evaluated) {
   return (evaluated.result.rule?.memorisation?.maxRatio || 0) >= 1;
 }
 
+function isRowPermutation(evaluated) {
+  if (evaluated.flagged.length < 2) return false;
+  const predicted = evaluated.flagged.map(flag => stableStringify(flag.predicted)).sort();
+  const actual = evaluated.flagged.map(flag => stableStringify(flag.actual)).sort();
+  return deepEqual(predicted, actual);
+}
+
 function seededRandom(seed) {
   let state = seed || 0x51f15e;
   return () => {
@@ -82,7 +89,7 @@ function dominantRepeatedInputExamples(examples) {
 }
 
 function improves(candidate, best) {
-  if (candidate.result.status !== "safe" || isMemorised(candidate)) return false;
+  if (candidate.result.status !== "safe" || isMemorised(candidate) || isRowPermutation(candidate)) return false;
   return candidate.matched > best.matched || isMemorised(best)
     || candidate.matched === best.matched && best.result.status !== "safe";
 }
@@ -122,8 +129,11 @@ function clusterFrom(evaluated, examples, totalRows) {
   const flagged = new Set(evaluated.flagged.map(flag => flag.i));
   const supportedRows = examples.map(example => example.i).filter(index => !flagged.has(index));
   const operations = evaluated.result.rule?.program?.ops || [];
+  const primary = operations.find(op => op.op !== "set" || op.source !== op.target) || operations[0];
+  const sources = [...(primary?.sources || []), primary?.source].filter(Boolean);
   return {
-    rule: (operations.find(op => op.op !== "set" || op.source !== op.target) || operations[0])?.op || "unknown",
+    rule: primary?.op || "unknown",
+    signature: [sources.join(" + "), primary?.target].filter(Boolean).join(" → "),
     support: supportedRows.length,
     share: Number((supportedRows.length / totalRows).toFixed(4)),
     rowIndices: supportedRows,
@@ -166,7 +176,6 @@ export function inferVerifyRule(originalRows, transformedRows) {
   const shouldSearchForOutlierRule = !dominantReplayAlreadyFound && (
     ["unsafe", "ambiguous", "contradictory", "insufficient"].includes(fullResult.status)
     || fullResult.status === "unverified" && isMemorised(best)
-      && fullResult.rule?.memorisation?.memorisedTargets?.length === 1
     || best.flagged.length === originalRows.length
   );
   if (originalRows.length > 2 && originalRows.length <= 5000 && shouldSearchForOutlierRule) {
@@ -209,7 +218,13 @@ export function inferVerifyRule(originalRows, transformedRows) {
   return {
     ...best,
     ...(coherentSplit && !hasDominantCluster ? { verdict: "unverifiable" } : {}),
-    clusters: clustered.clusters.map(({ rule, support, share }) => ({ rule, support, share })),
+    clusters: clustered.clusters.map(({ rule, signature, support, share }, index) => ({
+      label: `Rule ${index + 1}`,
+      rule,
+      signature,
+      support,
+      share,
+    })),
     unexplained: clustered.unexplained,
     fullResult,
   };

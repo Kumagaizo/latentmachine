@@ -31,7 +31,7 @@ If installed globally:
 
 ## Tools
 
-- `verify_data_transformation`: returns `consistent`, `inconsistent`, or `unverifiable`. Deterministic consensus refits recover reusable majority rules and replay them against every supplied row; coherent alternatives are reported as bounded `clusters` with support and share. Equal splits remain `unverifiable` without accusing individual rows, and uncovered row indices are reported in capped `unexplained` diagnostics. Candidate inference uses at most 200 output-diverse examples, signed rules require evidence on both sides of zero, optional fields stay scoped to their source domain, and lookup table bodies are omitted.
+- `verify_data_transformation`: returns `consistent`, `inconsistent`, or `unverifiable`. Deterministic consensus refits recover reusable majority rules and replay them against every supplied row; coherent alternatives are reported as bounded `clusters` with result-local labels, privacy-safe path signatures, support, and share. Equal splits remain `unverifiable` without accusing individual rows, and uncovered row indices are reported in capped `unexplained` diagnostics. Candidate inference uses at most 200 output-diverse examples, signed rules require evidence on both sides of zero, optional fields stay scoped to their source domain, and lookup table bodies are omitted.
 - `infer_transformation_rule`: infers a symbolic rule from input/output examples.
 - `apply_transformation_rule`: applies a previously inferred rule to new input.
 - `detect_data_format`: detects JSON, CSV, YAML, TOML, XML, `.env`, SQL INSERT, or unknown data.
