@@ -256,7 +256,7 @@ async function assertRuntimeBehavior() {
   };
   const encodedState = await shareState.encodeShareState(selectedState);
   assert.deepEqual(await shareState.decodeShareState(encodedState), selectedState, "Trace share codec should restore full selected state");
-  const shareUrl = await shareState.shareUrlForState(selectedState, { href: "https://latentmachine.com/trace" });
+  const shareUrl = await shareState.shareUrlForState(selectedState, { href: "https://www.latentmachine.com/trace" });
   assert.deepEqual(await shareState.sharedStateFromLocation({ hash: new URL(shareUrl).hash }), selectedState, "Trace share URL should restore full selected state");
 
   const signalResult = signal.analyzeSignal({
@@ -351,7 +351,7 @@ async function assertSignalProductSurface() {
   const signalStyles = await readFile(path.join(dist, "src/local/styles.css"), "utf8");
   for (const contract of [
     '"name": "Signal"',
-    '"url": "https://latentmachine.com/signal"',
+    '"url": "https://www.latentmachine.com/signal"',
     '<section class="utilities-panel" id="labs"',
     '<section class="feature-row utility-feature">',
     '<div class="demo-window signal-preview">',

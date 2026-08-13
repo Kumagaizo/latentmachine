@@ -25,7 +25,7 @@ For clients that accept a remote MCP URL, add:
 {
   "mcpServers": {
     "latentmachine": {
-      "url": "https://latentmachine.com/api/mcp"
+      "url": "https://www.latentmachine.com/api/mcp"
     }
   }
 }
@@ -34,7 +34,7 @@ For clients that accept a remote MCP URL, add:
 For Claude Code when HTTP transport is enabled:
 
 ```bash
-claude mcp add --transport http latentmachine https://latentmachine.com/api/mcp
+claude mcp add --transport http latentmachine https://www.latentmachine.com/api/mcp
 ```
 
 For clients that read `.cursor/mcp.json`-style workspace files:
@@ -43,7 +43,7 @@ For clients that read `.cursor/mcp.json`-style workspace files:
 {
   "mcpServers": {
     "latentmachine": {
-      "url": "https://latentmachine.com/api/mcp"
+      "url": "https://www.latentmachine.com/api/mcp"
     }
   }
 }

@@ -4,12 +4,12 @@
     <!--@partial:head-commons-->
     <title>Developers | Latentmachine</title>
     <meta name="description" content="Bring deterministic verification into agent, repository, and CI workflows through Latentmachine's hosted MCP and HTTP endpoint." />
-    <link rel="canonical" href="https://latentmachine.com/developers" />
+    <link rel="canonical" href="https://www.latentmachine.com/developers" />
 
     <meta property="og:title" content="Developers | Latentmachine" />
     <meta property="og:description" content="Developer docs for Latentmachine's live MCP and HTTP endpoint, plus implemented npm package, local MCP server, and CLI release targets." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://latentmachine.com/developers" />
+    <meta property="og:url" content="https://www.latentmachine.com/developers" />
     <meta name="twitter:title" content="Developers | Latentmachine" />
     <meta name="twitter:description" content="Embed Latentmachine's verification engine through the live MCP and HTTP endpoint. npm and CLI release targets are documented." />
 
@@ -284,19 +284,19 @@ const csv = serializeWithFormat(data, "csv");
           <pre><code class="language-json">{
   "mcpServers": {
     "latentmachine": {
-      "url": "https://latentmachine.com/api/mcp"
+      "url": "https://www.latentmachine.com/api/mcp"
     }
   }
 }</code></pre>
 
           <p><strong>Claude Code</strong> when HTTP transport is enabled:</p>
-          <pre><code class="language-bash">claude mcp add --transport http latentmachine https://latentmachine.com/api/mcp</code></pre>
+          <pre><code class="language-bash">claude mcp add --transport http latentmachine https://www.latentmachine.com/api/mcp</code></pre>
 
           <p><strong>Workspace config</strong> for clients that read <code>.cursor/mcp.json</code>-style files:</p>
           <pre><code class="language-json">{
   "mcpServers": {
     "latentmachine": {
-      "url": "https://latentmachine.com/api/mcp"
+      "url": "https://www.latentmachine.com/api/mcp"
     }
   }
 }</code></pre>
@@ -423,17 +423,17 @@ npx @latentmachine/verify fingerprint before.json after.json</code></pre>
 
           <h2>HTTP API</h2>
           <p>
-            The MCP endpoint at <code>https://latentmachine.com/api/mcp</code> also works
+            The MCP endpoint at <code>https://www.latentmachine.com/api/mcp</code> also works
             as a standard JSON-RPC API. You can call it from any HTTP client.
           </p>
 
           <h3>List available tools</h3>
-          <pre><code class="language-bash">curl -X POST https://latentmachine.com/api/mcp \
+          <pre><code class="language-bash">curl -X POST https://www.latentmachine.com/api/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'</code></pre>
 
           <h3>Verify a batch</h3>
-          <pre><code class="language-bash">curl -X POST https://latentmachine.com/api/mcp \
+          <pre><code class="language-bash">curl -X POST https://www.latentmachine.com/api/mcp \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
@@ -449,7 +449,7 @@ npx @latentmachine/verify fingerprint before.json after.json</code></pre>
   }'</code></pre>
 
           <h3>Fingerprint data</h3>
-          <pre><code class="language-bash">curl -X POST https://latentmachine.com/api/mcp \
+          <pre><code class="language-bash">curl -X POST https://www.latentmachine.com/api/mcp \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
@@ -465,7 +465,7 @@ npx @latentmachine/verify fingerprint before.json after.json</code></pre>
   }'</code></pre>
 
           <h3>Server info</h3>
-          <pre><code class="language-bash">curl https://latentmachine.com/api/mcp</code></pre>
+          <pre><code class="language-bash">curl https://www.latentmachine.com/api/mcp</code></pre>
           <p>Returns the server name, version, and list of available tool names.</p>
 
           <hr class="divider" />

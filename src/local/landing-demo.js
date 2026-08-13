@@ -111,41 +111,33 @@ function showFinalState(parts, ruleText) {
 }
 
 async function animateDemo(parts, ruleText, signal) {
-  while (!signal.cancelled) {
-    parts.inputEl.textContent = "";
-    parts.outputEl.textContent = "";
-    parts.ruleEl.textContent = "";
-    parts.inputEl.classList.remove("is-writing");
-    parts.outputEl.classList.remove("is-writing");
-    parts.ruleEl.classList.remove("is-writing");
-    parts.ruleBox.classList.remove("is-revealed");
-    setStatus(parts.statusEl, "checking examples", "pending");
+  parts.inputEl.textContent = "";
+  parts.outputEl.textContent = "";
+  parts.ruleEl.textContent = "";
+  parts.ruleBox.classList.remove("is-revealed");
+  setStatus(parts.statusEl, "checking examples", "pending");
 
-    for (let index = 0; index < examples.length; index += 1) {
-      const exampleNumber = index + 1;
-      parts.inputLabel.textContent = `original record ${exampleNumber}`;
-      parts.outputLabel.textContent = `AI output ${exampleNumber}`;
-      parts.hintEl.textContent = `Writing example ${exampleNumber} of ${examples.length}: original record...`;
-      await typeText(parts.inputEl, pretty(examples[index].input), signal);
-      if (signal.cancelled) return;
-      await wait(180);
-
-      parts.hintEl.textContent = `Writing example ${exampleNumber} of ${examples.length}: AI output...`;
-      await typeText(parts.outputEl, pretty(examples[index].output), signal);
-      if (signal.cancelled) return;
-      await wait(420);
-    }
-
-    parts.hintEl.textContent = "Inferring the deterministic rule from the examples...";
-    parts.ruleBox.classList.add("is-revealed");
-    await typeText(parts.ruleEl, ruleText, signal);
+  for (let index = 0; index < examples.length; index += 1) {
+    const exampleNumber = index + 1;
+    parts.inputLabel.textContent = `original record ${exampleNumber}`;
+    parts.outputLabel.textContent = `AI output ${exampleNumber}`;
+    parts.hintEl.textContent = `Writing example ${exampleNumber} of ${examples.length}: original record...`;
+    await typeText(parts.inputEl, pretty(examples[index].input), signal);
     if (signal.cancelled) return;
+    await wait(180);
 
-    await wait(260);
-    setStatus(parts.statusEl, "Rule verified", "safe");
-    parts.hintEl.textContent = `${examples.length} example rows checked. No drift found.`;
-    await wait(3200);
+    parts.hintEl.textContent = `Writing example ${exampleNumber} of ${examples.length}: AI output...`;
+    await typeText(parts.outputEl, pretty(examples[index].output), signal);
+    if (signal.cancelled) return;
+    await wait(420);
   }
+
+  parts.hintEl.textContent = "Inferring the deterministic rule from the examples...";
+  parts.ruleBox.classList.add("is-revealed");
+  await typeText(parts.ruleEl, ruleText, signal);
+  if (signal.cancelled) return;
+  await wait(260);
+  showFinalState(parts, ruleText);
 }
 
 function initializeLandingDemo() {

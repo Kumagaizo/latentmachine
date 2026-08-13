@@ -2,7 +2,7 @@
 
 **Deterministic tools for understanding, transforming, and verifying data.**
 
-[Try the browser tools](https://latentmachine.com/) · [Read the case study](https://latentmachine.com/case-study) · [Developer guide](https://latentmachine.com/developers)
+[Try the browser tools](https://www.latentmachine.com/) · [Read the case study](https://www.latentmachine.com/case-study) · [Developer guide](https://www.latentmachine.com/developers)
 
 Latentmachine turns data evidence into inspectable, deterministic artifacts: transformation rules from examples, consistency checks across batches, structural profiles for datasets, and source-linked attention observations for long text. The engine runs locally: no model call, account, or server-side data processing is required for the core workflow.
 
@@ -144,7 +144,7 @@ Bug reports, difficult transformation examples, design feedback, and focused pul
 
 ## Built by
 
-Latentmachine is designed and built by [Sandro Vogel](https://www.sandrovogel.de/), a Berlin-based AI product designer and creative developer. If the project helps your work, a link to [latentmachine.com](https://latentmachine.com/) or a citation using [CITATION.cff](CITATION.cff) is appreciated.
+Latentmachine is designed and built by [Sandro Vogel](https://www.sandrovogel.de/), a Berlin-based AI product designer and creative developer. If the project helps your work, a link to [latentmachine.com](https://www.latentmachine.com/) or a citation using [CITATION.cff](CITATION.cff) is appreciated.
 
 ## License
 

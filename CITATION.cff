@@ -9,7 +9,7 @@ authors:
 type: software
 license: MIT
 repository-code: "https://github.com/kumagaizo/latentmachine"
-url: "https://latentmachine.com/"
+url: "https://www.latentmachine.com/"
 keywords:
   - deterministic AI
   - program synthesis

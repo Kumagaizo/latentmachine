@@ -41,7 +41,7 @@ const browserScriptEntries = [
   "src/local/theme-boot.js",
 ];
 
-const canonicalOrigin = "https://latentmachine.com";
+const canonicalOrigin = "https://www.latentmachine.com";
 // M6 adds the complete local Contract Studio and deterministic contract runtime.
 const artifactBudgets = {
   rawBytes: 2_900_000,
@@ -405,8 +405,8 @@ async function assertDistSeo() {
   await assertFile("dist/sitemap.xml");
 
   const robots = await readFile(path.join(root, "dist", "robots.txt"), "utf8");
-  assert.match(robots, /^Sitemap: https:\/\/latentmachine\.com\/sitemap\.xml$/m, "robots.txt must point at the canonical sitemap host");
-  assert.doesNotMatch(robots, /https:\/\/www\.latentmachine\.com/i, "robots.txt must not advertise the www host");
+  assert.match(robots, /^Sitemap: https:\/\/www\.latentmachine\.com\/sitemap\.xml$/m, "robots.txt must point at the canonical sitemap host");
+  assert.doesNotMatch(robots, /https:\/\/latentmachine\.com/i, "robots.txt must not advertise the redirecting apex host");
 
   const sitemap = await readFile(path.join(root, "dist", "sitemap.xml"), "utf8");
   const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => match[1]);
@@ -456,8 +456,8 @@ async function assertDistChromePolish() {
     }
 
     if (ogPngExists) {
-      assert.match(html, /<meta\s+property=["']og:image["']\s+content=["']https:\/\/latentmachine\.com\/og\.png["']/i, `${normalized} must advertise og.png when the asset exists`);
-      assert.match(html, /<meta\s+name=["']twitter:image["']\s+content=["']https:\/\/latentmachine\.com\/og\.png["']/i, `${normalized} must advertise twitter:image when og.png exists`);
+      assert.match(html, /<meta\s+property=["']og:image["']\s+content=["']https:\/\/www\.latentmachine\.com\/og\.png["']/i, `${normalized} must advertise og.png when the asset exists`);
+      assert.match(html, /<meta\s+name=["']twitter:image["']\s+content=["']https:\/\/www\.latentmachine\.com\/og\.png["']/i, `${normalized} must advertise twitter:image when og.png exists`);
     } else {
       assert.doesNotMatch(html, /<(?:meta)\s+(?:property|name)=["'](?:og:image|twitter:image)["']/i, `${normalized} must not advertise a missing social image`);
     }

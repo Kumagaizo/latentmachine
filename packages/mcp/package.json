@@ -43,7 +43,7 @@
   "bugs": {
     "url": "https://github.com/kumagaizo/latentmachine/issues"
   },
-  "homepage": "https://latentmachine.com/developers",
+  "homepage": "https://www.latentmachine.com/developers",
   "scripts": {
     "smoke": "node test/smoke.js"
   }

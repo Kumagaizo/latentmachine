@@ -29,7 +29,7 @@ const cases = [
         'id="contract"',
         "Loading Contract Studio",
         "/src/local/contract.js",
-        "https://latentmachine.com/contract",
+        "https://www.latentmachine.com/contract",
         "Nothing is sent to a server",
       ]) {
         assert.ok(page.includes(expected), `contract.html must include ${expected}`);

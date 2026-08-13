@@ -56,7 +56,7 @@
   "bugs": {
     "url": "https://github.com/kumagaizo/latentmachine/issues"
   },
-  "homepage": "https://latentmachine.com/developers",
+  "homepage": "https://www.latentmachine.com/developers",
   "scripts": {
     "test": "node test/verify.test.js && node test/memorisation.test.js && node test/rule-demotion.test.js && node test/consensus-refit.test.js && node test/signed-arithmetic.test.js && node test/sparse-fields.test.js && node test/wide-erp.test.js && node test/infer.test.js && node test/transform.test.js && node test/formats.test.js && node test/fingerprint.test.js && node test/contracts.test.js && node test/cli-contracts.test.js",
     "prepare:publish": "node scripts/prepare-publish.mjs",

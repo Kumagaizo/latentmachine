@@ -18,7 +18,7 @@
   "bugs": {
     "url": "https://github.com/kumagaizo/latentmachine/issues"
   },
-  "homepage": "https://latentmachine.com",
+  "homepage": "https://www.latentmachine.com",
   "workspaces": [
     "packages/*"
   ],

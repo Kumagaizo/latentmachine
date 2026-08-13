@@ -4,11 +4,11 @@
     <!--@partial:head-commons-->
     <title>Latentmachine | Verify AI Data Transformations</title>
     <meta name="description" content="Did the AI get every row right? Latentmachine checks AI data transformations for consistency, infers deterministic rules from examples, and flags the rows that broke the pattern. No LLM. Runs in your browser." />
-    <link rel="canonical" href="https://latentmachine.com/" />
+    <link rel="canonical" href="https://www.latentmachine.com/" />
     <meta property="og:title" content="Latentmachine | Verify AI Data Transformations" />
     <meta property="og:description" content="Check whether the AI got every row right. Deterministic verification for AI-generated data transformations." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://latentmachine.com/" />
+    <meta property="og:url" content="https://www.latentmachine.com/" />
     <meta name="twitter:title" content="Latentmachine | Verify AI Data Transformations" />
     <meta name="twitter:description" content="Paste original records and AI output. Latentmachine checks every row for consistency. No LLM. Browser-based." />
     <script type="application/ld+json">
@@ -16,7 +16,7 @@
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "Latentmachine",
-        "url": "https://latentmachine.com/",
+        "url": "https://www.latentmachine.com/",
         "applicationCategory": "DeveloperApplication",
         "operatingSystem": "Web browser",
         "description": "A browser-based toolkit that verifies AI data transformations, infers deterministic rules, and profiles structured datasets for actionable insights.",
@@ -48,7 +48,7 @@
             "item": {
               "@type": "SoftwareApplication",
               "name": "Verify",
-              "url": "https://latentmachine.com/verify",
+              "url": "https://www.latentmachine.com/verify",
               "description": "Verify that AI-transformed records follow one consistent data transformation rule."
             }
           },
@@ -58,7 +58,7 @@
             "item": {
               "@type": "SoftwareApplication",
               "name": "Infer",
-              "url": "https://latentmachine.com/infer",
+              "url": "https://www.latentmachine.com/infer",
               "description": "Infer deterministic data transformation rules from structured data examples."
             }
           },
@@ -68,7 +68,7 @@
             "item": {
               "@type": "SoftwareApplication",
               "name": "Regex Builder",
-              "url": "https://latentmachine.com/regex",
+              "url": "https://www.latentmachine.com/regex",
               "description": "Build a regular expression from match and reject examples."
             }
           },
@@ -78,7 +78,7 @@
             "item": {
               "@type": "SoftwareApplication",
               "name": "jq Builder",
-              "url": "https://latentmachine.com/jq",
+              "url": "https://www.latentmachine.com/jq",
               "description": "Build jq expressions by clicking JSON values or showing the desired output shape."
             }
           },
@@ -88,7 +88,7 @@
             "item": {
               "@type": "SoftwareApplication",
               "name": "Trace",
-              "url": "https://latentmachine.com/trace",
+              "url": "https://www.latentmachine.com/trace",
               "description": "Profile structured data, find missing or unusual values, and compare datasets with evidence linked to the original records."
             }
           },
@@ -98,7 +98,7 @@
             "item": {
               "@type": "SoftwareApplication",
               "name": "Signal",
-              "url": "https://latentmachine.com/signal",
+              "url": "https://www.latentmachine.com/signal",
               "description": "Inspect logs, reports, and specifications for repeated structures, local pattern breaks, concrete constraints, exceptions, failures, and warnings."
             }
           }
@@ -114,7 +114,7 @@
             "@type": "ListItem",
             "position": 1,
             "name": "Latentmachine",
-            "item": "https://latentmachine.com/"
+            "item": "https://www.latentmachine.com/"
           }
         ]
       }
@@ -215,7 +215,7 @@ Every shown output follows the same rule.</code>
               <p>Paste the original records and what the AI gave you back. Verify infers the majority rule, applies it across the batch, and flags every row that doesn't match.</p>
               <div class="feature-actions">
                 <a class="button is-primary" href="/verify">Open Verify →</a>
-                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="verify-eli5">ELI5 ↓</button>
+                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="verify-eli5">Explain simply ↓</button>
               </div>
               <p class="feature-eli5-text" id="verify-eli5" aria-hidden="true">Say you gave an AI 200 customer records to clean up. On most rows it did the same things: lowercased the email, split the name into two fields, turned "yes" into true. Verify reads all 200 before-and-after pairs and works out that pattern, which is the rule the AI was apparently following. Then it re-checks every row against it. Row 137 says "TRUE" instead of true? Flagged. Instead of proofreading 200 rows, you look at the 3 that broke the pattern and you can read the rule to see what the AI actually did.</p>
             </div>
@@ -266,7 +266,7 @@ Rows 1–2 map active → true. Row 3 needs review.</code>
               <p>Correct the inconsistent examples, then let Infer derive a reusable transformation, verify it against your evidence, and export code you can inspect and own.</p>
               <div class="feature-actions">
                 <a class="button is-primary" href="/infer">Open Infer →</a>
-                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="infer-eli5">ELI5 ↓</button>
+                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="infer-eli5">Explain simply ↓</button>
               </div>
               <p class="feature-eli5-text" id="infer-eli5" aria-hidden="true">Say a webhook sends data in one shape and your database needs another. Instead of writing the conversion code, you paste one example of each: this is what arrives, this is what it should become. Infer compares the two and works out the exact steps that turn one into the other. Rename this field, join those two, turn that string into a number. It lists the steps so you can check them, says so when one example isn't enough to be certain, and hands you finished code that runs anywhere. You showed it what you meant and it wrote the function.</p>
             </div>
@@ -322,7 +322,7 @@ Join first and last into fullName.</code>
               <p>Mark strings that should match and strings that should reject. Regex returns a readable pattern verified against every example, or asks for one more when the pattern is under-proven.</p>
               <div class="feature-actions">
                 <a class="button" href="/regex">Open Regex &rarr;</a>
-                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="regex-eli5">ELI5 ↓</button>
+                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="regex-eli5">Explain simply ↓</button>
               </div>
               <p class="feature-eli5-text" id="regex-eli5" aria-hidden="true">A regex is a search pattern that describes the shape of text "two letters, a dash, then numbers" in a notation almost nobody can write from memory. Here you skip the notation. Paste examples that should match (AB-2041, XY-100) and examples that shouldn't (AB2041, ab-99). The engine works out what separates the two piles and writes the pattern for you. Then tests it against every example you gave. If your examples leave two interpretations open, it doesn't guess; it tells you and asks for one more.</p>
             </div>
@@ -364,7 +364,7 @@ Join first and last into fullName.</code>
               <p>Click the values you want, or show the shape you need. jq Builder writes the expression, guaranteed to return exactly that, and explains it in plain English.</p>
               <div class="feature-actions">
                 <a class="button" href="/jq">Open jq &rarr;</a>
-                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="jq-eli5">ELI5 ↓</button>
+                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="jq-eli5">Explain simply ↓</button>
               </div>
               <p class="feature-eli5-text" id="jq-eli5" aria-hidden="true">jq is a small language for pulling values out of JSON, the format most APIs speak. Powerful, but the syntax is its own little learning project. The builder skips it. Paste your JSON and click the values you want: the email buried three levels deep, the price inside a list. The engine writes the jq expression that returns exactly what you clicked from this file or any file shaped the same. You get the expression, a plain-English line saying what it does, and proof it returns what you picked.</p>
             </div>
@@ -407,7 +407,7 @@ Join first and last into fullName.</code>
               <p>Paste or import structured data. Trace profiles every field, surfaces missing, unusual, or repeated values, and compares datasets by safe keys. It runs locally and without an LLM.</p>
               <div class="feature-actions">
                 <a class="button" href="/trace">Open Trace &rarr;</a>
-                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="trace-eli5">ELI5 ↓</button>
+                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="trace-eli5">Explain simply ↓</button>
               </div>
               <p class="feature-eli5-text" id="trace-eli5" aria-hidden="true">Imagine opening a spreadsheet from someone else with thousands of rows and no explanation. Trace gives it a careful first look: what each column contains, which values are missing, what looks unusual, and whether two versions changed. It does not decide whether the data is good or bad. It shows the evidence and points you to the exact fields and records worth checking. Everything stays in your browser.</p>
             </div>
@@ -479,7 +479,7 @@ Join first and last into fullName.</code>
               <p>Paste a long log, migration report, or technical specification. Signal groups recurring structures, reveals local pattern breaks and concrete constraints, and explains every observation against its source line.</p>
               <div class="feature-actions">
                 <a class="button" href="/signal">Open Signal &rarr;</a>
-                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="signal-eli5">ELI5 ↓</button>
+                <button class="button is-subtle feature-eli5-toggle" type="button" aria-expanded="false" aria-controls="signal-eli5">Explain simply ↓</button>
               </div>
               <p class="feature-eli5-text" id="signal-eli5" aria-hidden="true">Imagine a 5,000-line pipeline log where almost every line says a job completed. Signal learns that recurring shape, notices when the local sequence changes, and points to the rollback line with a plain explanation. In a specification it can point out “must not,” thresholds, and exceptions instead. It does not decide what matters or remove the rest. It helps you decide where to look.</p>
             </div>

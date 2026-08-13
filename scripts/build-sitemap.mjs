@@ -1,7 +1,7 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const DEFAULT_SITE_URL = "https://latentmachine.com";
+const DEFAULT_SITE_URL = "https://www.latentmachine.com";
 
 function siteUrl() {
   return String(process.env.SITE_URL || DEFAULT_SITE_URL)

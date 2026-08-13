@@ -1,7 +1,7 @@
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const SITE_URL = "https://latentmachine.com";
+const SITE_URL = "https://www.latentmachine.com";
 let partials = new Map();
 
 export async function build(root, outDir) {
