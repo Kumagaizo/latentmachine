@@ -1120,7 +1120,7 @@ export function createRenderHelpers({
     const isOpen = !!state.openDetails.inspect;
     const open = isOpen ? "open" : "";
     return `<details class="inspect-details" data-detail="inspect" ${open}>
-      <summary>Inspect</summary>
+      <summary>Review details</summary>
       <div class="details-row">
         ${evidenceDetails(result)}
         ${explanationDetails(result)}
@@ -1242,10 +1242,11 @@ export function createRenderHelpers({
       ${isProcessing ? "" : outputPreview(evaluation)}
   
       ${result ? `<div class="rule-section">
-        <div class="section-label">Diagnosis</div>
+        <div class="section-label">Rule</div>
         <p>${esc(ruleSummary(result))}</p>
         ${ruleSpecificationHtml(result, batchSpecIssues(evaluation.batchResults))}
         ${ambiguityPreview(result)}
+        ${evidenceSummaryHtml(result)}
       </div>` : ""}
   
       ${isProcessing ? "" : batchIssuesDetails(evaluation)}
@@ -1283,10 +1284,11 @@ export function createRenderHelpers({
       ${needsAttention ? issueNote : ""}
   
       <div class="rule-section">
-        <div class="section-label">${result ? "Diagnosis" : analysis ? "Input" : "Rule"}</div>
+        <div class="section-label">${result ? "Rule" : analysis ? "Input" : "Rule"}</div>
         <p>${esc(analysis ? "Parsed structure." : ruleSummary(result))}</p>
         ${result ? ruleSpecificationHtml(result) : analysis ? inputAnalysisHtml(analysis) : `<div class="rule-lines">${ruleLines(result)}</div>`}
         ${ambiguityPreview(result)}
+        ${result ? evidenceSummaryHtml(result) : ""}
       </div>
       ${needsAttention && result ? diagnosisSummaryHtml(result, meta) : ""}
       ${learningNoticeHtml(result)}

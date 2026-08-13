@@ -1738,9 +1738,11 @@ select.format-chip option,
 
 .rule-section {
   display: grid;
-  gap: 10px;
-  border-top: 1px dashed var(--border);
-  padding-top: 16px;
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 18px;
 }
 
 .rule-section p {
@@ -1755,7 +1757,7 @@ select.format-chip option,
 
 .rule-lines {
   display: grid;
-  gap: 8px;
+  gap: 0;
 }
 
 .rule-lines p,
@@ -1767,13 +1769,15 @@ select.format-chip option,
 }
 
 .reasoning-line {
+  border-top: 1px solid var(--border);
+  padding: 10px 2px;
   animation: rule-line-in 220ms ease-out both;
 }
 
 .rule-spec {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px 24px;
+  gap: 12px;
 }
 
 .rule-spec.is-analysis {
@@ -1798,7 +1802,7 @@ select.format-chip option,
   gap: 10px;
   align-items: baseline;
   border-top: 1px solid var(--border);
-  padding-top: 9px;
+  padding: 10px 2px 1px;
 }
 
 .spec-row.is-compact {
@@ -1865,7 +1869,7 @@ select.format-chip option,
 .spec-issue {
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 3px 6px;
+  padding: 4px 7px;
   font-size: 0.6875rem;
   line-height: 1;
   white-space: nowrap;
@@ -1912,7 +1916,7 @@ select.format-chip option,
 .evidence-summary {
   display: grid;
   gap: 10px;
-  border-top: 1px dashed var(--border);
+  border-top: 1px solid var(--border);
   padding-top: 16px;
 }
 
@@ -2152,7 +2156,9 @@ select.format-chip option,
 .details-row {
   flex-direction: column;
   align-items: stretch;
-  gap: 8px;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
 }
 
 .inspect-details {
@@ -2167,7 +2173,7 @@ select.format-chip option,
 }
 
 .inspect-details[open] > summary {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   color: var(--text-primary);
 }
 
@@ -2184,7 +2190,7 @@ select.format-chip option,
 .detail-body {
   display: grid;
   gap: 8px;
-  padding: 8px 0 0 16px;
+  padding: 10px 0 12px 16px;
 }
 
 .detail-item span {
