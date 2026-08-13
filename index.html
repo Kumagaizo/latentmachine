@@ -223,39 +223,31 @@ Every shown output follows the same rule.</code>
               <div class="demo-window">
                 <div class="demo-bar">
                   <span>Verify</span>
-                  <span>batch verification</span>
+                  <span class="demo-status is-danger">Inconsistent</span>
                 </div>
-                <div class="demo-rows">
-                  <div class="demo-row">
-                    <span class="demo-row-index">row 1</span>
-                    <code>status → active</code>
-                    <span class="demo-status">follows</span>
+                <div class="demo-grid">
+                  <div class="demo-panel">
+                    <p>Original records · JSON</p>
+                    <pre>[
+  { "id": 1, "status": "active" },
+  { "id": 2, "status": "active" },
+  { "id": 3, "status": "archived" }
+]</pre>
                   </div>
-                  <div class="demo-row">
-                    <span class="demo-row-index">row 2</span>
-                    <code>status → active</code>
-                    <span class="demo-status">follows</span>
-                  </div>
-                  <div class="demo-row">
-                    <span class="demo-row-index">row 3</span>
-                    <code>status → active</code>
-                    <span class="demo-status">follows</span>
-                  </div>
-                  <div class="demo-row is-danger">
-                    <span class="demo-row-index">row 4</span>
-                    <code>status → archived</code>
-                    <span class="demo-status is-danger">review</span>
-                  </div>
-                  <div class="demo-row">
-                    <span class="demo-row-index">row 5</span>
-                    <code>status → active</code>
-                    <span class="demo-status">follows</span>
+                  <div class="demo-panel">
+                    <p>AI output · JSON</p>
+                    <pre>[
+  { "id": 1, "enabled": true },
+  { "id": 2, "enabled": true },
+  { "id": 3, "enabled": true }
+]</pre>
                   </div>
                 </div>
                 <div class="demo-rule">
-                  <span>verdict</span>
-                  <code>majority rule held for 4 of 5 rows</code>
-                  <span class="demo-status is-danger">1 needs attention</span>
+                  <span>Verdict</span>
+                  <code>Inconsistent — 1 of 3 rows does not follow the rule.
+Rows 1–2 map active → true. Row 3 needs review.</code>
+                  <span class="demo-status is-danger">1 row flagged</span>
                 </div>
               </div>
             </div>
@@ -276,31 +268,29 @@ Every shown output follows the same rule.</code>
               <div class="demo-window">
                 <div class="demo-bar">
                   <span>Infer</span>
-                  <span>example pair accepted</span>
+                  <span class="demo-status">Safe</span>
                 </div>
                 <div class="demo-grid">
                   <div class="demo-panel">
-                    <p>before</p>
-                    <pre>{
-  "id": "cus_42",
-  "first": "Ada",
-  "last": "Lovelace"
-}</pre>
+                    <p>Input · 2 records</p>
+                    <pre>[
+  { "id": "cus_42", "first": "Ada", "last": "Lovelace" },
+  { "id": "cus_71", "first": "Grace", "last": "Hopper" }
+]</pre>
                   </div>
                   <div class="demo-panel">
-                    <p>after</p>
-                    <pre>{
-  "customerId": "cus_42",
-  "fullName": "Ada Lovelace"
-}</pre>
+                    <p>Expected output · 2 records</p>
+                    <pre>[
+  { "customerId": "cus_42", "fullName": "Ada Lovelace" },
+  { "customerId": "cus_71", "fullName": "Grace Hopper" }
+]</pre>
                   </div>
                 </div>
                 <div class="demo-rule">
-                  <span>inferred rule</span>
-                  <code>rename id → customerId
-join first + last → fullName
-emit owned JavaScript transform</code>
-                  <span class="demo-status">safe · exportable</span>
+                  <span>Rule</span>
+                  <code>Set customerId from id.
+Join first and last into fullName.</code>
+                  <span class="demo-status">Exact fit · 2 steps</span>
                 </div>
               </div>
             </div>

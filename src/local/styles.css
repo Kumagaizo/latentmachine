@@ -428,20 +428,18 @@ a {
 
 .site-link {
   border-radius: 999px;
-  color: var(--text-secondary);
+  color: var(--text-primary);
+  opacity: 0.58;
   padding: 8px 10px;
   font-size: 0.78rem;
   text-decoration: none;
+  transition: opacity 160ms ease;
 }
 
 .site-link:hover,
+.site-link:focus-visible,
 .site-link[aria-current="page"] {
-  color: var(--text-primary);
-}
-
-.site-link[aria-current="page"] {
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  opacity: 1;
 }
 
 .hero {
@@ -2753,7 +2751,7 @@ select.format-chip option,
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1px;
-  background: var(--border);
+  background: var(--editor-border);
 }
 
 .landing .demo-panel {
@@ -2762,7 +2760,7 @@ select.format-chip option,
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 12px;
-  background: var(--surface);
+  background: var(--editor-bg);
   padding: 18px;
 }
 
@@ -2773,6 +2771,8 @@ select.format-chip option,
   font-size: 0.6875rem;
   text-transform: uppercase;
 }
+
+.landing .demo-panel p { color: var(--editor-muted); }
 
 .landing .demo-panel pre,
 .landing .demo-rule code {
@@ -2787,6 +2787,8 @@ select.format-chip option,
   white-space: pre-wrap;
 }
 
+.landing .demo-panel pre { color: var(--editor-text); }
+
 .landing .demo-rule {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -2794,6 +2796,9 @@ select.format-chip option,
   border-top: 1px solid var(--border);
   background: var(--surface-soft);
   padding: 18px;
+}
+
+.landing #landing-demo .demo-rule {
   opacity: 0.74;
   transform: translateY(3px);
   transition: opacity 240ms ease, transform 240ms ease;
