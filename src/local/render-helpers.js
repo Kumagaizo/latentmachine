@@ -1,4 +1,4 @@
-import { FORMAT_ORDER, FORMATS, OUTPUT_FORMAT_ORDER, parseWithFormat, serializeWithFormat } from "../intelligence/data-formats/index.js";
+import { FORMAT_ORDER, FORMATS, OUTPUT_FORMAT_ORDER, serializeWithFormat } from "../intelligence/data-formats/index.js";
 import { explainOp } from "../intelligence/json-transform/explain.js";
 import { JSON_TRANSFORM_SAMPLE_GROUPS, JSON_TRANSFORM_SAMPLES } from "../intelligence/json-transform/samples.js";
 import { opSources } from "../intelligence/json-transform/shared.js";

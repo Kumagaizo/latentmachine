@@ -16,7 +16,28 @@ export function formatPath(path = []) {
 const UNSAFE_PATH_KEYS = new Set(["__proto__", "prototype", "constructor"]);
 const PATH_CACHE_LIMIT = 2048;
 const PATH_CACHE = new Map([["$", Object.freeze([])]]);
-const PATH_TOKEN_PATTERN = /\.([A-Za-z_$][\w$]*)|\[(\d+|".*?"|'.*?')\]/g;
+const PATH_TOKEN_PATTERN = /\.([A-Za-z_$][\w$]*)|\[(?:(\d+)|("(?:[^"\\]|\\.)*")|('(?:[^'\\]|\\.)*'))\]/y;
+
+function parseQuotedPathPart(token) {
+  if (token.startsWith('"')) return JSON.parse(token);
+
+  const inner = token.slice(1, -1);
+  let json = '"';
+  for (let index = 0; index < inner.length; index += 1) {
+    const char = inner[index];
+    if (char === '"') {
+      json += '\\"';
+      continue;
+    }
+    if (char === "\\" && inner[index + 1] === "'") {
+      json += "'";
+      index += 1;
+      continue;
+    }
+    json += char;
+  }
+  return JSON.parse(`${json}"`);
+}
 
 function assertSafePathParts(parts, path) {
   for (const part of parts) {
@@ -27,15 +48,24 @@ function assertSafePathParts(parts, path) {
 }
 
 export function parsePath(path = "$") {
+  if (typeof path !== "string" || !path.startsWith("$")) {
+    throw new Error(`Invalid object path ${JSON.stringify(path)}. Paths must start with $.`);
+  }
   const cached = PATH_CACHE.get(path);
   if (cached) return cached;
   const parts = [];
-  PATH_TOKEN_PATTERN.lastIndex = 0;
-  let match;
-  while ((match = PATH_TOKEN_PATTERN.exec(path))) {
+  let cursor = 1;
+  while (cursor < path.length) {
+    PATH_TOKEN_PATTERN.lastIndex = cursor;
+    const match = PATH_TOKEN_PATTERN.exec(path);
+    if (!match) throw new Error(`Invalid object path ${JSON.stringify(path)} at position ${cursor}.`);
     if (match[1]) parts.push(match[1]);
-    else if (/^\d+$/.test(match[2])) parts.push(Number(match[2]));
-    else parts.push(JSON.parse(match[2].replace(/^'/, "\"").replace(/'$/, "\"")));
+    else if (match[2]) {
+      const index = Number(match[2]);
+      if (!Number.isSafeInteger(index)) throw new Error(`Invalid array index in object path ${JSON.stringify(path)}.`);
+      parts.push(index);
+    } else parts.push(parseQuotedPathPart(match[3] || match[4]));
+    cursor = PATH_TOKEN_PATTERN.lastIndex;
   }
   assertSafePathParts(parts, path);
   const frozen = Object.freeze(parts);

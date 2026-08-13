@@ -1,10 +1,7 @@
 import { assertSafeObjectKey } from "./safety.js";
+import { normalizeLineEndings } from "./shared.js";
 
 const DATETIME_RE = /^\d{4}-\d{2}-\d{2}(?:[Tt ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[-+]\d{2}:?\d{2})?)?$/;
-
-function normalizeLineEndings(text) {
-  return String(text ?? "").replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-}
 
 function tomlError(message, line) {
   return new Error(line ? `line ${line}: ${message}` : message);

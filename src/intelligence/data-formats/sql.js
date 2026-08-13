@@ -1,8 +1,5 @@
 import { assertSafeObjectKey } from "./safety.js";
-
-function normalizeLineEndings(text) {
-  return String(text ?? "").replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-}
+import { normalizeLineEndings } from "./shared.js";
 
 export const SQL_DEFAULT_LIMITS = {
   maxCharacters: 2 * 1024 * 1024,

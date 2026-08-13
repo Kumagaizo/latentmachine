@@ -294,6 +294,19 @@ let inferredRule;
 }
 
 {
+  const result = handleFingerprint({
+    data: '[{"id":9007199254740993,"name":"admin","caf\u00e9":1}]',
+    compare_to: '[{"id":9007199254740992,"name":"ad\u200bmin","cafe\u0301":1}]',
+  });
+  assert.equal(result.precision.unsafeIntegerLiterals, 2);
+  assert.deepEqual(result.precision.paths, ["$[0].id", "$[0].id"]);
+  assert.equal(result.changed.items.find(item => item.path === "$[0].name").renderHazard, "invisible-character");
+  assert.ok(result.added.items.some(item => item.renderHazard === "unicode-normalization"));
+  assert.ok(result.removed.items.some(item => item.renderHazard === "unicode-normalization"));
+  console.log("OK MCP fingerprint precision and render hazards");
+}
+
+{
   const left = Array.from({ length: 105 }, (_, index) => index);
   const right = Array.from({ length: 105 }, (_, index) => index + 1000);
   const result = handleFingerprint({ data: JSON.stringify(left), compare_to: JSON.stringify(right) });

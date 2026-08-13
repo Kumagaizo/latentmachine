@@ -1,4 +1,4 @@
-import { canonicalize, fingerprint, formatPath, profileStructure } from "./engine.js";
+import { canonicalize, fingerprint, profileStructure } from "./engine.js";
 import {
   categoricalStatistics,
   numericStatistics,

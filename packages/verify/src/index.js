@@ -9,6 +9,8 @@ export { transform } from "./transform.js";
 export * from "./contracts.js";
 export { canonicalize, fingerprint, formatPath, profileStructure, structuralDiff } from "./fingerprint.js";
 export { SECURITY_LIMITS, assertArrayLimit, assertSerializedLimit, assertTextLimit } from "./limits.js";
+export { inspectJsonPrecision } from "./precision.js";
+export { annotateStructuralDiffHazards } from "./render-hazards.js";
 export {
   detectFormat,
   formatLabel,

@@ -43,6 +43,9 @@ export function verify({ original, transformed, format = "auto", legacyVerdict =
 
   const result = inferVerifyRule(originalRows, transformedRows);
   const memorisation = result.result?.rule?.memorisation || result.result?.memorisation || null;
+  const absorbedIntoLookup = memorisation?.maxRatio >= 1
+    ? [...new Set((memorisation.nearFits || []).flatMap(item => item.contradictingRows || []))].sort((a, b) => a - b)
+    : [];
   const unverifiableTargets = memorisation?.unverifiableTargets || memorisation?.memorisedTargets || [];
   const hasUnverifiableTargets = unverifiableTargets.length > 0;
   const actualVerdict = result.verdict || (result.flagged.length > 0
@@ -66,6 +69,8 @@ export function verify({ original, transformed, format = "auto", legacyVerdict =
     matchedRows: result.matched,
     clusters: result.clusters || [],
     unexplained: result.unexplained || [],
+    clusteringSkipped: !Array.isArray(result.unexplained),
+    absorbedIntoLookup,
     flaggedRows: result.flagged.map((flag) => ({
       index: flag.i,
       input: flag.input,
@@ -80,7 +85,9 @@ export function verify({ original, transformed, format = "auto", legacyVerdict =
     summary: actualVerdict === "unverifiable"
       ? result.clusters?.length > 1
         ? `${originalRows.length} rows split across ${result.clusters.length} coherent rule clusters without a clear majority.`
-        : memorisationSummary(memorisation)
+        : absorbedIntoLookup.length
+          ? `${memorisationSummary(memorisation)} ${absorbedIntoLookup.length} row${absorbedIntoLookup.length === 1 ? "" : "s"} contradicted a near-fit rule but were not promoted to defects.`
+          : memorisationSummary(memorisation)
       : actualVerdict === "consistent"
         ? `${originalRows.length} rows followed one reusable deterministic rule.`
         : result.clusters?.length > 1

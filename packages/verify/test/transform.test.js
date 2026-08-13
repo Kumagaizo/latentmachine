@@ -71,4 +71,20 @@ assert.throws(
   /Unsafe regex extraction pattern/,
 );
 
+assert.throws(
+  () => transform({
+    rule: { program: { ops: [{ op: "constant", target: "$.value trailing", value: true }] } },
+    input: {},
+  }),
+  /Invalid object path/,
+);
+
+assert.throws(
+  () => transform({
+    rule: { program: { ops: [{ op: "unsupported", target: "$.value" }] } },
+    input: {},
+  }),
+  /Unsupported transform operation/,
+);
+
 console.log("transform.test.js passed");

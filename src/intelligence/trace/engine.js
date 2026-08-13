@@ -1,20 +1,7 @@
-const CELL_W = 16;
-const CELL_H = 11;
-const GAP_X = 5;
-const GAP_Y = 5;
-const PAD = 11;
-const LABEL_H = 13;
-const SIBLING_GAP = 16;
-
 const MAX_TABLE_ROWS = 300;
 const MAX_PRIMITIVE_CELLS = 1024;
 const MAX_TABLE_COLUMNS = 24;
 const MAX_REMOVED_CELLS = 200;
-const GLOBAL_CELL_SOFT_CAP = 7000;
-
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
 
 function valueType(value) {
   if (value === null || value === undefined) return "null";
@@ -275,7 +262,6 @@ const V2_SECTION_GAP = 32;
 const V2_CHART_H = 46;
 const V2_BAR_W = 3;
 const V2_BAR_GAP = 2;
-const V2_TEXT_W = 5.7;
 const V2_MAX_INLINE_ITEMS = 10;
 
 function v2TextWidth(text = "", size = 10) {

@@ -271,7 +271,7 @@ function applyOp(op, input) {
     }
     return result;
   }
-  return undefined;
+  throw new Error(`Unsupported transform operation ${JSON.stringify(op?.op)}.`);
 }
 
 export function runtimeWarnings(program, input) {

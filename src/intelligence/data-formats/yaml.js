@@ -5,6 +5,7 @@ import {
   stringify as stringifyYaml,
 } from "../../vendor/yaml/index.js";
 import { assertSafeObjectKey, assertSafeParsedValue } from "./safety.js";
+import { normalizeLineEndings } from "./shared.js";
 
 const MAX_YAML_SIZE = 1_000_000;
 const YAML_PARSE_OPTIONS = {
@@ -29,10 +30,6 @@ const YAML_STRINGIFY_OPTIONS = {
   nullStr: "null",
 };
 const YAML_AMBIGUOUS_STRING_RE = /^(?:[-+]?\.inf|\.nan|[-+]?(?:0|[1-9]\d*)(?:\.\d+)?(?:e[-+]?\d+)?|0o[0-7]+|0x[0-9a-f]+|0b[01]+|0[0-9]+|\d{4}-\d{2}-\d{2}(?:[tT ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[-+]\d{2}:?\d{2})?)?|y|Y|yes|Yes|YES|n|N|no|No|NO|true|True|TRUE|false|False|FALSE|on|On|ON|off|Off|OFF|null|Null|NULL|~)$/i;
-
-function normalizeLineEndings(text) {
-  return String(text ?? "").replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-}
 
 function isPlainObjectOrArray(value) {
   return !!value && typeof value === "object";

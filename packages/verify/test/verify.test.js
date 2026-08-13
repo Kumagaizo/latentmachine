@@ -121,6 +121,70 @@ import { compactVerificationResult, SECURITY_LIMITS, verify } from "../src/index
 }
 
 {
+  const first = ["Anna", "Bernd", "Clara", "Dieter", "Eva", "Franz", "Greta", "Hans", "Ilse", "Jens"];
+  const last = ["Meier", "Schulz", "Weber", "Kunz", "Bauer", "Roth", "Lang", "Fuchs", "Vogel", "Krause"];
+  const build = (count, badIndices) => {
+    const original = [];
+    const transformed = [];
+    for (let index = 0; index < count; index += 1) {
+      const firstName = first[index % 10];
+      const lastName = last[(index * 3) % 10];
+      original.push({ id: index + 1, first: firstName, last: lastName });
+      transformed.push({
+        id: index + 1,
+        email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@corp.${badIndices.has(index) ? "com" : "de"}`,
+      });
+    }
+    return { original, transformed };
+  };
+
+  const singleDefect = build(100, new Set([50]));
+  const singleResult = verify(singleDefect);
+  assert.equal(singleResult.clusteringSkipped, true);
+  assert.deepEqual(singleResult.unexplained, []);
+  assert.ok(singleResult.unexplained.length + singleResult.matchedRows <= singleResult.totalRows);
+  const compactSingle = compactVerificationResult(singleResult, { flaggedRowLimit: 3 });
+  assert.equal(compactSingle.unexplainedRowCount, 0);
+
+  const absorbedIndices = Array.from({ length: 12 }, (_, index) => index * 7 + 3);
+  const absorbedResult = verify(build(200, new Set(absorbedIndices)));
+  assert.equal(absorbedResult.verdict, "unverifiable");
+  assert.deepEqual(absorbedResult.absorbedIntoLookup, absorbedIndices);
+  assert.equal(absorbedResult.flaggedRows.length, 0);
+  const compactAbsorbed = compactVerificationResult(absorbedResult, { flaggedRowLimit: 3 });
+  assert.deepEqual(compactAbsorbed.absorbedIntoLookup, absorbedIndices.slice(0, 3));
+  assert.equal(compactAbsorbed.absorbedIntoLookupCount, 12);
+}
+
+{
+  const first = ["Anna", "Bernd", "Clara", "Dieter", "Eva", "Franz", "Greta", "Hans", "Ilse", "Jens"];
+  const last = ["Meier", "Schulz", "Weber", "Kunz", "Bauer", "Roth", "Lang", "Fuchs", "Vogel", "Krause"];
+  for (let poison = 5; poison <= 95; poison += 5) {
+    const original = [];
+    const transformed = [];
+    for (let index = 0; index < 200; index += 1) {
+      const firstName = first[index % 10];
+      const lastName = last[(index * 7) % 10];
+      original.push({ id: index + 1, first: firstName, last: lastName });
+      transformed.push({
+        id: index + 1,
+        full_name: index % 100 < poison ? `${firstName} ${lastName.toUpperCase()}` : `${firstName} ${lastName}`,
+      });
+    }
+    const result = verify({ original, transformed });
+    if (result.clusters.length > 1) {
+      assert.ok(result.clusters[0].share >= result.clusters[1].share, `cluster order at ${poison}%`);
+      assert.equal(result.clusters[0].label, "Rule 1");
+    }
+    if (poison === 35) {
+      assert.equal(result.verdict, "inconsistent");
+      assert.equal(result.matchedRows, 130);
+      assert.equal(result.clusters[0].support, 130);
+    }
+  }
+}
+
+{
   const original = Array.from({ length: 5 }, (_, index) => ({ id: index + 1, date: `2026-01-0${index + 1}` }));
   const transformed = original.map(row => ({ ...row }));
   for (const index of [3, 4]) {

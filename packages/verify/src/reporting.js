@@ -41,6 +41,7 @@ export function compactVerificationResult(result, { flaggedRowLimit = DEFAULT_FL
   const limit = Math.max(0, Math.min(MAX_FLAGGED_ROW_LIMIT, requestedLimit));
   const flaggedRows = result.flaggedRows || [];
   const unexplained = result.unexplained || [];
+  const absorbedIntoLookup = result.absorbedIntoLookup || [];
   return {
     ...result,
     flaggedRows: flaggedRows.slice(0, limit),
@@ -50,7 +51,10 @@ export function compactVerificationResult(result, { flaggedRowLimit = DEFAULT_FL
     unexplained: unexplained.slice(0, limit),
     unexplainedRowCount: unexplained.length,
     omittedUnexplainedRows: Math.max(0, unexplained.length - limit),
+    absorbedIntoLookup: absorbedIntoLookup.slice(0, limit),
+    absorbedIntoLookupCount: absorbedIntoLookup.length,
+    omittedAbsorbedIntoLookup: Math.max(0, absorbedIntoLookup.length - limit),
     rule: compactRuleArtifact(result.rule),
-    note: "Flagged and unexplained row details are capped. Lookup table bodies are omitted from this diagnostic response; counts cover the complete rule.",
+    note: "Flagged, unexplained, and lookup-absorbed row details are capped. Absorbed rows contradicted a near-fit rule but are not hard defect claims. Lookup table bodies are omitted; counts cover the complete rule.",
   };
 }

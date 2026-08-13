@@ -18,6 +18,8 @@ import {
 } from "../src/intelligence/contracts/index.js";
 import { SECURITY_LIMITS, assertArrayLimit, assertSerializedLimit, assertTextLimit } from "../packages/verify/src/limits.js";
 import { compactVerificationResult } from "../packages/verify/src/reporting.js";
+import { inspectJsonPrecision } from "../packages/verify/src/precision.js";
+import { annotateStructuralDiffHazards } from "../packages/verify/src/render-hazards.js";
 import { memorisationSummary } from "../src/intelligence/json-transform/memorisation.js";
 import { INFERENCE_EXAMPLE_LIMIT } from "../src/intelligence/json-transform/program-builder.js";
 
@@ -94,6 +96,7 @@ export const TOOLS = [
       "Sparse optional fields are scoped to their source domain and may be unverifiable without flagging out-of-domain rows. " +
       "Coherent alternative rules are reported as additive clusters with privacy-safe path signatures, support, and share; equal splits are not reported as row-level defects. " +
       "Candidate inference uses at most 200 output-diverse examples, then validates every supplied row. " +
+      "Small or low-diversity batches can be unverifiable; an unverifiable verdict is not a clean-data result and more varied examples may be required. " +
       "Uses a deterministic symbolic engine, not an LLM.",
     inputSchema: {
       type: "object",
@@ -186,6 +189,7 @@ export const TOOLS = [
       "Compute a deterministic structural fingerprint of a dataset, or a structural diff between two datasets. " +
       "Same data always produces the same fingerprint: object key order is ignored and array order is significant. " +
       "Useful for asserting transformation stability, detecting config drift, or verifying agent output stability. " +
+      "Raw JSON integer literals beyond JavaScript's safe range are disclosed because parsed values may lose precision. " +
       "Non-cryptographic. Deterministic engine, not an LLM.",
     inputSchema: {
       type: "object",
@@ -416,6 +420,9 @@ export function handleVerify({ original, transformed, format = "auto", flagged_r
 
   const result = inferVerifyRule(originalRows, transformedRows);
   const memorisation = result.result?.rule?.memorisation || null;
+  const absorbedIntoLookup = memorisation?.maxRatio >= 1
+    ? [...new Set((memorisation.nearFits || []).flatMap(item => item.contradictingRows || []))].sort((a, b) => a - b)
+    : [];
   const unverifiableTargets = memorisation?.unverifiableTargets || memorisation?.memorisedTargets || [];
   const hasUnverifiableTargets = unverifiableTargets.length > 0;
   const verdict = result.verdict || (result.flagged.length
@@ -434,6 +441,8 @@ export function handleVerify({ original, transformed, format = "auto", flagged_r
     matchedRows: result.matched,
     clusters: result.clusters || [],
     unexplained: result.unexplained || [],
+    clusteringSkipped: !Array.isArray(result.unexplained),
+    absorbedIntoLookup,
     flaggedRows: result.flagged.map((flag) => ({
       index: flag.i,
       input: flag.input,
@@ -448,7 +457,9 @@ export function handleVerify({ original, transformed, format = "auto", flagged_r
     summary: verdict === "unverifiable"
       ? result.clusters?.length > 1
         ? `${originalRows.length} rows split across ${result.clusters.length} coherent rule clusters without a clear majority.`
-        : memorisationSummary(memorisation)
+        : absorbedIntoLookup.length
+          ? `${memorisationSummary(memorisation)} ${absorbedIntoLookup.length} row${absorbedIntoLookup.length === 1 ? "" : "s"} contradicted a near-fit rule but were not promoted to defects.`
+          : memorisationSummary(memorisation)
       : verdict === "consistent"
         ? `${originalRows.length} rows followed one reusable deterministic rule.`
         : result.clusters?.length > 1
@@ -504,13 +515,45 @@ function capList(items) {
       type: item.type,
       value: item.value,
       ...(item.typeChanged !== undefined ? { typeChanged: item.typeChanged } : {}),
+      ...(item.renderHazard ? {
+        renderHazard: item.renderHazard,
+        hazardSource: item.hazardSource,
+        securityRelevant: item.securityRelevant,
+        ...(item.pathEscaped ? { pathEscaped: item.pathEscaped } : {}),
+        ...(item.valueEscaped ? { valueEscaped: item.valueEscaped } : {}),
+        ...(item.beforeEscaped ? { beforeEscaped: item.beforeEscaped } : {}),
+        codepoints: item.codepoints,
+      } : {}),
     })),
     capped: items.length > DIFF_PATH_LIST_LIMIT,
     limit: DIFF_PATH_LIST_LIMIT,
   };
 }
 
+function fingerprintPrecision(data, compareTo, format = "auto") {
+  const inspect = value => {
+    if (typeof value !== "string") return null;
+    const resolved = format && format !== "auto" ? format : detectFormat(value);
+    return resolved === "json" ? inspectJsonPrecision(value) : null;
+  };
+  const inputs = {
+    data: inspect(data),
+    compareTo: inspect(compareTo),
+  };
+  const reports = Object.entries(inputs).filter(([, report]) => report);
+  if (!reports.length) return null;
+  const items = reports.flatMap(([input, report]) => report.items.map(item => ({ input, ...item })));
+  return {
+    unsafeIntegerLiterals: reports.reduce((sum, [, report]) => sum + report.unsafeIntegerLiterals, 0),
+    detail: "Raw JSON contains integer literals beyond IEEE 754's safe range. Parsed values may have lost precision before fingerprinting or comparison.",
+    paths: items.map(item => item.path).filter(Boolean),
+    items,
+    inputs: Object.fromEntries(reports),
+  };
+}
+
 export function handleFingerprint({ data, compare_to, format = "auto" }) {
+  const precision = fingerprintPrecision(data, compare_to, format);
   const left = parseToolData(data, "Data", format);
   const leftFingerprint = fingerprint(left);
   const profile = profileStructure(left);
@@ -519,12 +562,13 @@ export function handleFingerprint({ data, compare_to, format = "auto" }) {
     return {
       fingerprint: leftFingerprint,
       profile,
+      ...(precision ? { precision } : {}),
       nonCryptographic: true,
     };
   }
 
   const right = parseToolData(compare_to, "Compare data", format);
-  const diff = structuralDiff(left, right);
+  const diff = annotateStructuralDiffHazards(structuralDiff(left, right));
   return {
     fingerprint: leftFingerprint,
     profile,
@@ -533,6 +577,7 @@ export function handleFingerprint({ data, compare_to, format = "auto" }) {
     changed: capList(diff.changed),
     added: capList(diff.added),
     removed: capList(diff.removed),
+    ...(precision ? { precision } : {}),
     note: "Path lists are capped at 100 entries per class. Fingerprints and counts cover all data.",
     nonCryptographic: true,
   };

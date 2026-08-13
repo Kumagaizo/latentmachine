@@ -30,6 +30,13 @@ const cases = [
     expectedOutput: { name: "Ana", tags: ["a", "b", "c"] },
   },
   {
+    id: "summarizes-mixed-suggestions-with-readable-separator",
+    csv: "name,price,tags\nAna,12,\"a, b, c\"",
+    expectedSuggestions: ["$.price:coerce-number", "$.tags:split-array"],
+    expectedValuable: true,
+    expectedSummary: "1 type fix · 1 list field",
+  },
+  {
     id: "suppresses-identifiers-and-contact-fields",
     csv: "id,zip,phone\n001,10115,+49 30 123456",
     expectedSuggestions: [],
@@ -69,6 +76,10 @@ for (const test of cases) {
 
   if (actualValuable !== test.expectedValuable) {
     failures.push(`${test.id}: expected valuable=${test.expectedValuable}, got ${actualValuable}.`);
+  }
+
+  if (test.expectedSummary !== undefined && result.summary !== test.expectedSummary) {
+    failures.push(`${test.id}: expected summary ${JSON.stringify(test.expectedSummary)}, got ${JSON.stringify(result.summary)}.`);
   }
 
   if (test.expectedOutput) {

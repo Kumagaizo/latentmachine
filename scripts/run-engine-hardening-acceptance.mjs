@@ -60,6 +60,20 @@ const cases = [
     assert.equal(first, second);
     assert.equal(Object.isFrozen(first), true);
   }],
+  ["formatted paths round-trip escaped object keys", () => {
+    const parts = ["quoted\"key", "single'key", "back\\slash", 2];
+    const path = jsonTransformInternals.formatPath(parts);
+    assert.deepEqual(jsonTransformInternals.parsePath(path), parts);
+  }],
+  ["malformed paths and unknown operations fail closed", () => {
+    for (const path of ["garbage", "$.a garbage", "$.a..b", "$[not-json]"]) {
+      assert.throws(() => jsonTransformInternals.parsePath(path), /Invalid object path/);
+    }
+    assert.throws(
+      () => jsonTransformInternals.executeJsonTransform({ ops: [{ op: "unsupported", target: "$.value" }] }, {}),
+      /Unsupported transform operation/,
+    );
+  }],
   ["unenforced runtime budgets are not reported", () => {
     const transform = runJsonTransform({
       budgetMs: 1,

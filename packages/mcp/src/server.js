@@ -51,6 +51,7 @@ export const TOOLS = [
       "Paste the original records and the AI-generated output.",
       "Returns a capped diagnostic summary; sparse optional fields are scoped to their source domain and can be marked unverifiable without flagging out-of-domain rows.",
       "Candidate inference uses at most 200 output-diverse examples, then validates every supplied row.",
+      "Small or low-diversity batches can be unverifiable; an unverifiable verdict is not a clean-data result and more varied examples may be required.",
       "High-cardinality lookup bodies are never inlined.",
       "Text arguments are capped at 500,000 characters and the stdio JSON-RPC line at 1,000,000 characters; audited rich fixtures fit roughly 900 to 1,200 rows per call depending on schema width.",
       "Uses a deterministic symbolic engine, not an LLM.",
@@ -128,6 +129,7 @@ export const TOOLS = [
       "Compute a deterministic structural fingerprint of a dataset, or a structural diff between two datasets.",
       "Same data always produces the same fingerprint: object key order is ignored and array order is significant.",
       "Useful for asserting that a transformation preserved data, detecting drift between config versions, or verifying agent output stability.",
+      "Raw JSON integer literals beyond JavaScript's safe range are disclosed because parsed values may lose precision.",
       "Non-cryptographic. Deterministic engine, not an LLM.",
     ].join(" "),
     inputSchema: toolSchema({
@@ -278,9 +280,40 @@ function capList(items) {
       type: item.type,
       value: item.value,
       ...(item.typeChanged !== undefined ? { typeChanged: item.typeChanged } : {}),
+      ...(item.renderHazard ? {
+        renderHazard: item.renderHazard,
+        hazardSource: item.hazardSource,
+        securityRelevant: item.securityRelevant,
+        ...(item.pathEscaped ? { pathEscaped: item.pathEscaped } : {}),
+        ...(item.valueEscaped ? { valueEscaped: item.valueEscaped } : {}),
+        ...(item.beforeEscaped ? { beforeEscaped: item.beforeEscaped } : {}),
+        codepoints: item.codepoints,
+      } : {}),
     })),
     capped: items.length > DIFF_PATH_LIST_LIMIT,
     limit: DIFF_PATH_LIST_LIMIT,
+  };
+}
+
+function fingerprintPrecision(data, compareTo, format, runtime) {
+  const inspect = value => {
+    if (typeof value !== "string") return null;
+    const resolved = format && format !== "auto" ? format : runtime.detectFormat(value);
+    return resolved === "json" ? runtime.inspectJsonPrecision(value) : null;
+  };
+  const inputs = {
+    data: inspect(data),
+    compareTo: inspect(compareTo),
+  };
+  const reports = Object.entries(inputs).filter(([, report]) => report);
+  if (!reports.length) return null;
+  const items = reports.flatMap(([input, report]) => report.items.map(item => ({ input, ...item })));
+  return {
+    unsafeIntegerLiterals: reports.reduce((sum, [, report]) => sum + report.unsafeIntegerLiterals, 0),
+    detail: "Raw JSON contains integer literals beyond IEEE 754's safe range. Parsed values may have lost precision before fingerprinting or comparison.",
+    paths: items.map(item => item.path).filter(Boolean),
+    items,
+    inputs: Object.fromEntries(reports),
   };
 }
 
@@ -392,6 +425,7 @@ async function callTool(name, args = {}) {
   }
 
   if (name === "fingerprint_data") {
+    const precision = fingerprintPrecision(args.data, args.compare_to, args.format || "auto", runtime);
     const left = parseStructured(args.data, "Data", args.format, runtime);
     const leftFingerprint = runtime.fingerprint(left);
     const profile = runtime.profileStructure(left);
@@ -399,12 +433,13 @@ async function callTool(name, args = {}) {
       return {
         fingerprint: leftFingerprint,
         profile,
+        ...(precision ? { precision } : {}),
         nonCryptographic: true,
       };
     }
 
     const right = parseStructured(args.compare_to, "Compare data", args.format, runtime);
-    const diff = runtime.structuralDiff(left, right);
+    const diff = runtime.annotateStructuralDiffHazards(runtime.structuralDiff(left, right));
     return {
       fingerprint: leftFingerprint,
       profile,
@@ -413,6 +448,7 @@ async function callTool(name, args = {}) {
       changed: capList(diff.changed),
       added: capList(diff.added),
       removed: capList(diff.removed),
+      ...(precision ? { precision } : {}),
       note: "Path lists are capped at 100 entries per class. Fingerprints and counts cover all data.",
       nonCryptographic: true,
     };

@@ -19,7 +19,6 @@ import {
 } from "../intelligence/data-formats/index.js";
 import {
   FILE_IMPORT_MAX_BYTES,
-  formatBytes,
   validateImportFile,
   validateImportText,
 } from "./file-import.js";

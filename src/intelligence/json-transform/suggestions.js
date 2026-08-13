@@ -166,7 +166,7 @@ export function suggestTransformations(input) {
 
   return {
     suggestions,
-    summary: parts.join(" Â· "),
+    summary: parts.join(" · "),
     hasSuggestions: suggestions.length > 0,
   };
 }

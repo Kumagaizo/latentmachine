@@ -137,13 +137,12 @@ function clusterFrom(evaluated, examples, totalRows) {
     support: supportedRows.length,
     share: Number((supportedRows.length / totalRows).toFixed(4)),
     rowIndices: supportedRows,
+    fit: evaluated,
   };
 }
 
 function inferClusters(best, examples) {
-  if (best.result.status !== "safe" || isMemorised(best) || best.matched === 0) {
-    return { clusters: [], unexplained: examples.map(example => example.i) };
-  }
+  if (best.result.status !== "safe" || isMemorised(best) || best.matched === 0) return { clusters: [] };
 
   const totalRows = examples.length;
   const clusters = [clusterFrom(best, examples, totalRows)];
@@ -163,22 +162,23 @@ function inferClusters(best, examples) {
     remaining = remaining.filter(example => !supported.has(example.i));
   }
 
+  clusters.sort((a,b) => b.support-a.support);
   return { clusters, unexplained: remaining.map(example => example.i) };
 }
 
-export function inferVerifyRule(originalRows, transformedRows) {
-  const examples = originalRows.map((input, index) => ({ i: index, input, output: transformedRows[index] }));
+export function inferVerifyRule(originals, outputs) {
+  const examples = originals.map((input, index) => ({ i: index, input, output: outputs[index] }));
   const fullResult = runTransform({ examples });
   let best = evaluateResult(fullResult, examples);
 
-  const dominantReplayAlreadyFound = best.flagged.length > 0
-    && best.matched / originalRows.length >= 0.95;
-  const shouldSearchForOutlierRule = !dominantReplayAlreadyFound && (
+  const strongReplay = best.flagged.length > 0
+    && best.matched / originals.length >= 0.95;
+  const shouldSearch = !strongReplay && (
     ["unsafe", "ambiguous", "contradictory", "insufficient"].includes(fullResult.status)
     || fullResult.status === "unverified" && isMemorised(best)
-    || best.flagged.length === originalRows.length
+    || best.flagged.length === originals.length
   );
-  if (originalRows.length > 2 && originalRows.length <= 5000 && shouldSearchForOutlierRule) {
+  if (originals.length > 2 && originals.length <= 5000 && shouldSearch) {
     const dominantExamples = dominantRepeatedInputExamples(examples);
     if (dominantExamples) {
       const dominantCandidate = evaluateResult(runTransform({ examples: dominantExamples }), examples);
@@ -206,26 +206,28 @@ export function inferVerifyRule(originalRows, transformedRows) {
     }
   }
 
-  const clustered = inferClusters(best, examples);
-  const dominant = clustered.clusters[0] || null;
-  const coherentSplit = clustered.clusters.length > 1;
-  const hasDominantCluster = dominant && dominant.support > originalRows.length / 2;
+  const groups = inferClusters(best, examples);
+  const main = groups.clusters[0] || null;
+  const split = groups.clusters.length > 1;
+  const major = main && main.support > originals.length / 2;
 
-  if (coherentSplit && !hasDominantCluster) {
-    best = { ...best, flagged: [], matched: dominant.support };
+  if (major && main.fit !== best) best = evaluateResult(main.fit.result, examples);
+
+  if (split && !major) {
+    best = { ...best, flagged: [], matched: main.support };
   }
 
   return {
     ...best,
-    ...(coherentSplit && !hasDominantCluster ? { verdict: "unverifiable" } : {}),
-    clusters: clustered.clusters.map(({ rule, signature, support, share }, index) => ({
+    ...(split && !major ? { verdict: "unverifiable" } : {}),
+    clusters: groups.clusters.map(({ rule, signature, support, share }, index) => ({
       label: `Rule ${index + 1}`,
       rule,
       signature,
       support,
       share,
     })),
-    unexplained: clustered.unexplained,
+    unexplained: groups.unexplained,
     fullResult,
   };
 }

@@ -1,8 +1,5 @@
 import { assertSafeObjectKey } from "./safety.js";
-
-function normalizeLineEndings(text) {
-  return String(text ?? "").replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-}
+import { normalizeLineEndings } from "./shared.js";
 
 function envError(message) {
   return new Error(message || "could not parse input");

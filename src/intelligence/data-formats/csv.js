@@ -1,4 +1,5 @@
 import { assertSafeObjectKey } from "./safety.js";
+import { normalizeLineEndings } from "./shared.js";
 
 const DEFAULT_SEPARATOR = ",";
 const AUTO_SEPARATORS = [",", ";", "\t"];
@@ -6,10 +7,6 @@ const AUTO_SEPARATORS = [",", ";", "\t"];
 // NOTE: CLI-runtime copies of these helpers exist in json-transform/exporters.js
 // with a "cli" prefix. Keep behavior in sync when changing CSV parsing or
 // serialization here.
-
-function normalizeLineEndings(text) {
-  return String(text ?? "").replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-}
 
 function hasLeadingZeroNumber(text) {
   return /^[-+]?0\d+(\.\d+)?$/.test(text);

@@ -1,15 +1,12 @@
-import { runJsonTransform } from "../intelligence/json-transform/engine.js";
 import { executeJsonTransform, runtimeWarnings } from "../intelligence/json-transform/runtime.js";
 import { applySuggestions, hasValuableSuggestions, suggestTransformations } from "../intelligence/json-transform/suggestions.js";
 import { analyzeStructure } from "../intelligence/json-transform/analysis.js";
 import { detectFormat as detectDataFormat, detectUnsupportedFormat, formatLabel as dataFormatLabel, FORMATS, FORMAT_ORDER, parseWithFormat, serializeWithFormat } from "../intelligence/data-formats/index.js";
 import { generateCLIExport, generateJavaScriptTransform, generateMakeCode, generateN8nCode, generatePlainFunction } from "../intelligence/json-transform/exporters.js";
-import { explainOp } from "../intelligence/json-transform/explain.js";
 import { DEFAULT_JSON_TRANSFORM_SAMPLE_ID, JSON_TRANSFORM_SAMPLE_GROUPS, JSON_TRANSFORM_SAMPLES } from "../intelligence/json-transform/samples.js";
 import { buildTransformTask, runBuiltTransform, runTransform } from "../intelligence/json-transform/translator.js";
 import { FILE_IMPORT_MAX_BYTES, formatBytes, unsafeTextReason, validateImportFile } from "./file-import.js";
-import { opSources } from "../intelligence/json-transform/shared.js";
-import { esc, inlineCodeHtml, plural } from "./shared.js";
+import { esc, plural } from "./shared.js";
 import { copyText as writeClipboardText, shareUrlForState, sharedStateFromLocation } from "./share-state.js";
 import { createRenderHelpers } from "./render-helpers.js";
 
@@ -571,17 +568,6 @@ function parseTask() {
   };
 }
 
-function parseTaskWithNewInput(newInput) {
-  return {
-    examples: completedExamples().map(example => ({
-      input: JSON.parse(example.input),
-      output: JSON.parse(example.output),
-      correction: example.correction,
-    })),
-    newInput,
-  };
-}
-
 function isPlainObject(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
@@ -727,104 +713,6 @@ function startBatchJob({ key, items, result, program, started }) {
   state.batchJob = job;
   batchTimer = window.setTimeout(() => runBatchChunk(job), 0);
   return batchProgressEvaluation(job);
-}
-
-function evaluateBatch(items, started) {
-  const key = batchInputKey();
-  if (state.batchJob?.key === key) {
-    const job = state.batchJob;
-    if (job.status === "complete") {
-      return {
-        result: job.result,
-        error: null,
-        durationMs: job.durationMs,
-        batch: true,
-        batchResults: job.batchResults,
-        batchSummary: job.batchSummary,
-      };
-    }
-    return batchProgressEvaluation(job);
-  }
-
-  if (!items.length) {
-    return {
-      result: null,
-      error: null,
-      durationMs: performance.now() - started,
-      batch: true,
-      batchResults: null,
-      batchSummary: {
-        total: 0,
-        status: "invalid",
-        message: "Batch input is empty. Paste an array with at least one object.",
-      },
-    };
-  }
-
-  const invalid = invalidBatchItems(items);
-  if (invalid.length) {
-    const positions = invalid.slice(0, 8).map(item => `${item.index} (${item.type})`).join(", ");
-    const suffix = invalid.length > 8 ? `, and ${invalid.length - 8} more` : "";
-    return {
-      result: null,
-      error: null,
-      durationMs: performance.now() - started,
-      batch: true,
-      batchResults: null,
-      batchSummary: {
-        total: items.length,
-        status: "invalid",
-        message: `Array items must be objects. Found non-object items at positions ${positions}${suffix}.`,
-      },
-    };
-  }
-
-  if (items.length > MAX_BATCH) {
-    return {
-      result: null,
-      error: null,
-      durationMs: performance.now() - started,
-      batch: true,
-      batchResults: null,
-      batchSummary: {
-        total: items.length,
-        status: "too-large",
-        message: `Batch limited to ${MAX_BATCH.toLocaleString()} records. Split the input and run it in parts.`,
-      },
-    };
-  }
-
-  const ruleResult = runJsonTransform(parseTaskWithNewInput(items[0]));
-  if (ruleResult.status !== "safe") {
-    return {
-      result: ruleResult,
-      error: null,
-      durationMs: performance.now() - started,
-      batch: true,
-      batchResults: null,
-      batchSummary: {
-        total: items.length,
-        status: ruleResult.status,
-        message: "Rule needs review. Resolve the diagnosis before running the batch.",
-      },
-    };
-  }
-
-  const program = ruleResult.rule?.program || { ops: [] };
-  if (items.length > MAX_INSTANT_BATCH) {
-    return startBatchJob({ key, items, result: ruleResult, program, started });
-  }
-
-  const batchResults = items.map((item, index) => runBatchItem(program, item, index));
-  state.batchProgress = null;
-  return {
-    result: ruleResult,
-    error: null,
-    durationMs: performance.now() - started,
-    batch: true,
-    batchResults,
-    batchSummary: finalBatchSummary(items.length, batchResults),
-  };
 }
 
 function evaluateTransformBatch(items, ruleResult, started) {

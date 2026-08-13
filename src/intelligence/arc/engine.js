@@ -148,7 +148,6 @@ function bestMatch(src, candidates) {
 // ── Relations ───────────────────────────────────────────────────────────
 
 const DIR_RELS = new Set(["above", "below", "leftOf", "rightOf", "inside", "contains"]);
-const SYM_RELS = new Set(["sameColor", "sameShape", "alignedRow", "alignedCol", "touching"]);
 
 function containsBBox(a, b) {
   return a.bbox.mnR <= b.bbox.mnR && a.bbox.mxR >= b.bbox.mxR && a.bbox.mnC <= b.bbox.mnC && a.bbox.mxC >= b.bbox.mxC;
@@ -535,7 +534,6 @@ function specPenalty(ast) {
 const pN = (name, ...args) => ({ type: "primitive", name, args });
 const seq = (...steps) => { const f = steps.flatMap(s => s.type === "sequence" ? s.steps : [s]); return f.length === 1 ? f[0] : { type: "sequence", steps: f }; };
 const objOp = (selector, op) => ({ type: "objectOp", selector, op });
-const mapOp = (selector, op) => ({ type: "mapObjects", selector, op });
 
 function primitiveBg(grid, bgOverride = null) {
   if (bgOverride !== null) return bgOverride;
