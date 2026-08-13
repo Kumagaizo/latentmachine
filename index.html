@@ -229,17 +229,23 @@ Every shown output follows the same rule.</code>
                   <div class="demo-panel">
                     <p>Original records · JSON</p>
                     <pre>[
-  { "id": 1, "status": "active" },
-  { "id": 2, "status": "active" },
-  { "id": 3, "status": "archived" }
+  { "id": 1,
+    "status": "active" },
+  { "id": 2,
+    "status": "active" },
+  { "id": 3,
+    "status": "archived" }
 ]</pre>
                   </div>
                   <div class="demo-panel">
                     <p>AI output · JSON</p>
                     <pre>[
-  { "id": 1, "enabled": true },
-  { "id": 2, "enabled": true },
-  { "id": 3, "enabled": true }
+  { "id": 1,
+    "enabled": true },
+  { "id": 2,
+    "enabled": true },
+  { "id": 3,
+    "enabled": true }
 ]</pre>
                   </div>
                 </div>
@@ -274,15 +280,21 @@ Rows 1–2 map active → true. Row 3 needs review.</code>
                   <div class="demo-panel">
                     <p>Input · 2 records</p>
                     <pre>[
-  { "id": "cus_42", "first": "Ada", "last": "Lovelace" },
-  { "id": "cus_71", "first": "Grace", "last": "Hopper" }
+  { "id": "cus_42",
+    "first": "Ada",
+    "last": "Lovelace" },
+  { "id": "cus_71",
+    "first": "Grace",
+    "last": "Hopper" }
 ]</pre>
                   </div>
                   <div class="demo-panel">
                     <p>Expected output · 2 records</p>
                     <pre>[
-  { "customerId": "cus_42", "fullName": "Ada Lovelace" },
-  { "customerId": "cus_71", "fullName": "Grace Hopper" }
+  { "customerId": "cus_42",
+    "fullName": "Ada Lovelace" },
+  { "customerId": "cus_71",
+    "fullName": "Grace Hopper" }
 ]</pre>
                   </div>
                 </div>
