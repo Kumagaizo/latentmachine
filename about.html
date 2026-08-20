@@ -2,17 +2,17 @@
 <html lang="en">
   <head>
     <!--@partial:head-commons-->
-    <title>About Latentmachine | Verify AI Data Transformations</title>
-    <meta name="description" content="Latentmachine verifies AI data transformations, flags inconsistent rows, and infers deterministic rules from examples. JSON, XML, CSV, TOML, YAML, .env, and SQL INSERT input. No LLM. No server calls. Free." />
+    <title>About Latentmachine | Deterministic Data Tools</title>
+    <meta name="description" content="Deterministic tools to verify transformations, infer rules, profile data, find pattern breaks, and review contracts. Browser tools run locally. No LLM. Free." />
     <link rel="canonical" href="https://www.latentmachine.com/about" />
 
-    <meta property="og:title" content="About Latentmachine | Verify AI Data Transformations" />
-    <meta property="og:description" content="Check whether AI-transformed rows followed one rule, then infer deterministic fixes from examples. Deterministic, inspectable, private, and free." />
+    <meta property="og:title" content="About Latentmachine | Deterministic Data Tools" />
+    <meta property="og:description" content="Verify transformations, infer rules, profile data, find pattern breaks, and review contracts. Deterministic, local-first, and free." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.latentmachine.com/about" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="About Latentmachine | Verify AI Data Transformations" />
-    <meta name="twitter:description" content="Verify AI data transformations and infer deterministic rules from examples. No LLM. No server. Free." />
+    <meta name="twitter:title" content="About Latentmachine | Deterministic Data Tools" />
+    <meta name="twitter:description" content="Deterministic tools for understanding and governing data transformations. Local-first. No LLM. Free." />
 
     <script type="application/ld+json">
       {
@@ -22,7 +22,7 @@
         "url": "https://www.latentmachine.com/",
         "applicationCategory": "DeveloperApplication",
         "operatingSystem": "Web browser",
-        "description": "A browser-based suite of developer tools built on program synthesis: a consistency verifier for AI-transformed data, a rule inference tool, a regex builder, and a jq query generator. All deterministic, all client-side.",
+        "description": "Deterministic tools for verifying transformations, inferring rules, profiling data, finding pattern breaks, and reviewing contracts. Browser tools run locally; hosted MCP and HTTP are optional.",
         "featureList": [
           "Verify AI-transformed rows and flag records that break the inferred rule",
           "Infer data transformation rules from before-and-after examples",
@@ -32,8 +32,11 @@
           "Export JavaScript, n8n code, Make.com code, and standalone CLI tools",
           "Build regular expressions from match and reject examples",
           "Build jq queries by clicking JSON values or showing desired output",
-          "Run everything client-side in the browser with zero server calls",
-          "Expose the engine to AI agents as an MCP server"
+          "Profile and compare structured datasets with Trace",
+          "Find source-linked pattern breaks and constraints with Signal",
+          "Review, approve, test, and run Transformation Contracts",
+          "Run browser tools locally with zero data-processing server calls",
+          "Expose the engine to AI agents through hosted MCP and HTTP"
         ],
         "offers": {
           "@type": "Offer",
@@ -52,7 +55,7 @@
             "name": "What is Latentmachine?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Latentmachine is a browser-based suite of developer tools for working with structured data. It verifies AI-transformed rows against one deterministic rule, infers rules from before-and-after examples, diagnoses ambiguity or contradictions, and exports code you own."
+              "text": "Latentmachine verifies transformations, infers rules, profiles data, finds source-linked pattern breaks, and turns reviewed rules into Transformation Contracts."
             }
           },
           {
@@ -76,7 +79,7 @@
             "name": "Is Latentmachine free?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. Latentmachine is free to use, requires no account, has no usage limit, and runs client-side in the browser with no server calls during use."
+              "text": "Yes. There is no account or usage limit. Browser tools process data locally; hosted MCP and HTTP access is optional."
             }
           },
           {
@@ -92,7 +95,7 @@
             "name": "Can AI agents use Latentmachine?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. Latentmachine exposes an MCP server, so MCP clients such as Claude Desktop, Claude Code, and Cursor can call the engine as tools and verify AI data transformations deterministically inside an agent workflow."
+              "text": "Yes. Compatible clients can call the deterministic engine through the hosted MCP and HTTP endpoint."
             }
           },
           {
@@ -117,17 +120,17 @@
         <h1>Check the data work. Keep the rule.</h1>
 
         <p>
-          Latentmachine is a browser-based suite of developer tools for working with structured data after AI, scripts, or humans have touched it. The core loop is simple: verify whether every transformed row followed one deterministic rule, then infer the rule you can inspect, reuse, or export when something needs to be fixed.
+          Latentmachine is a deterministic suite for data touched by AI, scripts, or humans. Verify the transformation, infer an inspectable rule, and review it as a Transformation Contract when it needs to become an enforced workflow. Trace, Signal, Regex, and jq provide closer inspection around that loop.
         </p>
 
         <p>
-          No language model. No server calls. No account. The entire engine runs in your browser, and the source ships unminified so you can read it in your developer tools.
+          No language model. No account. Browser tools run locally without uploading your data. Hosted MCP and HTTP access is available when you deliberately want remote integration.
         </p>
         <div class="stats">
           <div class="stat"><strong>800+</strong><span>checks before build</span></div>
           <div class="stat"><strong>0</strong><span>runtime dependencies</span></div>
           <div class="stat"><strong>&lt;10ms</strong><span>typical inference</span></div>
-          <div class="stat"><strong>100%</strong><span>client-side</span></div>
+          <div class="stat"><strong>100%</strong><span>browser processing stays local</span></div>
         </div>
 
         <hr class="divider" />
@@ -177,6 +180,18 @@
           Trace profiles unfamiliar structured data, explains its shape and patterns, surfaces evidence-backed observations, and compares record sets with safe single or compound keys. The insight-first experience is stable.
         </p>
         <a class="button is-primary" href="/trace">Open Trace</a>
+
+        <h3>Signal · Experimental</h3>
+        <p>
+          Signal finds repeated structures, local pattern breaks, constraints, failures, and warnings in long text. Every observation links back to its source line.
+        </p>
+        <a class="button is-primary" href="/signal">Open Signal</a>
+
+        <h3>Contract Studio · Preview</h3>
+        <p>
+          Contract Studio turns examples and an inferred program into a reviewable artifact. Challenge assumptions, add invariants, test behavior, approve an exact fingerprint, and run or check records locally.
+        </p>
+        <a class="button is-primary" href="/contract">Open Contract Studio</a>
 
         <hr class="divider" />
 
@@ -265,7 +280,7 @@ function transform(input) {
           The browser tools are the demonstration. The engine itself is a standalone, zero-dependency artifact that runs anywhere JavaScript runs. The <a href="/developers">developers page</a> documents the live MCP/HTTP endpoint and the implemented npm package, local MCP server, and CLI release targets.
         </p>
         <p>
-          The MCP surface is the interesting one. Point Claude Desktop, Claude Code, Cursor, or any other MCP client at <code>latentmachine.com/api/mcp</code> and Verify becomes a tool the agent can call on its own output — a deterministic check inside the loop, at the exact moment the AI has just transformed your data. No key, no account, no state.
+          Connect a client that supports remote HTTP MCP servers to <code>latentmachine.com/api/mcp</code> for a deterministic check inside an agent workflow. No key, account, or retained state.
         </p>
 
         <hr class="divider" />
@@ -292,18 +307,18 @@ function transform(input) {
           <strong>Honest.</strong> The engine would rather give you a warning you ignore than an output you should not trust. When the evidence is insufficient, it says so. When two rules tie, it reports both. When a value is unseen, it stops.
         </p>
         <p>
-          <strong>Private.</strong> There is no backend API, no database, no account system, and no analytics — not even the cookieless kind. The site makes zero measurement calls of any sort. The URL does not change when you paste data. Nothing leaves your machine unless you copy or export it. This is not a promise to take on faith: open the Network tab of your browser and watch.
+          <strong>Private by default.</strong> Browser tools do not send pasted data to a processing backend. There is no database, account system, analytics, or telemetry. Remote MCP and HTTP receive data only when called.
         </p>
         <p>
-          <strong>Free.</strong> No paywall, no usage limit, no feature gating. The engine and all four tools are free to use.
+          <strong>Free.</strong> No paywall, no usage limit, no feature gating. The browser tools and hosted endpoint are free to use.
         </p>
 
         <h2>Privacy</h2>
         <p>
-          Latentmachine runs in the browser. Your examples, inputs, outputs, and rules stay on your machine. There is no server-side processing step, no account system, and no telemetry of any kind — not on your data, not on your visit. This is not a policy — it is an architectural decision. The engine has zero runtime dependencies and makes zero network calls during use.
+          Browser tools keep examples, inputs, outputs, and rules on your machine. They have no server-side processing step, analytics, telemetry, or data-processing network calls. Remote processing happens only when you call the separate MCP and HTTP endpoint.
         </p>
         <p>
-          You can paste production data, real API keys, real customer records, and real financial payloads. None of it leaves your device. If the page is already loaded, you can disconnect from the internet and keep working.
+          Once loaded, the browser tools continue working offline. As with any browser workflow, avoid pasting secrets you do not need.
         </p>
 
         <h2>Built By</h2>
@@ -316,7 +331,7 @@ function transform(input) {
 
         <h2>Status</h2>
         <p>
-          Latentmachine is in active development. Verify, Infer, Regex, jq, and Trace are stable and free to use. Trace's existing fingerprint APIs remain compatible, while its insight-first product adds deterministic profiles, evidence, sampling, and safe keyed comparison. The engine supports JSON, XML, CSV, TOML, YAML, .env, and SQL INSERT, tested by a benchmark and acceptance suite that gates every deploy. The same engine runs outside the browser too: the <a href="/developers">developers page</a> covers the live MCP/HTTP endpoint plus the implemented npm package, local MCP server, and CLI release targets. A detailed <a href="/case-study">case study</a> covers the design decisions. Technical notes are published in the <a href="/latentlog">Latentlog</a>.
+          Verify, Infer, Regex, jq, and Trace are stable. Signal is experimental; Contract Studio is in preview. The benchmark and acceptance suite gates every deploy. The <a href="/developers">developers page</a> covers live MCP/HTTP access and the npm, local MCP, and CLI release targets. Read the <a href="/case-study">case study</a> or <a href="/latentlog">Latentlog</a> for more.
         </p>
         </article>
       </div>

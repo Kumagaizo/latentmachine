@@ -180,11 +180,11 @@
 
           <p>Evidence adjustments are allowed to break ties within a cost band but cannot override the structural ordering. This is enforced by a cap (<code>COST_ADJUSTMENT_CAP</code>) that bounds the total adjustment to less than the gap between adjacent cost priors. The engine can prefer one copy over another based on path similarity, but it cannot make a lookup look simpler than a copy. The constraint prevents the evidence from rewriting the architecture's assumptions.</p>
 
-          <h2>One engine, four tools</h2>
+          <h2>One engine, a growing toolset</h2>
 
-          <p>Verify, Infer, Regex, and jq all share the same intelligence layer. The engine is cleanly separated from the UI: pure functions that take examples and return rule artifacts, with no DOM coupling. Each tool composes the engine differently — Verify uses it to audit a batch, Infer teaches it with examples, Regex uses a different synthesis path for patterns, and jq turns selected or example-shaped JSON into verified query expressions — but the contracts, the benchmark system, and the cost model are shared.</p>
+          <p>Verify, Infer, Regex, and jq established the original synthesis layer: pure functions turn evidence into inspectable artifacts without DOM coupling. Trace, Signal, and Contract Studio have since extended the deterministic architecture into profiling, source-linked attention, and governed transformation workflows.</p>
 
-          <svg viewBox="0 0 680 172" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture diagram showing four tools sharing one intelligence engine" style="width:100%;max-width:680px;display:block;margin:8px 0 4px">
+          <svg viewBox="0 0 680 172" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture diagram showing the four original synthesis tools sharing one intelligence layer" style="width:100%;max-width:680px;display:block;margin:8px 0 4px">
             <style>
               .cs-mono { font-family: 'Martian Mono', monospace; }
               .cs-ui { font-family: 'Stack Sans Text', system-ui, sans-serif; }
@@ -214,10 +214,10 @@
             <line x1="340" y1="68" x2="340" y2="78" style="stroke:var(--text-tertiary);stroke-width:1"/>
             <line x1="340" y1="68" x2="582" y2="68" style="stroke:var(--text-tertiary);stroke-width:1"/>
             <!-- annotation -->
-            <text x="340" y="164" text-anchor="middle" class="cs-ui" style="fill:var(--text-tertiary);font-size:8.5px;font-style:italic">Each tool composes the engine differently. The honesty model is inherited, not reimplemented.</text>
+            <text x="340" y="164" text-anchor="middle" class="cs-ui" style="fill:var(--text-tertiary);font-size:8.5px;font-style:italic">The original synthesis surfaces compose one shared intelligence layer.</text>
           </svg>
 
-          <p>The architectural benefit is consistency: every tool inherits the honesty model and the evidence system without reimplementing them. The portfolio benefit is different: having four tools that share one engine demonstrates that the architecture generalizes. It is easy to build one tool well. It is harder to build a platform that supports multiple tools without the abstraction leaking. The tool contract system — a shared lifecycle with explicit states, benchmark assertions, and versioned schemas — is what makes this work.</p>
+          <p>The benefit is consistency: each product inherits deterministic contracts, evidence conventions, and benchmark discipline. A shared lifecycle with explicit states, benchmark assertions, and versioned schemas lets the toolset grow without weakening that architecture.</p>
 
           <h2>The engine leaves the browser</h2>
 

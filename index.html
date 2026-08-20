@@ -101,6 +101,16 @@
               "url": "https://www.latentmachine.com/signal",
               "description": "Inspect logs, reports, and specifications for repeated structures, local pattern breaks, concrete constraints, exceptions, failures, and warnings."
             }
+          },
+          {
+            "@type": "ListItem",
+            "position": 7,
+            "item": {
+              "@type": "SoftwareApplication",
+              "name": "Contract Studio",
+              "url": "https://www.latentmachine.com/contract",
+              "description": "Review, challenge, approve, test, and run deterministic Transformation Contracts in the browser."
+            }
           }
         ]
       }
@@ -141,7 +151,7 @@
               <div class="demo-window">
                 <div class="demo-bar">
                   <span>Verify demo</span>
-                  <span class="demo-status" id="demo-status" aria-live="polite">Rule verified</span>
+                  <span class="demo-status is-safe" id="demo-status" aria-live="polite">Rule verified</span>
                   <span>examples &rarr; rule &rarr; proof</span>
                 </div>
                 <div class="demo-grid">
@@ -176,6 +186,8 @@ Every shown output follows the same rule.</code>
               </div>
             </div>
           </section>
+
+          <div class="latent-field latent-field--hero" aria-hidden="true"></div>
 
           <section class="workflow-section band--alt" id="how-it-works" aria-labelledby="workflow-title">
             <div class="workflow-intro">
@@ -274,7 +286,7 @@ Rows 1–2 map active → true. Row 3 needs review.</code>
               <div class="demo-window">
                 <div class="demo-bar">
                   <span>Infer</span>
-                  <span class="demo-status">Safe</span>
+                  <span class="demo-status is-safe">Safe</span>
                 </div>
                 <div class="demo-grid">
                   <div class="demo-panel">
@@ -302,7 +314,7 @@ Rows 1–2 map active → true. Row 3 needs review.</code>
                   <span>Rule</span>
                   <code>Set customerId from id.
 Join first and last into fullName.</code>
-                  <span class="demo-status">Exact fit · 2 steps</span>
+                  <span class="demo-status is-safe">Exact fit · 2 steps</span>
                 </div>
               </div>
             </div>
@@ -313,6 +325,7 @@ Join first and last into fullName.</code>
               <p class="section-label">Labs &amp; utilities</p>
               <h2 id="labs-title">Supporting tools for inspecting and expressing transformations.</h2>
               <p>Regex, jq, Trace, and Signal remain available when the Verify &rarr; Infer workflow needs a closer look.</p>
+              <p>When an inferred rule needs explicit review and approval, <a href="/contract">Contract Studio</a> carries it into a governed runtime workflow.</p>
             </header>
             <div class="utility-grid">
           <section class="feature-row utility-feature">
@@ -351,7 +364,7 @@ Join first and last into fullName.</code>
                 <div class="demo-rule">
                   <span>pattern</span>
                   <code>^\d{3}-\d{4}$</code>
-                  <span class="demo-status">matches every yes · rejects every no</span>
+                  <span class="demo-status is-safe">matches every yes · rejects every no</span>
                 </div>
               </div>
             </div>
@@ -389,7 +402,7 @@ Join first and last into fullName.</code>
                     <p>jq</p>
                     <pre>.users[]
 | .email</pre>
-                    <span class="demo-status">returns selected values</span>
+                    <span class="demo-status is-safe">returns selected values</span>
                   </div>
                 </div>
                 <div class="demo-rule">
@@ -464,7 +477,7 @@ Join first and last into fullName.</code>
                   </div>
                 </div>
                 <div class="trace-preview-foot">
-                  <span class="demo-status">Worth a look</span>
+                  <span class="demo-status is-safe">Worth a look</span>
                   <code>Evidence linked to field and record</code>
                   <small>local · no upload</small>
                 </div>
@@ -516,7 +529,7 @@ Join first and last into fullName.</code>
               <p>Same input, same rule. Every check can be replayed.</p>
             </div>
             <div>
-              <p class="section-label">Client-side</p>
+              <p class="section-label">Browser tools · Client-side</p>
               <p>Your data stays in the browser. Nothing is uploaded.</p>
             </div>
             <div>
@@ -525,6 +538,8 @@ Join first and last into fullName.</code>
             </div>
           </section>
 
+          <div class="latent-field latent-field--trust" aria-hidden="true"></div>
+
           <section class="honesty-strip honesty-strip--dev" aria-label="Developer interfaces">
             <div>
               <p class="section-label">Browser</p>
@@ -532,11 +547,11 @@ Join first and last into fullName.</code>
             </div>
             <div>
               <p class="section-label">CLI &amp; CI</p>
-              <p>The prepared CLI checks a batch and exits 0 or 1.</p>
+              <p>Prepared release target. Batch verification exits 0 or 1.</p>
             </div>
             <div>
               <p class="section-label">MCP</p>
-              <p>Point any MCP client at latentmachine.com/api/mcp. Verify becomes a tool your agent can call.</p>
+              <p>Connect a client with remote HTTP MCP support to latentmachine.com/api/mcp.</p>
             </div>
             <div>
               <p class="section-label">HTTP</p>

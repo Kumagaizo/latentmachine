@@ -28,10 +28,10 @@
           },
           {
             "@type": "Question",
-            "name": "How do I connect Latentmachine to Claude Desktop?",
+            "name": "How do I connect Latentmachine to an MCP client?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Add latentmachine.com/api/mcp as a remote MCP server in your Claude Desktop config. The local @latentmachine/mcp server is implemented and prepared for npm publishing after @latentmachine/verify."
+              "text": "Use latentmachine.com/api/mcp in a client that supports remote HTTP MCP servers. Client-specific setup varies. The local @latentmachine/mcp server is implemented and prepared for npm publishing after @latentmachine/verify."
             }
           },
           {
@@ -64,9 +64,6 @@
           <h1>Bring deterministic verification into your workflow.</h1>
 
           <p>
-            Reusable percentage rules expose their rounding mode and evaluation order in each <code>numericFormula</code> step. Signed magnitude and zero-comparison rules require evidence on both sides of zero. Global <code>stringReplace</code> steps are limited to identifier-like fields and literal delimiters proven by repeated occurrences in the examples.
-          </p>
-          <p>
             Use <a href="/verify">Verify</a> to check an AI-transformed batch and
             <a href="/infer">Infer</a> to turn validated examples into a reusable rule. For
             repositories, CI pipelines, scripts, and agents, the same deterministic engine is
@@ -74,7 +71,7 @@
             and CLI are implemented in the repo and clearly labeled below as release targets.
           </p>
           <p>
-            All four interfaces run the same deterministic program synthesis engine. No LLM.
+            Every interface runs the same deterministic program synthesis engine. No LLM.
             Same input, same rule, same result.
           </p>
           <div class="format-diagnostic is-neutral">
@@ -158,6 +155,11 @@ const output = transform({
 
 console.log(output);
 // { name: "Clara Diaz" }</code></pre>
+
+          <h3>Inference guardrails</h3>
+          <p>
+            Reusable percentage rules expose their rounding mode and evaluation order in each <code>numericFormula</code> step. Signed magnitude and zero-comparison rules require evidence on both sides of zero. Global <code>stringReplace</code> steps are limited to identifier-like fields and literal delimiters proven by repeated occurrences in the examples.
+          </p>
 
           <h3>Learn and enforce a Transformation Contract</h3>
           <p>

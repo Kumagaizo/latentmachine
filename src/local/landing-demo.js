@@ -230,5 +230,44 @@ function initializeFeatureEli5() {
   });
 }
 
+const fieldWave = value => (Math.sin(value) + 1) / 2;
+const fieldWidthPlans = [
+  [[0.65, 0.23, 0, 1.7, 4.25, 0.067, 1.4, 3, 1.15], [0.72, 0.17, 1.8, 1.45, 3.75, 0.041, 2.5, 4, 1.45]],
+  [[0.78, 0.115, 2.1, 2, 3.75, 0.31, 0, 3, 1.35], [0.64, 0.285, 0.6, 1.8, 4.1, 0.052, 1.1, 2.5, 0.95]],
+];
+const fieldPx = value => `${value.toFixed(2)}px`;
+
+function fieldWidth(index, fieldIndex, half) {
+  const p = fieldWidthPlans[fieldIndex % 2][half];
+  return Math.min(6.4,
+    p[0] + fieldWave(index * p[1] + p[2]) ** p[3] * p[4]
+    + fieldWave(index * p[5] + p[6]) ** p[7] * p[8]);
+}
+
+function renderLatentField(root, field) {
+  const count = Math.max(72, Math.ceil((root.getBoundingClientRect().width || innerWidth) / 7));
+  const lines = document.createDocumentFragment();
+
+  for (let index = 0; index < count; index += 1) {
+    const line = document.createElement("i");
+    const region = fieldWave(index * 0.062 + field * 1.7);
+    const counter = fieldWave(index * 0.081 + field * 0.8 + 2.2);
+    const topTravel = (region - 0.5) * 6;
+    const bottomTravel = (counter - 0.5) * 7;
+    const duration = field % 2 === 0 ? 7.2 : 8.4;
+    const delay = -(index / count) * 1.35 - field * 0.42;
+    line.className = "latent-field__line";
+    line.style.cssText = `--top-width:${fieldPx(fieldWidth(index, field, 0))};--bottom-width:${fieldPx(fieldWidth(index, field, 1))};--top-travel:${fieldPx(topTravel)};--bottom-travel:${fieldPx(bottomTravel)};--top-scale-a:${(0.68 + region * 0.72).toFixed(3)};--top-scale-b:${(1.34 - counter * 0.54).toFixed(3)};--bottom-scale-a:${(1.38 - region * 0.62).toFixed(3)};--bottom-scale-b:${(0.7 + counter * 0.76).toFixed(3)};--phase-duration:${duration}s;--phase-delay:${delay.toFixed(3)}s`;
+    lines.append(line);
+  }
+  root.replaceChildren(lines);
+}
+
+function initializeLatentFields() {
+  const fields = Array.from(document.querySelectorAll(".latent-field"));
+  fields.forEach(renderLatentField);
+}
+
 initializeLandingDemo();
 initializeFeatureEli5();
+initializeLatentFields();
