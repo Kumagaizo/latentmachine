@@ -2606,7 +2606,7 @@ select.format-chip option,
   min-height: min(500px, calc(100vh - 180px));
 }
 
-.landing > .latent-field {
+.latent-field {
   position: relative;
   left: 50%;
   display: grid;
@@ -2745,12 +2745,19 @@ select.format-chip option,
   line-height: 1.6;
 }
 
-.landing .workflow-steps {
+.landing .workflow-steps,
+.landing .utility-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
-  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
   background: var(--border);
+}
+
+.landing .workflow-steps {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -2790,9 +2797,6 @@ select.format-chip option,
 .landing .hero-visual {
   width: 100%;
   color: var(--text-primary);
-}
-
-.landing .hero-visual {
   min-width: 0;
 }
 
@@ -3258,13 +3262,7 @@ select.format-chip option,
 }
 
 .landing .utility-grid {
-  display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--border);
 }
 
 .landing .utility-feature {
@@ -4734,7 +4732,7 @@ a.section-label:hover {
     gap: 28px;
   }
 
-  .landing > .latent-field {
+  .latent-field {
     height: 50svh;
   }
 
@@ -4942,17 +4940,17 @@ a.section-label:hover {
   }
 
   .site-menu .site-links {
-    position: absolute;
-    top: calc(100% + 8px);
+    position: fixed;
+    top: 49px;
     right: 0;
+    left: 0;
     z-index: 30;
     display: none;
-    min-width: 156px;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 0 0 8px 8px;
     background: var(--surface);
     box-shadow: var(--shadow);
-    padding: 6px;
+    padding: 8px;
   }
 
   .site-menu[open] .site-links {
@@ -4962,7 +4960,9 @@ a.section-label:hover {
 
   .site-menu .site-link {
     border-radius: 6px;
-    padding: 10px 12px;
+    padding: 13px 16px;
+    font-size: 1rem;
+    text-align: left;
   }
 
   .site-menu .theme-toggle {
