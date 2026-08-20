@@ -1,21 +1,4 @@
-/*
-  Latentmachine class vocabulary contract:
-  This is the complete class vocabulary. Do not introduce new class names for existing concepts.
-  New components are added here once, using :root tokens, and listed below.
-
-  Chrome: .page, .app-shell, .skip-link, .site-nav, .brand-bar, .brand-logo, .site-links, .site-links-desktop, .site-menu, .menu-toggle, .menu-line, .theme-toggle, .site-link, .site-footer, .footer-links, .section-label, .section-head, .tool-header, .tool-subhead
-  Content: .content-page, .article-list, .article-item, .article-item-date, .article-item-title, .article-item-description, .article-empty, .article-date, .stats, .stat, .divider
-  Inputs and controls: .editor, .editor-bar, .format-chip, .action-bar, .button, .icon-button, .empty-state, .tool-loading, .loading-mark, .pair-arrow, .file-import, .file-import-note, .format-note, .format-diagnostic
-  Results and diagnosis: .result-card, .result-head, .rule-section, .rule-lines, .rule-spec, .diagnosis-row, .diagnosis-summary, .status-pill, .status-badge, .test-section, .test-card, .suggestion-action
-  State modifiers: .is-safe, .is-warn, .is-danger, .is-neutral, .is-result, .is-muted-actions, .is-pending, .is-writing, .is-revealed, .is-visible
-  Landing-only classes: .landing, .landing-hero, .hero-copy, .hero-sub, .hero-actions, .hero-visual, .feature-row, .feature-row--reverse, .feature-copy, .feature-actions, .feature-eli5-toggle, .feature-eli5-text, .feature-visual, .demo-window, .demo-bar, .demo-core, .demo-footer, .demo-grid, .demo-panel, .demo-rule, .demo-status, .demo-rows, .demo-row, .demo-row-index, .demo-strip, .demo-chip-row, .demo-chip, .demo-tree, .trace-preview, .trace-preview-metrics, .trace-preview-metric, .trace-preview-body, .trace-preview-findings, .trace-preview-finding, .trace-preview-chart, .trace-preview-chart-head, .trace-preview-bars, .trace-preview-foot, .signal-preview, .signal-preview-summary, .signal-preview-lines, .signal-preview-evidence, .honesty-strip, .honesty-strip--dev, .article-intro, .band--alt
-  Verify-only classes: .verify-result, .verify-diagnosis, .verify-flagged-list, .verify-inputs, .verify-presets, .verify-verdict, .verify-row-preview, .verify-review-controls, .verify-review-nav, .verify-difference, .verify-difference-pills, .verify-scope
-  Regex-only classes: .example-rows, .example-row, .example-toggle, .capture-surface, .regex-output, .flavor-tabs, .match-preview
-  jq-only classes: .jq-page, .jq-samples, .jq-mode-row, .jq-mode-guide, .jq-mode-card, .jq-mode-description, .jq-selection-bar, .jq-share-row, .json-tree, .json-node, .node-selected, .jq-output, .jq-export-panel, .jq-export-grid, .query-tabs, .result-preview
-  Trace-only classes: .trace-page, .trace-product-header, .trace-mode, .trace-workbench, .trace-presets, .trace-input-grid, .trace-source, .trace-format-select, .trace-source-foot, .trace-drop-hint, .trace-settings, .trace-key-fields, .trace-runbar, .trace-result-shell, .trace-result-bar, .trace-tabs, .trace-result-actions, .trace-export-menu, .trace-result, .trace-source-summary, .trace-copy-id, .trace-overview, .trace-overview-hero, .trace-metrics, .trace-metric, .trace-section, .trace-section-head, .trace-insight-grid, .trace-insight, .trace-insight-heading, .trace-path, .trace-record-action, .trace-evidence, .trace-all-observations, .trace-portrait-grid, .trace-profile-card, .trace-spark, .trace-bars, .trace-search, .trace-filter-tools, .trace-column-picker, .trace-active-filter, .trace-field-layout, .trace-table-wrap, .trace-table, .trace-role, .trace-change, .trace-ignore-field, .trace-field-detail, .trace-detail-close, .trace-detail-actions, .trace-detail-metrics, .trace-detail-chart, .trace-examples, .trace-record-samples, .trace-record-detail, .trace-pagination, .trace-row-actions, .trace-structure-tools, .trace-structure, .trace-structure-row
-  Signal-only classes: .signal-page, .signal-product-header, .signal-presets, .signal-input-card, .signal-input-head, .signal-input-foot, .signal-settings, .signal-runbar, .signal-route-notice, .signal-route-actions, .signal-result-shell, .signal-result-head, .signal-overview, .signal-overview-copy, .signal-metrics, .signal-limitations, .signal-workspace, .signal-ledger, .signal-ledger-tools, .signal-filters, .signal-ledger-status, .signal-ledger-body, .signal-minimap, .signal-lines, .signal-line, .signal-pin, .signal-line-main, .signal-line-number, .signal-line-rail, .signal-line-content, .signal-line-meta, .signal-role, .signal-cluster, .signal-pagination, .signal-evidence-drawer, .signal-drawer-roles, .signal-confidence, .signal-score-components, .signal-related, .signal-uncertainty, .signal-pack, .signal-pack-grid, .signal-pack-options, .signal-pack-counts, .signal-review-check, .signal-pack-actions, .signal-pack-preview
-  Contract-only classes: .contract-page, .contract-product-header, .contract-local-status, .contract-progress, .contract-layout, .contract-workspace, .contract-summary, .contract-summary-fingerprint, .contract-notice, .contract-empty, .contract-empty-actions, .contract-stage, .contract-stage-head, .contract-stage-actions, .contract-status, .contract-examples, .contract-example, .contract-example-head, .contract-example-grid, .contract-evidence-actions, .contract-operation-list, .contract-operation, .contract-subsection, .contract-subsection-head, .contract-plain-list, .contract-muted, .contract-callout, .contract-next, .contract-challenge-grid, .contract-candidates, .contract-answer, .contract-challenge-actions, .contract-policy-choices, .contract-consequence, .contract-guardrail-groups, .contract-guardrail-group, .contract-guardrail, .contract-policy-field, .contract-mutation-summary, .contract-mutation-details, .contract-approval-grid, .contract-fingerprint, .contract-approval-actions, .contract-diff-list, .contract-runtime, .contract-mode, .contract-runtime-grid, .contract-runtime-runbar, .contract-runtime-result, .contract-runtime-verdict, .contract-runtime-totals, .contract-runtime-records, .contract-runtime-record, .contract-runtime-pair, .contract-runtime-actions
-*/
+/* Reuse root tokens and shared components before adding page-specific styles. */
 
 @font-face {
   font-family: "Stack Sans Text";
@@ -50,13 +33,13 @@
   /* Bright palette anchors; companion ink tones keep small text AA-readable. */
   --safe-accent: #2ec57a;
   --warn-accent: #c5a62e;
-  --danger-accent: #c52e5d;
+  --danger-accent: #be3446;
   --safe: #176f48;
   --safe-bg: rgba(46, 197, 122, 0.13);
   --warn: #6f590d;
   --warn-bg: rgba(197, 166, 46, 0.16);
-  --danger: #8f213f;
-  --danger-bg: rgba(197, 46, 93, 0.12);
+  --danger: #852936;
+  --danger-bg: rgba(190, 52, 70, 0.12);
   --editor-bg: var(--ink);
   --editor-bar-bg: var(--ink-soft);
   --editor-border: rgba(255, 255, 255, 0.08);
@@ -110,8 +93,8 @@
     --safe-bg: rgba(46, 197, 122, 0.3);
     --warn: #e1c25b;
     --warn-bg: rgba(197, 166, 46, 0.3);
-    --danger: #ed7898;
-    --danger-bg: rgba(197, 46, 93, 0.3);
+    --danger: #e1737f;
+    --danger-bg: rgba(190, 52, 70, 0.3);
     --scrollbar-thumb: rgba(255, 255, 255, 0.18);
     --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
@@ -146,8 +129,8 @@
   --safe-bg: rgba(46, 197, 122, 0.3);
   --warn: #e1c25b;
   --warn-bg: rgba(197, 166, 46, 0.3);
-  --danger: #ed7898;
-  --danger-bg: rgba(197, 46, 93, 0.3);
+  --danger: #e1737f;
+  --danger-bg: rgba(190, 52, 70, 0.3);
   --scrollbar-thumb: rgba(255, 255, 255, 0.18);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
@@ -282,6 +265,10 @@ a {
   gap: 18px;
   width: 100%;
   padding: 0 0 64px;
+}
+
+.page .app-shell > * {
+  min-width: 0;
 }
 
 .page {
@@ -1271,6 +1258,7 @@ a {
 }
 
 .editor {
+  min-width: 0;
   overflow: hidden;
   border: 1px solid var(--editor-border);
   border-radius: 8px;
@@ -1279,6 +1267,7 @@ a {
 }
 
 .editor-bar {
+  min-width: 0;
   min-height: 40px;
   border-bottom: 1px solid var(--editor-border);
   background: var(--editor-bar-bg);
@@ -2024,7 +2013,7 @@ select.format-chip option,
 
 .reasoning-hint {
   display: grid;
-  grid-template-columns: 18px 1fr;
+  grid-template-columns: 18px minmax(0, 1fr);
   gap: 10px;
   align-items: start;
   border: 1px solid var(--border);
@@ -2180,7 +2169,7 @@ select.format-chip option,
 
 .diagnosis-row {
   display: grid;
-  grid-template-columns: 16px 1fr;
+  grid-template-columns: 16px minmax(0, 1fr);
   gap: 8px;
   font-size: 0.76rem;
   line-height: 1.45;
@@ -4212,10 +4201,12 @@ a.section-label:hover {
 .verify-presets {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
 .verify-presets .format-chip {
+  min-width: 0;
   min-height: 32px;
   border-color: var(--border);
   background-color: var(--surface);
@@ -4456,12 +4447,14 @@ a.section-label:hover {
 }
 
 .verify-difference-pills code {
+  max-width: 100%;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface);
   padding: 3px 8px;
   color: var(--text-secondary);
   font-size: 0.6875rem;
+  overflow-wrap: anywhere;
 }
 
 .verify-failure-groups {
@@ -4742,7 +4735,7 @@ a.section-label:hover {
   }
 
   .landing > .latent-field {
-    height: 128px;
+    height: 50svh;
   }
 
   .landing .feature-row {
@@ -5045,7 +5038,7 @@ a.section-label:hover {
   }
 
   .verify-inputs {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .verify-actions {

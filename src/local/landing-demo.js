@@ -245,7 +245,8 @@ function fieldWidth(index, fieldIndex, half) {
 }
 
 function renderLatentField(root, field) {
-  const count = Math.max(72, Math.ceil((root.getBoundingClientRect().width || innerWidth) / 7));
+  const width = root.getBoundingClientRect().width || innerWidth;
+  const count = Math.ceil(width / (width <= 720 ? 8 : 7));
   const lines = document.createDocumentFragment();
 
   for (let index = 0; index < count; index += 1) {
@@ -266,6 +267,7 @@ function renderLatentField(root, field) {
 function initializeLatentFields() {
   const fields = Array.from(document.querySelectorAll(".latent-field"));
   fields.forEach(renderLatentField);
+  addEventListener("resize", () => fields.forEach(renderLatentField));
 }
 
 initializeLandingDemo();
