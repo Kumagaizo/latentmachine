@@ -43,11 +43,28 @@ const browserScriptEntries = [
 
 const canonicalOrigin = "https://www.latentmachine.com";
 // M6 adds the complete local Contract Studio and deterministic contract runtime.
+// The original limits include the first 40 generated Latentlog articles. Keep
+// that baseline strict while allowing bounded growth for newly published posts.
 const artifactBudgets = {
+  baselineArticleCount: 40,
   rawBytes: 2_900_000,
   gzipBytes: 850_000,
   brotliBytes: 720_000,
+  perAdditionalArticle: {
+    rawBytes: 32_000,
+    gzipBytes: 10_000,
+    brotliBytes: 8_000,
+  },
 };
+
+function artifactBudgetsFor(articleCount) {
+  const additionalArticles = Math.max(0, articleCount - artifactBudgets.baselineArticleCount);
+  return {
+    rawBytes: artifactBudgets.rawBytes + additionalArticles * artifactBudgets.perAdditionalArticle.rawBytes,
+    gzipBytes: artifactBudgets.gzipBytes + additionalArticles * artifactBudgets.perAdditionalArticle.gzipBytes,
+    brotliBytes: artifactBudgets.brotliBytes + additionalArticles * artifactBudgets.perAdditionalArticle.brotliBytes,
+  };
+}
 
 async function exists(relativePath) {
   await access(path.join(root, relativePath));
@@ -380,16 +397,19 @@ async function distArtifactSummary() {
   const totalBytes = rows.reduce((sum, row) => sum + row.bytes, 0);
   const totalGzipBytes = rows.reduce((sum, row) => sum + row.gzipBytes, 0);
   const totalBrotliBytes = rows.reduce((sum, row) => sum + row.brotliBytes, 0);
-  assert.ok(totalBytes <= artifactBudgets.rawBytes, `dist raw size ${totalBytes} exceeds ${artifactBudgets.rawBytes}`);
-  assert.ok(totalGzipBytes <= artifactBudgets.gzipBytes, `dist gzip size ${totalGzipBytes} exceeds ${artifactBudgets.gzipBytes}`);
-  assert.ok(totalBrotliBytes <= artifactBudgets.brotliBytes, `dist brotli size ${totalBrotliBytes} exceeds ${artifactBudgets.brotliBytes}`);
+  const articleCount = rows.filter(row => /^latentlog\/[^/]+\.html$/i.test(row.file)).length;
+  const budgets = artifactBudgetsFor(articleCount);
+  assert.ok(totalBytes <= budgets.rawBytes, `dist raw size ${totalBytes} exceeds ${budgets.rawBytes}`);
+  assert.ok(totalGzipBytes <= budgets.gzipBytes, `dist gzip size ${totalGzipBytes} exceeds ${budgets.gzipBytes}`);
+  assert.ok(totalBrotliBytes <= budgets.brotliBytes, `dist brotli size ${totalBrotliBytes} exceeds ${budgets.brotliBytes}`);
 
   return {
     files: rows.length,
+    articleCount,
     totalBytes,
     totalGzipBytes,
     totalBrotliBytes,
-    budgets: artifactBudgets,
+    budgets,
     largest: rows
       .sort((a, b) => b.bytes - a.bytes)
       .slice(0, 5),
